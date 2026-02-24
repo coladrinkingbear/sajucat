@@ -1,0 +1,344 @@
+import { useState, useEffect, useRef } from "react";
+
+// ============================================================
+// CatFace SVG (원본 그대로)
+// ============================================================
+function CatFace({size=80}){
+  return(
+    <svg width={size} height={size} viewBox="0 0 100 100" style={{display:'block',overflow:'visible',border:0,outline:0,margin:'0 auto',background:'none',WebkitTapHighlightColor:'transparent'}}>
+      <circle cx="50" cy="55" r="35" fill="#f0e6d0"/>
+      <polygon points="22,35 18,8 38,28" fill="#f0e6d0"/>
+      <polygon points="78,35 82,8 62,28" fill="#f0e6d0"/>
+      <polygon points="22,35 18,8 26,15" fill="#e8a0a0"/>
+      <polygon points="78,35 82,8 74,15" fill="#e8a0a0"/>
+      <ellipse cx="38" cy="48" rx="5" ry="6" fill="#c8940a"/>
+      <ellipse cx="62" cy="48" rx="5" ry="6" fill="#c8940a"/>
+      <circle cx="38" cy="48" r="3" fill="#1a1a1a"/>
+      <circle cx="62" cy="48" r="3" fill="#1a1a1a"/>
+      <ellipse cx="50" cy="60" rx="3" ry="2" fill="#e8a0a0"/>
+      <path d="M44,64 Q50,70 56,64" fill="none" stroke="#c4a080" strokeWidth="1.5"/>
+      <line x1="18" y1="55" x2="33" y2="53" stroke="#d4c4a0" strokeWidth="0.8"/>
+      <line x1="18" y1="60" x2="33" y2="59" stroke="#d4c4a0" strokeWidth="0.8"/>
+      <line x1="67" y1="53" x2="82" y2="55" stroke="#d4c4a0" strokeWidth="0.8"/>
+      <line x1="67" y1="59" x2="82" y2="60" stroke="#d4c4a0" strokeWidth="0.8"/>
+    </svg>
+  );
+}
+
+// ============================================================
+// Picker (원본 스크롤 선택기)
+// ============================================================
+function Picker({items,value,onChange}){
+  const ref=useRef(null);
+  const ITEM_H=40,VISIBLE=5,HALF=Math.floor(VISIBLE/2),PAD=HALF*ITEM_H,containerH=VISIBLE*ITEM_H;
+  const idx=items.findIndex(i=>i.v===value);
+  useEffect(()=>{if(ref.current&&idx>=0)ref.current.scrollTop=idx*ITEM_H;},[]);
+  const handleScroll=()=>{if(!ref.current)return;const i=Math.round(ref.current.scrollTop/ITEM_H);const c=Math.max(0,Math.min(items.length-1,i));if(items[c]&&items[c].v!==value)onChange(items[c].v);};
+  const handleWheel=(e)=>{if(!ref.current)return;e.preventDefault();var dir=e.deltaY>0?1:-1;ref.current.scrollTo({top:ref.current.scrollTop+dir*ITEM_H,behavior:'smooth'});};
+  useEffect(()=>{var el=ref.current;if(!el)return;el.addEventListener('wheel',handleWheel,{passive:false});return ()=>{el.removeEventListener('wheel',handleWheel);};},[]);
+  return(
+    <div style={{position:'relative'}}>
+      <div style={{position:'absolute',top:PAD,left:0,right:0,height:ITEM_H,background:'rgba(180,140,80,0.08)',border:'1px solid rgba(180,140,80,0.25)',borderRadius:6,boxShadow:'0 0 12px rgba(180,140,80,0.06)',pointerEvents:'none',zIndex:2}}/>
+      <div style={{position:'absolute',top:0,left:0,right:0,height:PAD,background:'linear-gradient(180deg,#1a1510 10%,transparent 100%)',pointerEvents:'none',zIndex:3,borderRadius:'8px 8px 0 0'}}/>
+      <div style={{position:'absolute',bottom:0,left:0,right:0,height:PAD,background:'linear-gradient(0deg,#1a1510 10%,transparent 100%)',pointerEvents:'none',zIndex:3,borderRadius:'0 0 8px 8px'}}/>
+      <div ref={ref} style={{height:containerH,overflowY:'auto',position:'relative',scrollSnapType:'y mandatory',WebkitOverflowScrolling:'touch',msOverflowStyle:'none',scrollbarWidth:'none'}} onScroll={handleScroll}>
+        <style>{`div::-webkit-scrollbar{display:none}`}</style>
+        <div style={{height:PAD}}/>
+        {items.map((item,i)=>{const sel=item.v===value;return(
+          <div key={i} style={{height:ITEM_H,display:'flex',alignItems:'center',justifyContent:'center',scrollSnapAlign:'center',fontSize:sel?18:13,fontWeight:sel?800:400,color:sel?'#f0e0b8':'#4a4030',textShadow:sel?'0 0 8px rgba(180,140,80,0.4)':'none',transition:'all 0.15s ease',letterSpacing:sel?0.5:0}}>{item.l}</div>
+        );})}
+        <div style={{height:PAD}}/>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// 데이터
+// ============================================================
+const CY=2026;
+const YEARS=Array.from({length:80},(_,i)=>({v:CY-10-i,l:`${CY-10-i}`}));
+const MONTHS=Array.from({length:12},(_,i)=>({v:i+1,l:`${i+1}월`}));
+const DAYS=Array.from({length:31},(_,i)=>({v:i+1,l:`${i+1}일`}));
+const HOURS=[...Array.from({length:24},(_,i)=>{const 시=['子','丑','丑','寅','寅','卯','卯',''辰','辰','巳','巳','午','午','未','未','申','申','酉','酉','戌','戌','亥','亥','子'][i];return{v:i,l:`${i}시(${시})`};}),{v:-1,l:'모름'}];
+const CITIES=[
+  {v:127,l:'서울'},{v:126.7,l:'인천'},{v:127.4,l:'대전'},
+  {v:126.9,l:'광주'},{v:128.6,l:'대구'},{v:129,l:'부산'},
+  {v:129,l:'울산'},{v:127,l:'수원'},{v:126.7,l:'세종'},
+  {v:128.9,l:'강릉'},{v:126.5,l:'제주'},{v:126.9,l:'전주'},
+  {v:129,l:'포항'},{v:128.1,l:'춘천'},{v:127.2,l:'청주'},
+  {v:135,l:'해외 등'}
+];
+const 시진=h=>{if(h<0)return'모름';return['子','丑','丑','寅','寅','卯','卯','辰','辰','巳','巳','午','午','未','未','申','申','酉','酉','戌','戌','亥','亥','子'][h]||'?';};
+
+// ============================================================
+// 메인 앱
+// ============================================================
+export default function App(){
+  const[phase,setPhase]=useState('intro');
+  const[introStep,setIntroStep]=useState(0);
+  const[form,setForm]=useState({year:1995,month:5,day:15,hour:12,gender:'남',city:127});
+  const[dialogStep,setDialogStep]=useState(0);
+  const[dialogMsgs,setDialogMsgs]=useState([]);
+  const[dialogReady,setDialogReady]=useState(false);
+  const dialogRef=useRef(null);
+
+  // 인트로 자동 진행
+  useEffect(()=>{
+    if(phase!=='intro')return;
+    if(introStep>=4)return;
+    var delays=[300,1000,1200,1200];
+    var t=setTimeout(()=>setIntroStep(s=>s+1),delays[introStep]||1000);
+    return ()=>clearTimeout(t);
+  },[phase,introStep]);
+
+  // 다이얼로그 스크롤 & 준비
+  useEffect(()=>{if(dialogRef.current)dialogRef.current.scrollTop=dialogRef.current.scrollHeight;},[dialogMsgs,dialogStep,dialogReady]);
+  useEffect(()=>{
+    if(phase!=='dialog')return;
+    setDialogReady(false);
+    var t=setTimeout(()=>setDialogReady(true),600);
+    return ()=>clearTimeout(t);
+  },[dialogStep,phase]);
+
+  // 대화 응답 처리
+  const dialogAnswer=(display,nextQ)=>{
+    var newMsgs=[...dialogMsgs,{who:'user',text:display}];
+    if(nextQ)newMsgs.push({who:'cat',text:nextQ});
+    setDialogMsgs(newMsgs);
+    setDialogReady(false);
+    setDialogStep(s=>s+1);
+  };
+
+  // ============================================================
+  // INTRO
+  // ============================================================
+  if(phase==='intro')return(
+    <div style={{minHeight:'100vh',background:'radial-gradient(ellipse at 50% 15%,#221c14 0%,#14110c 65%)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',color:'#e8d5a8',fontFamily:"'Noto Sans KR',sans-serif",padding:20,overflow:'hidden',position:'relative'}}>
+      <div style={{position:'absolute',top:0,left:0,right:0,bottom:0,pointerEvents:'none'}}>
+        <div style={{position:'absolute',top:'15%',left:'20%',width:4,height:4,borderRadius:2,background:'rgba(180,140,80,0.2)',animation:'float1 5s ease infinite'}}/>
+        <div style={{position:'absolute',top:'40%',right:'15%',width:3,height:3,borderRadius:2,background:'rgba(180,140,80,0.15)',animation:'float2 4s ease infinite'}}/>
+        <div style={{position:'absolute',bottom:'20%',left:'30%',width:5,height:5,borderRadius:3,background:'rgba(180,140,80,0.1)',animation:'float1 6s ease infinite'}}/>
+      </div>
+
+      <div style={{fontSize:10,letterSpacing:6,color:'#5a5040',marginBottom:20,opacity:introStep>=0?1:0,transition:'opacity 0.6s'}}>고양이 사주 명당</div>
+
+      <div style={{opacity:introStep>=1?1:0,transform:introStep>=1?'translateY(0) scale(1)':'translateY(60px) scale(0.7)',transition:'opacity 0.8s cubic-bezier(0.34,1.56,0.64,1),transform 0.8s cubic-bezier(0.34,1.56,0.64,1)'}}>
+        <CatFace size={140}/>
+      </div>
+
+      {introStep>=2&&(
+        <div style={{animation:'fadeUp 0.5s ease',marginTop:20,textAlign:'center'}}>
+          <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 20px',display:'inline-block',position:'relative'}}>
+            <div style={{position:'absolute',top:-7,left:'50%',marginLeft:-7,width:0,height:0,borderLeft:'7px solid transparent',borderRight:'7px solid transparent',borderBottom:'7px solid rgba(180,140,80,0.12)'}}/>
+            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>어? 손님이네?</p>
+          </div>
+        </div>
+      )}
+
+      {introStep>=3&&(
+        <div style={{animation:'fadeUp 0.5s ease',marginTop:12,textAlign:'center'}}>
+          <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 20px',display:'inline-block'}}>
+            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>자네 얼굴에 운기가 좀 꼬여있군.<br/>생년월일시를 알려주면 사주를 봐줄게.</p>
+          </div>
+        </div>
+      )}
+
+      {introStep>=4&&(
+        <div style={{animation:'fadeUp 0.6s ease',marginTop:20}}>
+          <button onClick={()=>{
+            setDialogStep(0);
+            setDialogMsgs([{who:'cat',text:'좋아! 그럼 사주를 봐줄게.\n먼저, 성별을 알려줘!'}]);
+            setDialogReady(false);
+            setPhase('dialog');
+          }} style={{background:'linear-gradient(135deg,#b48c50,#8a6830)',border:'none',borderRadius:22,padding:'13px 36px',fontSize:15,fontWeight:700,color:'#14110c',cursor:'pointer',boxShadow:'0 4px 16px rgba(180,140,80,0.3)'}}>사주 봐줘</button>
+        </div>
+      )}
+
+      <style>{`svg{border:none!important;outline:none!important;box-shadow:none!important}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes float1{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+@keyframes float2{0%,100%{transform:translateY(0) translateX(0)}50%{transform:translateY(-15px) translateX(8px)}}`}</style>
+    </div>
+  );
+
+  // ============================================================
+  // DIALOG — 대화형 입력
+  // ============================================================
+  if(phase==='dialog'){
+
+    // 완료 화면
+    if(dialogStep>=6){
+      return(
+        <div style={{minHeight:'100vh',background:'radial-gradient(ellipse at 50% 15%,#221c14 0%,#14110c 65%)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',color:'#e8d5a8',fontFamily:"'Noto Sans KR',sans-serif",padding:24}}>
+          <div style={{animation:'fadeUp 0.6s ease',textAlign:'center'}}>
+            <CatFace size={100}/>
+            <div style={{marginTop:16,background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.15)',borderRadius:14,padding:'20px 24px',display:'inline-block'}}>
+              <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:'0 0 16px'}}>다 모았다! 사주를 풀어볼게...</p>
+              <div style={{display:'flex',flexWrap:'wrap',gap:6,justifyContent:'center',marginBottom:16}}>
+                <span style={{fontSize:12,padding:'4px 12px',background:'rgba(180,140,80,0.1)',border:'1px solid rgba(180,140,80,0.2)',borderRadius:14,color:'#e8d5a8'}}>{form.gender==='남'?'👨 남':'👩 여'}</span>
+                <span style={{fontSize:12,padding:'4px 12px',background:'rgba(180,140,80,0.1)',border:'1px solid rgba(180,140,80,0.2)',borderRadius:14,color:'#e8d5a8'}}>{form.year}년</span>
+                <span style={{fontSize:12,padding:'4px 12px',background:'rgba(180,140,80,0.1)',border:'1px solid rgba(180,140,80,0.2)',borderRadius:14,color:'#e8d5a8'}}>{form.month}월 {form.day}일</span>
+                <span style={{fontSize:12,padding:'4px 12px',background:'rgba(180,140,80,0.1)',border:'1px solid rgba(180,140,80,0.2)',borderRadius:14,color:'#e8d5a8'}}>{form.hour>=0?form.hour+'시('+시진(form.hour)+')':'모름'}</span>
+                <span style={{fontSize:12,padding:'4px 12px',background:'rgba(180,140,80,0.1)',border:'1px solid rgba(180,140,80,0.2)',borderRadius:14,color:'#e8d5a8'}}>{CITIES.find(c=>c.v===form.city)?.l||'서울'}</span>
+              </div>
+              <div style={{width:100,height:3,background:'rgba(180,140,80,0.1)',borderRadius:2,margin:'0 auto',overflow:'hidden'}}>
+                <div style={{width:'100%',height:'100%',background:'linear-gradient(90deg,#b48c50,#e8d5a8)',animation:'loadBar 1.5s ease infinite'}}/>
+              </div>
+              <p style={{fontSize:11,color:'#5a5040',marginTop:10}}>여기서 실제 앱은 사주 분석 결과로 넘어갑니다</p>
+            </div>
+            <div style={{marginTop:20}}>
+              <button onClick={()=>{setPhase('intro');setIntroStep(0);setDialogStep(0);setDialogMsgs([]);}} style={{background:'transparent',border:'1px solid rgba(180,140,80,0.2)',borderRadius:16,padding:'10px 24px',fontSize:13,color:'#b48c50',cursor:'pointer'}}>처음부터 다시</button>
+            </div>
+          </div>
+          <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes loadBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}`}</style>
+        </div>
+      );
+    }
+
+    return(
+    <div style={{minHeight:'100vh',background:'radial-gradient(ellipse at 50% 15%,#221c14 0%,#14110c 65%)',color:'#e8d5a8',fontFamily:"'Noto Sans KR',sans-serif",display:'flex',flexDirection:'column',maxWidth:440,margin:'0 auto',position:'relative'}}>
+
+      {/* 헤더 */}
+      <div style={{display:'flex',alignItems:'center',gap:10,padding:'14px 16px',borderBottom:'1px solid rgba(180,140,80,0.1)',background:'rgba(180,140,80,0.02)',flexShrink:0}}>
+        <CatFace size={36}/>
+        <div>
+          <div style={{fontSize:14,fontWeight:700,color:'#e8d5a8',fontFamily:"'Noto Serif KR',serif"}}>고양이 사주 명당</div>
+          <div style={{fontSize:10,color:'#5a5040'}}>사주 정보를 알려주라냥</div>
+        </div>
+      </div>
+
+      {/* 수집된 정보 pill */}
+      {dialogStep>=1&&(
+        <div style={{padding:'8px 16px',display:'flex',flexWrap:'wrap',gap:5,borderBottom:'1px solid rgba(180,140,80,0.06)',flexShrink:0}}>
+          {dialogStep>=1&&<span style={{fontSize:10,padding:'3px 10px',background:'rgba(180,140,80,0.08)',border:'1px solid rgba(180,140,80,0.15)',borderRadius:12,color:'#b48c50',animation:'fadeUp 0.3s ease'}}>{form.gender==='남'?'👨 남':'👩 여'}</span>}
+          {dialogStep>=2&&<span style={{fontSize:10,padding:'3px 10px',background:'rgba(180,140,80,0.08)',border:'1px solid rgba(180,140,80,0.15)',borderRadius:12,color:'#b48c50',animation:'fadeUp 0.3s ease'}}>{form.year}년</span>}
+          {dialogStep>=3&&<span style={{fontSize:10,padding:'3px 10px',background:'rgba(180,140,80,0.08)',border:'1px solid rgba(180,140,80,0.15)',borderRadius:12,color:'#b48c50',animation:'fadeUp 0.3s ease'}}>{form.month}월</span>}
+          {dialogStep>=4&&<span style={{fontSize:10,padding:'3px 10px',background:'rgba(180,140,80,0.08)',border:'1px solid rgba(180,140,80,0.15)',borderRadius:12,color:'#b48c50',animation:'fadeUp 0.3s ease'}}>{form.day}일</span>}
+          {dialogStep>=5&&<span style={{fontSize:10,padding:'3px 10px',background:'rgba(180,140,80,0.08)',border:'1px solid rgba(180,140,80,0.15)',borderRadius:12,color:'#b48c50',animation:'fadeUp 0.3s ease'}}>{form.hour>=0?form.hour+'시':'모름'}</span>}
+        </div>
+      )}
+
+      {/* 대화 영역 */}
+      <div ref={dialogRef} style={{flex:1,overflowY:'auto',padding:'16px',display:'flex',flexDirection:'column',gap:10}}>
+        {dialogMsgs.map((msg,i)=>{
+          var isCat=msg.who==='cat';
+          return(
+            <div key={i} style={{display:'flex',alignItems:isCat?'flex-start':'flex-end',flexDirection:isCat?'row':'row-reverse',gap:8,animation:'fadeUp 0.4s ease'}}>
+              {isCat&&<div style={{flexShrink:0,marginTop:4}}><CatFace size={32}/></div>}
+              <div style={{maxWidth:'78%',padding:'10px 14px',borderRadius:isCat?'4px 14px 14px 14px':'14px 4px 14px 14px',background:isCat?'rgba(180,140,80,0.06)':'rgba(180,140,80,0.15)',border:isCat?'1px solid rgba(180,140,80,0.12)':'1px solid rgba(180,140,80,0.25)'}}>
+                <div style={{fontSize:13,lineHeight:1.8,color:isCat?'#c0b8a0':'#e8d5a8',whiteSpace:'pre-line'}}>{msg.text}</div>
+              </div>
+            </div>
+          );
+        })}
+
+        {/* 선택 위젯 */}
+        {dialogReady&&dialogStep<6&&(
+          <div style={{animation:'fadeUp 0.5s ease',marginTop:4}}>
+
+            {/* 성별 */}
+            {dialogStep===0&&(
+              <div style={{display:'flex',gap:8,justifyContent:'center',padding:'8px 0'}}>
+                {['남','여'].map(g=>(
+                  <button key={g} onClick={()=>{
+                    setForm(f=>({...f,gender:g}));
+                    dialogAnswer(g==='남'?'👨 남자':'👩 여자', (g==='남'?'남자':'여자')+'구나!\n몇 년도에 태어났어?');
+                  }} style={{flex:1,maxWidth:140,padding:'14px 12px',borderRadius:12,border:'1px solid rgba(180,140,80,0.2)',background:'rgba(180,140,80,0.06)',color:'#e8d5a8',fontSize:16,fontWeight:700,cursor:'pointer',transition:'all 0.2s'}}
+                  onMouseEnter={e=>{e.currentTarget.style.background='rgba(180,140,80,0.15)';e.currentTarget.style.borderColor='rgba(180,140,80,0.4)';e.currentTarget.style.transform='translateY(-2px)';}}
+                  onMouseLeave={e=>{e.currentTarget.style.background='rgba(180,140,80,0.06)';e.currentTarget.style.borderColor='rgba(180,140,80,0.2)';e.currentTarget.style.transform='none';}}
+                  >{g==='남'?'👨 남자':'👩 여자'}</button>
+                ))}
+              </div>
+            )}
+
+            {/* 연도 */}
+            {dialogStep===1&&(
+              <div style={{background:'rgba(180,140,80,0.04)',border:'1px solid rgba(180,140,80,0.1)',borderRadius:12,padding:12}}>
+                <Picker items={YEARS} value={form.year} onChange={v=>setForm(f=>({...f,year:v}))}/>
+                <button onClick={()=>{
+                  dialogAnswer(form.year+'년', form.year+'년생이구나...\n몇 월이야?');
+                }} style={{width:'100%',marginTop:12,background:'linear-gradient(135deg,#b48c50,#8a6830)',border:'none',borderRadius:8,padding:'11px',fontSize:14,fontWeight:700,color:'#14110c',cursor:'pointer'}}>선택</button>
+              </div>
+            )}
+
+            {/* 월 */}
+            {dialogStep===2&&(
+              <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:6,padding:'4px 0'}}>
+                {MONTHS.map(m=>(
+                  <button key={m.v} onClick={()=>{
+                    setForm(f=>({...f,month:m.v}));
+                    dialogAnswer(m.v+'월', m.v+'월!\n며칠에 태어났어?');
+                  }} style={{padding:'10px 4px',borderRadius:8,border:'1px solid rgba(180,140,80,0.12)',background:'rgba(180,140,80,0.04)',color:'#a09080',fontSize:14,fontWeight:500,cursor:'pointer',transition:'all 0.15s'}}
+                  onMouseEnter={e=>{e.currentTarget.style.background='rgba(180,140,80,0.15)';e.currentTarget.style.color='#e8d5a8';}}
+                  onMouseLeave={e=>{e.currentTarget.style.background='rgba(180,140,80,0.04)';e.currentTarget.style.color='#a09080';}}
+                  >{m.l}</button>
+                ))}
+              </div>
+            )}
+
+            {/* 일 */}
+            {dialogStep===3&&(
+              <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:4,padding:'4px 0'}}>
+                {DAYS.map(d=>(
+                  <button key={d.v} onClick={()=>{
+                    setForm(f=>({...f,day:d.v}));
+                    dialogAnswer(d.v+'일', d.v+'일이구나.\n태어난 시간은 알아?');
+                  }} style={{padding:'8px 2px',borderRadius:6,border:'1px solid rgba(180,140,80,0.08)',background:'rgba(180,140,80,0.03)',color:'#8a7e6d',fontSize:13,cursor:'pointer',transition:'all 0.15s'}}
+                  onMouseEnter={e=>{e.currentTarget.style.background='rgba(180,140,80,0.14)';e.currentTarget.style.color='#e8d5a8';}}
+                  onMouseLeave={e=>{e.currentTarget.style.background='rgba(180,140,80,0.03)';e.currentTarget.style.color='#8a7e6d';}}
+                  >{d.v}</button>
+                ))}
+              </div>
+            )}
+
+            {/* 시간 */}
+            {dialogStep===4&&(
+              <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:4,padding:'4px 0'}}>
+                {HOURS.map(h=>(
+                  <button key={h.v} onClick={()=>{
+                    setForm(f=>({...f,hour:h.v}));
+                    var disp=h.v>=0?h.v+'시('+시진(h.v)+')':'시간 모름';
+                    var resp=h.v>=0?h.v+'시에 태어났구나!\n마지막! 어디서 태어났어?':'시간을 모르는구나, 괜찮아!\n마지막! 어디서 태어났어?';
+                    dialogAnswer(disp, resp);
+                  }} style={{padding:'7px 2px',borderRadius:6,border:'1px solid rgba(180,140,80,0.08)',background:'rgba(180,140,80,0.03)',color:'#8a7e6d',fontSize:11,cursor:'pointer',transition:'all 0.15s',textAlign:'center'}}
+                  onMouseEnter={e=>{e.currentTarget.style.background='rgba(180,140,80,0.14)';e.currentTarget.style.color='#e8d5a8';}}
+                  onMouseLeave={e=>{e.currentTarget.style.background='rgba(180,140,80,0.03)';e.currentTarget.style.color='#8a7e6d';}}
+                  ><div style={{fontSize:12,fontWeight:600}}>{h.v>=0?h.v+'시':'모름'}</div>{h.v>=0&&<div style={{fontSize:8,marginTop:1,opacity:0.6}}>{시진(h.v)}시</div>}</button>
+                ))}
+              </div>
+            )}
+
+            {/* 지역 */}
+            {dialogStep===5&&(
+              <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:5,padding:'4px 0'}}>
+                {CITIES.map(c=>(
+                  <button key={c.v+c.l} onClick={()=>{
+                    setForm(f=>({...f,city:c.v}));
+                    setDialogMsgs(prev=>[...prev,
+                      {who:'user',text:c.l},
+                      {who:'cat',text:c.l+'!\n좋아, 다 모았다. 사주를 풀어볼게...'}
+                    ]);
+                    setDialogReady(false);
+                    setDialogStep(6);
+                  }} style={{padding:'9px 4px',borderRadius:8,border:'1px solid rgba(180,140,80,0.1)',background:'rgba(180,140,80,0.04)',color:'#a09080',fontSize:12,cursor:'pointer',transition:'all 0.15s',textAlign:'center'}}
+                  onMouseEnter={e=>{e.currentTarget.style.background='rgba(180,140,80,0.14)';e.currentTarget.style.color='#e8d5a8';e.currentTarget.style.borderColor='rgba(180,140,80,0.3)';}}
+                  onMouseLeave={e=>{e.currentTarget.style.background='rgba(180,140,80,0.04)';e.currentTarget.style.color='#a09080';e.currentTarget.style.borderColor='rgba(180,140,80,0.1)';}}
+                  >{c.l}</button>
+                ))}
+              </div>
+            )}
+
+          </div>
+        )}
+      </div>
+
+      <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes loadBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}`}</style>
+    </div>
+    );
+  }
+
+  return null;
+}
