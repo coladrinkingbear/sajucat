@@ -1059,12 +1059,6 @@ export default function App(){
   const[aiDetailKey,setAiDetailKey]=useState(null);
   const[aiDetailTitle,setAiDetailTitle]=useState('');
   const[aiDetailRule,setAiDetailRule]=useState('');
-  // 바리만신 1:1 채팅
-  const[chatMsgs,setChatMsgs]=useState([]);
-  const[chatInput,setChatInput]=useState('');
-  const[chatLoading,setChatLoading]=useState(false);
-  const[chatInviteStep,setChatInviteStep]=useState(0);
-  const chatEndRef=useRef(null);
   const[transStep,setTransStep]=useState(0);
   const[resultTab,setResultTab]=useState(0);
   const resultScrollRef=useRef(null);
@@ -1092,7 +1086,6 @@ export default function App(){
   useEffect(function(){if(dialogRef.current)dialogRef.current.scrollTop=dialogRef.current.scrollHeight;},[dialogMsgs,dialogStep,dialogReady]);
   useEffect(function(){if(phase!=='dialog')return;setDialogReady(false);var t=setTimeout(function(){setDialogReady(true);},600);return function(){clearTimeout(t);};},[dialogStep,phase]);
   useEffect(function(){if(phase==='dialog'&&dialogStep>=6){var t=setTimeout(function(){doAnalyze();},1200);return function(){clearTimeout(t);};};},[phase,dialogStep]);
-  useEffect(function(){if(chatEndRef.current)chatEndRef.current.scrollIntoView({behavior:'smooth'});},[chatMsgs,chatLoading]);
 
   // 글로벌 CSS 주입 — SVG/컴포넌트 테두리 완전 제거
   useEffect(function(){
@@ -1302,54 +1295,6 @@ export default function App(){
     },6500);
   };
 
-  // 바리만신 1:1 채팅 전송
-  var sendMansinChat = async function(userText) {
-    if (!userText.trim() || chatLoading) return;
-    var newMsgs = chatMsgs.concat([{ role: 'user', content: userText }]);
-    setChatMsgs(newMsgs);
-    setChatInput('');
-    setChatLoading(true);
-    try {
-      var sajuSum = result.일간 + result.일지 + ' 일주, ' + result.saju.gender + '명, ' +
-        result.강약 + ', 격국: ' + result.격국 + ', 용신: ' + result.용신 +
-        ', 오행: 목' + result.오행.목 + ' 화' + result.오행.화 + ' 토' + result.오행.토 +
-        ' 금' + result.오행.금 + ' 수' + result.오행.수 +
-        ', 사주: ' + result.saju.yg + result.saju.yj + ' ' + result.saju.mg + result.saju.mj +
-        ' ' + result.saju.dg + result.saju.dj + ' ' + result.saju.hg + result.saju.hj +
-        ', 생년: ' + result.birthYear + '년' +
-        ', 십성: 비겁' + (result.십성.비견+result.십성.겁재) + ' 식상' + (result.십성.식신+result.십성.상관) +
-        ' 재성' + (result.십성.정재+result.십성.편재) + ' 관성' + (result.십성.정관+result.십성.편관) +
-        ' 인성' + (result.십성.정인+result.십성.편인);
-      var resp = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sajuSummary: sajuSum, messages: newMsgs })
-      });
-      var data = await resp.json();
-      if (data.text) {
-        setChatMsgs(function(prev) { return prev.concat([{ role: 'assistant', content: data.text }]); });
-      } else {
-        setChatMsgs(function(prev) { return prev.concat([{ role: 'assistant', content: '흠... 천기가 어지러워 답을 하기 어렵구나. 다시 물어보거라.' }]); });
-      }
-    } catch (e) {
-      setChatMsgs(function(prev) { return prev.concat([{ role: 'assistant', content: '잠시 기운이 흐트러졌느니라. 다시 물어보거라.' }]); });
-    }
-    setChatLoading(false);
-  };
-
-  // 바리만신 채팅 시작
-  var startMansinChat = function() {
-    setChatMsgs([]);
-    setChatInput('');
-    setChatInviteStep(0);
-    setPhase('chatInvite');
-    // 연출 시퀀스
-    setTimeout(function(){ setChatInviteStep(1); }, 500);
-    setTimeout(function(){ setChatInviteStep(2); }, 2000);
-    setTimeout(function(){ setChatInviteStep(3); }, 3500);
-    setTimeout(function(){ setChatInviteStep(4); }, 5000);
-  };
-
   const unlockPremium=()=>{
     if(!result)return;
     const p=genPremium(result,result.birthYear);
@@ -1367,6 +1312,7 @@ export default function App(){
       </div>
 
       <div style={{fontSize:10,letterSpacing:6,color:'#5a5040',marginBottom:20,opacity:introStep>=0?1:0,transition:'opacity 0.6s'}}>고양이 사주 명당</div>
+      <div style={{fontSize:9,color:'#8a7a5a',letterSpacing:2,marginTop:-14,marginBottom:14,opacity:introStep>=0?0.7:0,transition:'opacity 0.6s'}}>✦ OPEN BETA ✦</div>
 
       {/* Step 0: 고양이 슥 올라옴 */}
       <div style={{opacity:introStep>=1?1:0,transform:introStep>=1?'translateY(0) scale(1)':'translateY(60px) scale(0.7)',transition:'opacity 0.8s cubic-bezier(0.34,1.56,0.64,1),transform 0.8s cubic-bezier(0.34,1.56,0.64,1)'}}>
@@ -1966,11 +1912,10 @@ export default function App(){
           </button>
         ):(
           <div style={{display:'flex',flexDirection:'column',gap:8}}>
-            <button onClick={function(){startMansinChat();}} style={{width:'100%',padding:'13px',background:'linear-gradient(135deg,#b48c50,#8a6830)',border:'none',borderRadius:10,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:"'Noto Serif KR',serif",boxShadow:'0 4px 16px rgba(180,140,80,0.3)'}}>🐱 바리만신과 대화하기</button>
             <button onClick={function(){
               var scored=MOCK_USERS.filter(function(u){return u.gender!==form.gender;}).map(function(u){return Object.assign({},u,{score:matchScore(result.saju,u.saju,form.gender,u.gender)});}).sort(function(a,b){return b.score-a.score;});
               setMatches(scored);setPhase('matches');
-            }} style={{width:'100%',padding:'11px',background:'transparent',border:'1px solid rgba(160,120,200,0.2)',borderRadius:10,fontSize:12,fontWeight:600,color:'#a090d0',cursor:'pointer'}}>인연 매칭 💜</button>
+            }} style={{width:'100%',padding:'13px',background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:10,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:"'Noto Serif KR',serif",boxShadow:'0 4px 16px rgba(100,60,180,0.3)'}}>인연 매칭 시작하기 💜</button>
             <button onClick={function(){setResultTab(0);setPhase('result');}} style={{width:'100%',background:'transparent',border:'1px solid rgba(160,120,200,0.15)',borderRadius:8,padding:'10px',fontSize:11,color:'#6050a0',cursor:'pointer'}}>무료 사주 결과로 돌아가기</button>
             <button onClick={function(){setPhase('intro');setIntroStep(0);setResult(null);setPremium(null);setAiCache({});setDialogStep(0);setDialogMsgs([]);setResultTab(0);}} style={{width:'100%',background:'transparent',border:'1px solid rgba(160,120,200,0.08)',borderRadius:8,padding:'10px',fontSize:11,color:'#4a3a60',cursor:'pointer'}}>다른 사주 보기</button>
           </div>
@@ -2191,143 +2136,6 @@ export default function App(){
       }</style>
     </div>
   );
-
-  // ============================================================
-  // 바리만신 채팅 초대 연출 (phase='chatInvite')
-  // ============================================================
-  if(phase==='chatInvite'&&result){
-    return(
-      <div style={{minHeight:'100vh',background:'radial-gradient(ellipse at 50% 15%,#221c14 0%,#14110c 65%)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',color:'#e8d5a8',fontFamily:"'Noto Sans KR',sans-serif",padding:20}}>
-
-        {chatInviteStep>=1&&(
-          <div style={{animation:'fadeUp 0.8s ease',marginBottom:16}}>
-            <CatFace size={100}/>
-          </div>
-        )}
-
-        {chatInviteStep>=1&&(
-          <div style={{animation:'fadeUp 0.6s ease',textAlign:'center',marginBottom:12}}>
-            <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 20px',display:'inline-block'}}>
-              <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>다 봤냥? 꽤 흥미로운 사주더라.</p>
-            </div>
-          </div>
-        )}
-
-        {chatInviteStep>=2&&(
-          <div style={{animation:'fadeUp 0.6s ease',textAlign:'center',marginBottom:12}}>
-            <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 20px',display:'inline-block'}}>
-              <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>우리 스승님이 자네 사주에 흥미를 보이시는군.<br/>추가로 질문을 받아주시겠단다.</p>
-            </div>
-          </div>
-        )}
-
-        {chatInviteStep>=3&&(
-          <div style={{animation:'fadeUp 0.6s ease',textAlign:'center',marginBottom:16}}>
-            <div style={{background:'rgba(130,100,200,0.06)',border:'1px solid rgba(130,100,200,0.12)',borderRadius:14,padding:'14px 20px',display:'inline-block'}}>
-              <div style={{marginBottom:8}}><BariMansin size={50}/></div>
-              <p style={{fontSize:13,color:'#c0b8d0',lineHeight:1.9,margin:0}}>
-                적천수(滴天髓)와 궁통보감(窮通寶鑑)을 섭렵하시고<br/>
-                자평진전(子平眞銓)과 연해자평(淵海子平)을<br/>
-                두루 통달하신 대가이시니...<br/>
-                <span style={{fontSize:11,color:'#8a7e9d'}}>무엇이든 여쭤봐도 좋을 거야.</span>
-              </p>
-            </div>
-          </div>
-        )}
-
-        {chatInviteStep>=4&&(
-          <div style={{animation:'fadeUp 0.6s ease',display:'flex',flexDirection:'column',gap:10,alignItems:'center'}}>
-            <button onClick={function(){
-              setChatMsgs([{role:'assistant',content:'허, '+result.일간+result.일지+' 일주... 내 눈에도 범상치 않은 사주로구나.\n궁금한 것이 있으면 물어보거라. 무엇이든 답해주리라.'}]);
-              setPhase('mansinChat');
-            }} style={{background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:22,padding:'14px 40px',fontSize:15,fontWeight:700,color:'#fff',cursor:'pointer',boxShadow:'0 4px 20px rgba(100,60,180,0.4)',letterSpacing:1}}>
-              🔮 바리만신과 대화하기
-            </button>
-            <button onClick={function(){setPhase('premium');}} style={{background:'transparent',border:'none',color:'#5a5040',fontSize:11,cursor:'pointer',textDecoration:'underline'}}>돌아가기</button>
-          </div>
-        )}
-
-        <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}`}</style>
-      </div>
-    );
-  }
-
-  // ============================================================
-  // 바리만신 1:1 채팅 (phase='mansinChat')
-  // ============================================================
-  if(phase==='mansinChat'&&result){
-    return(
-      <div style={{height:'100vh',display:'flex',flexDirection:'column',background:'radial-gradient(ellipse at 50% 10%,#1a1028 0%,#0a0610 65%)',fontFamily:"'Noto Sans KR',sans-serif",maxWidth:440,margin:'0 auto'}}>
-
-        {/* 헤더 */}
-        <div style={{padding:'14px 16px',borderBottom:'1px solid rgba(160,120,200,0.1)',flexShrink:0,display:'flex',alignItems:'center',gap:10}}>
-          <BariMansin size={36}/>
-          <div>
-            <div style={{fontSize:14,fontWeight:700,color:'#d0b0ff',fontFamily:"'Noto Serif KR',serif"}}>바리만신</div>
-            <div style={{fontSize:9,color:'#6050a0'}}>적천수 · 궁통보감 · 자평진전</div>
-          </div>
-          <div style={{marginLeft:'auto'}}>
-            <button onClick={function(){setPhase('premium');}} style={{background:'rgba(160,120,200,0.08)',border:'1px solid rgba(160,120,200,0.15)',borderRadius:6,padding:'6px 12px',fontSize:10,color:'#8070a0',cursor:'pointer'}}>나가기</button>
-          </div>
-        </div>
-
-        {/* 메시지 영역 */}
-        <div style={{flex:1,overflowY:'auto',padding:'16px',display:'flex',flexDirection:'column',gap:12}}>
-          {chatMsgs.map(function(msg,i){
-            if(msg.role==='assistant'){
-              return React.createElement('div',{key:i,style:{display:'flex',gap:10,alignItems:'flex-start',animation:'fadeUp 0.4s ease'}},
-                React.createElement('div',{style:{flexShrink:0,marginTop:2}},React.createElement(BariMansin,{size:32})),
-                React.createElement('div',{style:{padding:'10px 14px',borderRadius:'4px 14px 14px 14px',background:'rgba(160,120,200,0.06)',border:'1px solid rgba(160,120,200,0.12)',maxWidth:'80%'}},
-                  React.createElement('div',{style:{fontSize:13,lineHeight:1.9,color:'#c0b8d0',whiteSpace:'pre-line'}},msg.content)
-                )
-              );
-            } else {
-              return React.createElement('div',{key:i,style:{display:'flex',justifyContent:'flex-end',animation:'fadeUp 0.3s ease'}},
-                React.createElement('div',{style:{padding:'10px 14px',borderRadius:'14px 4px 14px 14px',background:'rgba(180,140,80,0.1)',border:'1px solid rgba(180,140,80,0.15)',maxWidth:'80%'}},
-                  React.createElement('div',{style:{fontSize:13,lineHeight:1.8,color:'#e8d5a8'}},msg.content)
-                )
-              );
-            }
-          })}
-
-          {chatLoading&&React.createElement('div',{style:{display:'flex',gap:10,alignItems:'flex-start'}},
-            React.createElement('div',{style:{flexShrink:0,marginTop:2}},React.createElement(BariMansin,{size:32})),
-            React.createElement('div',{style:{padding:'12px 16px',borderRadius:'4px 14px 14px 14px',background:'rgba(160,120,200,0.06)',border:'1px solid rgba(160,120,200,0.12)'}},
-              React.createElement('div',{className:'chatDots',style:{display:'flex',gap:4}},
-                React.createElement('span',{style:{width:6,height:6,borderRadius:3,background:'#8060c0',animation:'dotPulse 1.2s 0s infinite'}}),
-                React.createElement('span',{style:{width:6,height:6,borderRadius:3,background:'#8060c0',animation:'dotPulse 1.2s 0.2s infinite'}}),
-                React.createElement('span',{style:{width:6,height:6,borderRadius:3,background:'#8060c0',animation:'dotPulse 1.2s 0.4s infinite'}})
-              )
-            )
-          )}
-
-          <div ref={chatEndRef}/>
-        </div>
-
-        {/* 입력 영역 */}
-        <div style={{padding:'12px 16px',borderTop:'1px solid rgba(160,120,200,0.1)',flexShrink:0,display:'flex',gap:8}}>
-          <input
-            value={chatInput}
-            onChange={function(e){setChatInput(e.target.value);}}
-            onKeyDown={function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMansinChat(chatInput);}}}
-            placeholder="바리만신에게 질문하기..."
-            style={{flex:1,padding:'10px 14px',borderRadius:10,border:'1px solid rgba(160,120,200,0.15)',background:'rgba(160,120,200,0.04)',color:'#e8d5ff',fontSize:13,outline:'none'}}
-          />
-          <button
-            onClick={function(){sendMansinChat(chatInput);}}
-            disabled={chatLoading||!chatInput.trim()}
-            style={{padding:'10px 16px',borderRadius:10,border:'none',background:chatLoading||!chatInput.trim()?'rgba(160,120,200,0.1)':'linear-gradient(135deg,#8060c0,#5030a0)',color:'#fff',fontSize:13,fontWeight:700,cursor:chatLoading?'wait':'pointer'}}
-          >전송</button>
-        </div>
-
-        <style>{`
-          @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-          @keyframes dotPulse{0%,100%{opacity:0.3;transform:scale(0.8)}50%{opacity:1;transform:scale(1.1)}}
-          div::-webkit-scrollbar{width:0;height:0;display:none;}
-        `}</style>
-      </div>
-    );
-  }
 
   // ============================================================
   // 매칭 목록 화면
