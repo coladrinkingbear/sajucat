@@ -1078,8 +1078,7 @@ export default function App(){
   const[premiumReveal,setPremiumReveal]=useState(0);
   const[premiumCards,setPremiumCards]=useState(false);
   const premiumScrollRef=useRef(null);
-  const[visitedTabs,setVisitedTabs]=useState({});
-  useEffect(function(){if(phase!=='premium')return;if(visitedTabs[paidTab]){setPremiumReveal(4);setPremiumCards(true);return;}setPremiumReveal(0);setPremiumCards(false);var t1=setTimeout(function(){setPremiumReveal(1);},500);var t2=setTimeout(function(){setPremiumReveal(2);},1800);var t3=setTimeout(function(){setPremiumReveal(3);},2800);var t4=setTimeout(function(){setPremiumReveal(4);setPremiumCards(true);setVisitedTabs(function(prev){var n=Object.assign({},prev);n[paidTab]=true;return n;});},3800);return function(){clearTimeout(t1);clearTimeout(t2);clearTimeout(t3);clearTimeout(t4);};},[phase,paidTab]);
+  useEffect(function(){if(phase!=='premium')return;setPremiumReveal(0);setPremiumCards(false);var t1=setTimeout(function(){setPremiumReveal(1);},500);var t2=setTimeout(function(){setPremiumReveal(2);},1800);var t3=setTimeout(function(){setPremiumReveal(3);},2800);var t4=setTimeout(function(){setPremiumReveal(4);setPremiumCards(true);},3800);return function(){clearTimeout(t1);clearTimeout(t2);clearTimeout(t3);clearTimeout(t4);};},[phase,paidTab]);
   useEffect(function(){if(premiumScrollRef.current)premiumScrollRef.current.scrollTop=0;},[paidTab]);
   const[chatTarget,setChatTarget]=useState(null);
   const[chatMsgs,setChatMsgs]=useState({});
