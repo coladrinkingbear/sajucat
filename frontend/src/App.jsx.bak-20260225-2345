@@ -1309,7 +1309,7 @@ export default function App(){
     var newMsgs = msChatMsgs.concat([{ role: 'user', content: userText }]);
     setMsChatMsgs(newMsgs);
     setMsChatInput('');
-    setMsChatLoading(true);
+    setChatLoading(true);
     try {
       var sajuSum = result.일간 + result.일지 + ' 일주, ' + result.saju.gender + '명, ' +
         result.강약 + ', 격국: ' + result.격국 + ', 용신: ' + result.용신 +
@@ -1321,15 +1321,10 @@ export default function App(){
         ', 십성: 비겁' + (result.십성.비견+result.십성.겁재) + ' 식상' + (result.십성.식신+result.십성.상관) +
         ' 재성' + (result.십성.정재+result.십성.편재) + ' 관성' + (result.십성.정관+result.십성.편관) +
         ' 인성' + (result.십성.정인+result.십성.편인);
-      // API에 보낼 때 첫 user 메시지부터 시작 (초기 assistant 인사말 제외)
-      var apiMsgs = newMsgs.filter(function(m,i) {
-        if (i === 0 && m.role === 'assistant') return false;
-        return true;
-      });
       var resp = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sajuSummary: sajuSum, messages: apiMsgs })
+        body: JSON.stringify({ sajuSummary: sajuSum, messages: newMsgs })
       });
       var data = await resp.json();
       if (data.text) {
