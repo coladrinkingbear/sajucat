@@ -1060,11 +1060,11 @@ export default function App(){
   const[aiDetailTitle,setAiDetailTitle]=useState('');
   const[aiDetailRule,setAiDetailRule]=useState('');
   // 바리만신 1:1 채팅
-  const[msChatMsgs,setMsChatMsgs]=useState([]);
-  const[msChatInput,setMsChatInput]=useState('');
-  const[msChatLoading,setMsChatLoading]=useState(false);
-  const[msChatInviteStep,setMsChatInviteStep]=useState(0);
-  const msChatEndRef=useRef(null);
+  const[chatMsgs,setChatMsgs]=useState([]);
+  const[chatInput,setChatInput]=useState('');
+  const[chatLoading,setChatLoading]=useState(false);
+  const[chatInviteStep,setChatInviteStep]=useState(0);
+  const chatEndRef=useRef(null);
   const[transStep,setTransStep]=useState(0);
   const[resultTab,setResultTab]=useState(0);
   const resultScrollRef=useRef(null);
@@ -1093,7 +1093,7 @@ export default function App(){
   useEffect(function(){if(dialogRef.current)dialogRef.current.scrollTop=dialogRef.current.scrollHeight;},[dialogMsgs,dialogStep,dialogReady]);
   useEffect(function(){if(phase!=='dialog')return;setDialogReady(false);var t=setTimeout(function(){setDialogReady(true);},600);return function(){clearTimeout(t);};},[dialogStep,phase]);
   useEffect(function(){if(phase==='dialog'&&dialogStep>=6){var t=setTimeout(function(){doAnalyze();},1200);return function(){clearTimeout(t);};};},[phase,dialogStep]);
-  useEffect(function(){if(msChatEndRef.current)msChatEndRef.current.scrollIntoView({behavior:'smooth'});},[msChatMsgs,msChatLoading]);
+  useEffect(function(){if(chatEndRef.current)chatEndRef.current.scrollIntoView({behavior:'smooth'});},[chatMsgs,chatLoading]);
 
   // 글로벌 CSS 주입 — SVG/컴포넌트 테두리 완전 제거
   useEffect(function(){
@@ -1305,10 +1305,10 @@ export default function App(){
 
   // 바리만신 1:1 채팅 전송
   var sendMansinChat = async function(userText) {
-    if (!userText.trim() || msChatLoading) return;
-    var newMsgs = msChatMsgs.concat([{ role: 'user', content: userText }]);
-    setMsChatMsgs(newMsgs);
-    setMsChatInput('');
+    if (!userText.trim() || chatLoading) return;
+    var newMsgs = chatMsgs.concat([{ role: 'user', content: userText }]);
+    setChatMsgs(newMsgs);
+    setChatInput('');
     setChatLoading(true);
     try {
       var sajuSum = result.일간 + result.일지 + ' 일주, ' + result.saju.gender + '명, ' +
@@ -1328,27 +1328,27 @@ export default function App(){
       });
       var data = await resp.json();
       if (data.text) {
-        setMsChatMsgs(function(prev) { return prev.concat([{ role: 'assistant', content: data.text }]); });
+        setChatMsgs(function(prev) { return prev.concat([{ role: 'assistant', content: data.text }]); });
       } else {
-        setMsChatMsgs(function(prev) { return prev.concat([{ role: 'assistant', content: '흠... 천기가 어지러워 답을 하기 어렵구나. 다시 물어보거라.' }]); });
+        setChatMsgs(function(prev) { return prev.concat([{ role: 'assistant', content: '흠... 천기가 어지러워 답을 하기 어렵구나. 다시 물어보거라.' }]); });
       }
     } catch (e) {
-      setMsChatMsgs(function(prev) { return prev.concat([{ role: 'assistant', content: '잠시 기운이 흐트러졌느니라. 다시 물어보거라.' }]); });
+      setChatMsgs(function(prev) { return prev.concat([{ role: 'assistant', content: '잠시 기운이 흐트러졌느니라. 다시 물어보거라.' }]); });
     }
-    setMsChatLoading(false);
+    setChatLoading(false);
   };
 
   // 바리만신 채팅 시작
   var startMansinChat = function() {
-    setMsChatMsgs([]);
-    setMsChatInput('');
-    setMsChatInviteStep(0);
+    setChatMsgs([]);
+    setChatInput('');
+    setChatInviteStep(0);
     setPhase('chatInvite');
     // 연출 시퀀스
-    setTimeout(function(){ setMsChatInviteStep(1); }, 500);
-    setTimeout(function(){ setMsChatInviteStep(2); }, 2000);
-    setTimeout(function(){ setMsChatInviteStep(3); }, 3500);
-    setTimeout(function(){ setMsChatInviteStep(4); }, 5000);
+    setTimeout(function(){ setChatInviteStep(1); }, 500);
+    setTimeout(function(){ setChatInviteStep(2); }, 2000);
+    setTimeout(function(){ setChatInviteStep(3); }, 3500);
+    setTimeout(function(){ setChatInviteStep(4); }, 5000);
   };
 
   const unlockPremium=()=>{
@@ -2200,13 +2200,13 @@ export default function App(){
     return(
       <div style={{minHeight:'100vh',background:'radial-gradient(ellipse at 50% 15%,#221c14 0%,#14110c 65%)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',color:'#e8d5a8',fontFamily:"'Noto Sans KR',sans-serif",padding:20}}>
 
-        {msChatInviteStep>=1&&(
+        {chatInviteStep>=1&&(
           <div style={{animation:'fadeUp 0.8s ease',marginBottom:16}}>
             <CatFace size={100}/>
           </div>
         )}
 
-        {msChatInviteStep>=1&&(
+        {chatInviteStep>=1&&(
           <div style={{animation:'fadeUp 0.6s ease',textAlign:'center',marginBottom:12}}>
             <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 20px',display:'inline-block'}}>
               <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>다 봤냥? 꽤 흥미로운 사주더라.</p>
@@ -2214,7 +2214,7 @@ export default function App(){
           </div>
         )}
 
-        {msChatInviteStep>=2&&(
+        {chatInviteStep>=2&&(
           <div style={{animation:'fadeUp 0.6s ease',textAlign:'center',marginBottom:12}}>
             <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 20px',display:'inline-block'}}>
               <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>우리 스승님이 자네 사주에 흥미를 보이시는군.<br/>추가로 질문을 받아주시겠단다.</p>
@@ -2222,7 +2222,7 @@ export default function App(){
           </div>
         )}
 
-        {msChatInviteStep>=3&&(
+        {chatInviteStep>=3&&(
           <div style={{animation:'fadeUp 0.6s ease',textAlign:'center',marginBottom:16}}>
             <div style={{background:'rgba(130,100,200,0.06)',border:'1px solid rgba(130,100,200,0.12)',borderRadius:14,padding:'14px 20px',display:'inline-block'}}>
               <div style={{marginBottom:8}}><BariMansin size={50}/></div>
@@ -2236,10 +2236,10 @@ export default function App(){
           </div>
         )}
 
-        {msChatInviteStep>=4&&(
+        {chatInviteStep>=4&&(
           <div style={{animation:'fadeUp 0.6s ease',display:'flex',flexDirection:'column',gap:10,alignItems:'center'}}>
             <button onClick={function(){
-              setMsChatMsgs([{role:'assistant',content:'허, '+result.일간+result.일지+' 일주... 내 눈에도 범상치 않은 사주로구나.\n궁금한 것이 있으면 물어보거라. 무엇이든 답해주리라.'}]);
+              setChatMsgs([{role:'assistant',content:'허, '+result.일간+result.일지+' 일주... 내 눈에도 범상치 않은 사주로구나.\n궁금한 것이 있으면 물어보거라. 무엇이든 답해주리라.'}]);
               setPhase('mansinChat');
             }} style={{background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:22,padding:'14px 40px',fontSize:15,fontWeight:700,color:'#fff',cursor:'pointer',boxShadow:'0 4px 20px rgba(100,60,180,0.4)',letterSpacing:1}}>
               🔮 바리만신과 대화하기
@@ -2274,7 +2274,7 @@ export default function App(){
 
         {/* 메시지 영역 */}
         <div style={{flex:1,overflowY:'auto',padding:'16px',display:'flex',flexDirection:'column',gap:12}}>
-          {msChatMsgs.map(function(msg,i){
+          {chatMsgs.map(function(msg,i){
             if(msg.role==='assistant'){
               return React.createElement('div',{key:i,style:{display:'flex',gap:10,alignItems:'flex-start',animation:'fadeUp 0.4s ease'}},
                 React.createElement('div',{style:{flexShrink:0,marginTop:2}},React.createElement(BariMansin,{size:32})),
@@ -2291,7 +2291,7 @@ export default function App(){
             }
           })}
 
-          {msChatLoading&&React.createElement('div',{style:{display:'flex',gap:10,alignItems:'flex-start'}},
+          {chatLoading&&React.createElement('div',{style:{display:'flex',gap:10,alignItems:'flex-start'}},
             React.createElement('div',{style:{flexShrink:0,marginTop:2}},React.createElement(BariMansin,{size:32})),
             React.createElement('div',{style:{padding:'12px 16px',borderRadius:'4px 14px 14px 14px',background:'rgba(160,120,200,0.06)',border:'1px solid rgba(160,120,200,0.12)'}},
               React.createElement('div',{className:'chatDots',style:{display:'flex',gap:4}},
@@ -2302,22 +2302,22 @@ export default function App(){
             )
           )}
 
-          <div ref={msChatEndRef}/>
+          <div ref={chatEndRef}/>
         </div>
 
         {/* 입력 영역 */}
         <div style={{padding:'12px 16px',borderTop:'1px solid rgba(160,120,200,0.1)',flexShrink:0,display:'flex',gap:8}}>
           <input
-            value={msChatInput}
-            onChange={function(e){setMsChatInput(e.target.value);}}
-            onKeyDown={function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMansinChat(msChatInput);}}}
+            value={chatInput}
+            onChange={function(e){setChatInput(e.target.value);}}
+            onKeyDown={function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMansinChat(chatInput);}}}
             placeholder="바리만신에게 질문하기..."
             style={{flex:1,padding:'10px 14px',borderRadius:10,border:'1px solid rgba(160,120,200,0.15)',background:'rgba(160,120,200,0.04)',color:'#e8d5ff',fontSize:13,outline:'none'}}
           />
           <button
-            onClick={function(){sendMansinChat(msChatInput);}}
-            disabled={msChatLoading||!msChatInput.trim()}
-            style={{padding:'10px 16px',borderRadius:10,border:'none',background:msChatLoading||!msChatInput.trim()?'rgba(160,120,200,0.1)':'linear-gradient(135deg,#8060c0,#5030a0)',color:'#fff',fontSize:13,fontWeight:700,cursor:msChatLoading?'wait':'pointer'}}
+            onClick={function(){sendMansinChat(chatInput);}}
+            disabled={chatLoading||!chatInput.trim()}
+            style={{padding:'10px 16px',borderRadius:10,border:'none',background:chatLoading||!chatInput.trim()?'rgba(160,120,200,0.1)':'linear-gradient(135deg,#8060c0,#5030a0)',color:'#fff',fontSize:13,fontWeight:700,cursor:chatLoading?'wait':'pointer'}}
           >전송</button>
         </div>
 
