@@ -1108,6 +1108,7 @@ export default function App(){
   const[chatMsgs,setChatMsgs]=useState({});
   const[chatInput,setChatInput]=useState('');
   const[detailTarget,setDetailTarget]=useState(null);
+  const[catNavShow,setCatNavShow]=useState(false);
   const[catNavStep,setCatNavStep]=useState(0);
   const[catNavLoading,setCatNavLoading]=useState(null);
   const chatRef=useRef(null);
@@ -2028,8 +2029,37 @@ export default function App(){
           <button onClick={function(){var idx=paidTabList.indexOf(paidTab);setPaidTab(paidTabList[idx+1]);}} style={{width:'100%',padding:'13px',background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:10,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:"'Noto Serif KR',serif",boxShadow:'0 4px 16px rgba(100,60,180,0.2)'}}>
             {'다음: '+paidTabIcons[paidTabList.indexOf(paidTab)+1]+' '+paidTabList[paidTabList.indexOf(paidTab)+1]+' →'}
           </button>
+        ):catNavShow?(
+          <div style={{marginTop:8}}>
+            {catNavStep>=1&&(
+              <div style={{display:'flex',gap:10,alignItems:'flex-start',marginBottom:10,animation:'fadeUp 0.4s ease-out both'}}>
+                <div style={{flexShrink:0,marginTop:2}}><CatFace size={34}/></div>
+                <div style={{padding:'10px 14px',borderRadius:'4px 14px 14px 14px',background:'rgba(180,140,80,0.04)',border:'1px solid rgba(180,140,80,0.1)',maxWidth:'82%'}}>
+                  <div style={{fontSize:13,lineHeight:1.9,color:'#c0b8a0'}}>다 봤냥? 🐾 다음은 뭘 해볼까냥~</div>
+                </div>
+              </div>
+            )}
+            {catNavLoading?(
+              <div style={{animation:'fadeUp 0.3s ease-out both'}}>
+                <div style={{display:'flex',gap:10,alignItems:'flex-start',marginBottom:14}}>
+                  <div style={{flexShrink:0,marginTop:2}}><CatFace size={34}/></div>
+                  <div style={{padding:'10px 14px',borderRadius:'4px 14px 14px 14px',background:'rgba(180,140,80,0.04)',border:'1px solid rgba(180,140,80,0.1)'}}>
+                    <div style={{fontSize:13,lineHeight:1.9,color:'#c0b8a0'}}>{catNavLoading==='mansin'?'스승님한테 안내해주겠냥! 🔮':catNavLoading==='yeonin'?'인연을 찾아보겠냥! 💜':catNavLoading==='result'?'무료 결과로 돌아가겠냥~':'새로운 사주를 봐주겠냥!'}</div>
+                  </div>
+                </div>
+                <div style={{textAlign:'center',padding:'8px 0'}}><span style={{fontSize:20,animation:'shimmer 1s infinite'}}>🐱✨</span></div>
+              </div>
+            ):catNavStep>=2?(
+              <div style={{display:'flex',flexDirection:'column',gap:8,animation:'fadeUp 0.4s ease-out both'}}>
+                <button onClick={function(){setCatNavLoading('mansin');setTimeout(function(){setCatNavShow(false);setCatNavStep(0);setCatNavLoading(null);startMansinChat();},1200);}} style={{width:'100%',padding:'12px 14px',background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.15)',borderRadius:10,fontSize:13,fontWeight:600,color:'#d0b8a0',cursor:'pointer',textAlign:'left'}}>🔮 바리만신과 대화하기</button>
+                <button onClick={function(){setCatNavLoading('yeonin');setTimeout(function(){setCatNavShow(false);setCatNavStep(0);setCatNavLoading(null);var ym=getYeoninMatches(result.일간,form.gender);setYeoninMatches(ym);setPhase('matches');},1200);}} style={{width:'100%',padding:'12px 14px',background:'rgba(160,120,200,0.06)',border:'1px solid rgba(160,120,200,0.15)',borderRadius:10,fontSize:13,fontWeight:600,color:'#b0a0d0',cursor:'pointer',textAlign:'left'}}>💜 인연 찾기</button>
+                <button onClick={function(){setCatNavLoading('result');setTimeout(function(){setCatNavShow(false);setCatNavStep(0);setCatNavLoading(null);setResultTab(0);setPhase('result');},1000);}} style={{width:'100%',padding:'12px 14px',background:'rgba(160,120,200,0.04)',border:'1px solid rgba(160,120,200,0.08)',borderRadius:10,fontSize:12,color:'#8070a0',cursor:'pointer',textAlign:'left'}}>📋 무료 사주 결과로 돌아가기</button>
+                <button onClick={function(){setCatNavLoading('new');setTimeout(function(){setCatNavShow(false);setCatNavStep(0);setCatNavLoading(null);setPhase('intro');setIntroStep(0);setResult(null);setPremium(null);setAiCache({});setDialogStep(0);setDialogMsgs([]);setResultTab(0);},1000);}} style={{width:'100%',padding:'12px 14px',background:'rgba(160,120,200,0.02)',border:'1px solid rgba(160,120,200,0.06)',borderRadius:10,fontSize:12,color:'#6050a0',cursor:'pointer',textAlign:'left'}}>🔄 다른 사주 보기</button>
+              </div>
+            ):null}
+          </div>
         ):(
-          <button onClick={function(){setCatNavStep(0);setPhase('catNav');setTimeout(function(){setCatNavStep(1);},400);setTimeout(function(){setCatNavStep(2);},1600);setTimeout(function(){setCatNavStep(3);},2400);}} style={{width:'100%',padding:'13px',background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:10,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:"'Noto Serif KR',serif",boxShadow:'0 4px 16px rgba(100,60,180,0.2)'}}>
+          <button onClick={function(){setCatNavShow(true);setCatNavStep(0);setTimeout(function(){setCatNavStep(1);},300);setTimeout(function(){setCatNavStep(2);},1200);}} style={{width:'100%',padding:'13px',background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:10,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:"'Noto Serif KR',serif",boxShadow:'0 4px 16px rgba(100,60,180,0.2)'}}>
             다음 →
           </button>
         )}
@@ -2390,58 +2420,6 @@ export default function App(){
   // ============================================================
   // 매칭 목록 화면
   // ============================================================
-  // ============================================================
-  // 고양이 네비게이션 — 풀스크린
-  // ============================================================
-  if(phase==='catNav')return(
-    <div style={{minHeight:'100vh',background:'radial-gradient(ellipse at 50% 15%,#221c14 0%,#14110c 65%)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',color:'#e8d5a8',fontFamily:"'Noto Sans KR',sans-serif",padding:20,overflow:'hidden',position:'relative'}}>
-      {/* 배경 파티클 */}
-      <div style={{position:'absolute',top:0,left:0,right:0,bottom:0,pointerEvents:'none'}}>
-        <div style={{position:'absolute',top:'15%',left:'20%',width:4,height:4,borderRadius:2,background:'rgba(180,140,80,0.2)',animation:'float1 5s ease infinite'}}/>
-        <div style={{position:'absolute',top:'40%',right:'15%',width:3,height:3,borderRadius:2,background:'rgba(180,140,80,0.15)',animation:'float2 4s ease infinite'}}/>
-        <div style={{position:'absolute',bottom:'20%',left:'30%',width:5,height:5,borderRadius:3,background:'rgba(180,140,80,0.1)',animation:'float1 6s ease infinite'}}/>
-      </div>
-
-      {/* 고양이 등장 */}
-      <div style={{opacity:catNavStep>=1?1:0,transform:catNavStep>=1?'translateY(0) scale(1)':'translateY(60px) scale(0.7)',transition:'opacity 0.8s cubic-bezier(0.34,1.56,0.64,1),transform 0.8s cubic-bezier(0.34,1.56,0.64,1)'}}>
-        <CatFace size={120}/>
-      </div>
-
-      {/* 대사 */}
-      {catNavStep>=2&&!catNavLoading&&(
-        <div style={{animation:'fadeUp 0.5s ease',marginTop:20,textAlign:'center'}}>
-          <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 20px',display:'inline-block',position:'relative'}}>
-            <div style={{position:'absolute',top:-7,left:'50%',marginLeft:-7,width:0,height:0,borderLeft:'7px solid transparent',borderRight:'7px solid transparent',borderBottom:'7px solid rgba(180,140,80,0.12)'}}/>
-            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>다 봤냥? 🐾<br/>다음은 뭘 해볼까냥~</p>
-          </div>
-        </div>
-      )}
-
-      {/* 로딩 상태 */}
-      {catNavLoading&&(
-        <div style={{animation:'fadeUp 0.5s ease',marginTop:20,textAlign:'center'}}>
-          <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 20px',display:'inline-block',position:'relative'}}>
-            <div style={{position:'absolute',top:-7,left:'50%',marginLeft:-7,width:0,height:0,borderLeft:'7px solid transparent',borderRight:'7px solid transparent',borderBottom:'7px solid rgba(180,140,80,0.12)'}}/>
-            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>{catNavLoading==='mansin'?'스승님한테 안내해주겠냥! 🔮':catNavLoading==='yeonin'?'좋은 인연을 찾아보겠냥! 💜':catNavLoading==='result'?'무료 결과로 돌아가겠냥~':'새로운 사주를 봐주겠냥!'}</p>
-          </div>
-          <div style={{marginTop:16}}><span style={{fontSize:24,animation:'shimmer 1s infinite'}}>🐱 ✨</span></div>
-        </div>
-      )}
-
-      {/* 선택지 4개 — 갈색 통일 */}
-      {catNavStep>=3&&!catNavLoading&&(
-        <div style={{animation:'fadeUp 0.6s ease',marginTop:24,width:'100%',maxWidth:320,display:'flex',flexDirection:'column',gap:10}}>
-          <button onClick={function(){setCatNavLoading('mansin');setTimeout(function(){setCatNavLoading(null);startMansinChat();},1400);}} style={{width:'100%',padding:'13px 18px',background:'linear-gradient(135deg,#b48c50,#8a6830)',border:'none',borderRadius:22,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',boxShadow:'0 4px 16px rgba(180,140,80,0.3)',textAlign:'center'}}>🔮 바리만신과 대화하기</button>
-          <button onClick={function(){setCatNavLoading('yeonin');setTimeout(function(){setCatNavLoading(null);var ym=getYeoninMatches(result.일간,form.gender);setYeoninMatches(ym);setPhase('matches');},1400);}} style={{width:'100%',padding:'13px 18px',background:'linear-gradient(135deg,#b48c50,#8a6830)',border:'none',borderRadius:22,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',boxShadow:'0 4px 16px rgba(180,140,80,0.3)',textAlign:'center'}}>💜 인연 찾기</button>
-          <button onClick={function(){setCatNavLoading('result');setTimeout(function(){setCatNavLoading(null);setResultTab(0);setPhase('result');},1200);}} style={{width:'100%',padding:'13px 18px',background:'linear-gradient(135deg,#b48c50,#8a6830)',border:'none',borderRadius:22,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',boxShadow:'0 4px 16px rgba(180,140,80,0.3)',textAlign:'center'}}>📋 무료 사주 결과</button>
-          <button onClick={function(){setCatNavLoading('new');setTimeout(function(){setCatNavLoading(null);setPhase('intro');setIntroStep(0);setResult(null);setPremium(null);setAiCache({});setDialogStep(0);setDialogMsgs([]);setResultTab(0);},1200);}} style={{width:'100%',padding:'13px 18px',background:'linear-gradient(135deg,#b48c50,#8a6830)',border:'none',borderRadius:22,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',boxShadow:'0 4px 16px rgba(180,140,80,0.3)',textAlign:'center'}}>🔄 다른 사주 보기</button>
-        </div>
-      )}
-
-      <style>{'svg{border:none!important;outline:none!important;box-shadow:none!important}@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}@keyframes float1{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}@keyframes float2{0%,100%{transform:translateY(0) translateX(0)}50%{transform:translateY(-15px) translateX(8px)}}@keyframes shimmer{0%{opacity:0.4}50%{opacity:0.8}100%{opacity:0.4}}'}</style>
-    </div>
-  );
-
   // ============================================================
   // 인연찾기 — 프로필 선택 화면
   // ============================================================
