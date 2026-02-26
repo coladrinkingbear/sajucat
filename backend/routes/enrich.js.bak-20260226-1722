@@ -269,7 +269,7 @@ router.post('/yeonin-chat', async (req, res) => {
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: systemPrompt }] },
           contents: apiMsgs,
-          generationConfig: { maxOutputTokens: 1500, temperature: 0.9 }
+          generationConfig: { maxOutputTokens: 500, temperature: 0.9 }
         })
       }
     );

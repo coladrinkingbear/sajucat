@@ -1108,9 +1108,6 @@ export default function App(){
   const[chatMsgs,setChatMsgs]=useState({});
   const[chatInput,setChatInput]=useState('');
   const[detailTarget,setDetailTarget]=useState(null);
-  const[catNavShow,setCatNavShow]=useState(false);
-  const[catNavStep,setCatNavStep]=useState(0);
-  const[catNavLoading,setCatNavLoading]=useState(null);
   const chatRef=useRef(null);
   const[yChatLoading,setYChatLoading]=useState(false);
   const yChatEndRef=useRef(null);
@@ -2029,39 +2026,16 @@ export default function App(){
           <button onClick={function(){var idx=paidTabList.indexOf(paidTab);setPaidTab(paidTabList[idx+1]);}} style={{width:'100%',padding:'13px',background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:10,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:"'Noto Serif KR',serif",boxShadow:'0 4px 16px rgba(100,60,180,0.2)'}}>
             {'다음: '+paidTabIcons[paidTabList.indexOf(paidTab)+1]+' '+paidTabList[paidTabList.indexOf(paidTab)+1]+' →'}
           </button>
-        ):catNavShow?(
-          <div style={{marginTop:8}}>
-            {catNavStep>=1&&(
-              <div style={{display:'flex',gap:10,alignItems:'flex-start',marginBottom:10,animation:'fadeUp 0.4s ease-out both'}}>
-                <div style={{flexShrink:0,marginTop:2}}><CatFace size={34}/></div>
-                <div style={{padding:'10px 14px',borderRadius:'4px 14px 14px 14px',background:'rgba(180,140,80,0.04)',border:'1px solid rgba(180,140,80,0.1)',maxWidth:'82%'}}>
-                  <div style={{fontSize:13,lineHeight:1.9,color:'#c0b8a0'}}>다 봤냥? 🐾 다음은 뭘 해볼까냥~</div>
-                </div>
-              </div>
-            )}
-            {catNavLoading?(
-              <div style={{animation:'fadeUp 0.3s ease-out both'}}>
-                <div style={{display:'flex',gap:10,alignItems:'flex-start',marginBottom:14}}>
-                  <div style={{flexShrink:0,marginTop:2}}><CatFace size={34}/></div>
-                  <div style={{padding:'10px 14px',borderRadius:'4px 14px 14px 14px',background:'rgba(180,140,80,0.04)',border:'1px solid rgba(180,140,80,0.1)'}}>
-                    <div style={{fontSize:13,lineHeight:1.9,color:'#c0b8a0'}}>{catNavLoading==='mansin'?'스승님한테 안내해주겠냥! 🔮':catNavLoading==='yeonin'?'인연을 찾아보겠냥! 💜':catNavLoading==='result'?'무료 결과로 돌아가겠냥~':'새로운 사주를 봐주겠냥!'}</div>
-                  </div>
-                </div>
-                <div style={{textAlign:'center',padding:'8px 0'}}><span style={{fontSize:20,animation:'shimmer 1s infinite'}}>🐱✨</span></div>
-              </div>
-            ):catNavStep>=2?(
-              <div style={{display:'flex',flexDirection:'column',gap:8,animation:'fadeUp 0.4s ease-out both'}}>
-                <button onClick={function(){setCatNavLoading('mansin');setTimeout(function(){setCatNavShow(false);setCatNavStep(0);setCatNavLoading(null);startMansinChat();},1200);}} style={{width:'100%',padding:'12px 14px',background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.15)',borderRadius:10,fontSize:13,fontWeight:600,color:'#d0b8a0',cursor:'pointer',textAlign:'left'}}>🔮 바리만신과 대화하기</button>
-                <button onClick={function(){setCatNavLoading('yeonin');setTimeout(function(){setCatNavShow(false);setCatNavStep(0);setCatNavLoading(null);var ym=getYeoninMatches(result.일간,form.gender);setYeoninMatches(ym);setPhase('matches');},1200);}} style={{width:'100%',padding:'12px 14px',background:'rgba(160,120,200,0.06)',border:'1px solid rgba(160,120,200,0.15)',borderRadius:10,fontSize:13,fontWeight:600,color:'#b0a0d0',cursor:'pointer',textAlign:'left'}}>💜 인연 찾기</button>
-                <button onClick={function(){setCatNavLoading('result');setTimeout(function(){setCatNavShow(false);setCatNavStep(0);setCatNavLoading(null);setResultTab(0);setPhase('result');},1000);}} style={{width:'100%',padding:'12px 14px',background:'rgba(160,120,200,0.04)',border:'1px solid rgba(160,120,200,0.08)',borderRadius:10,fontSize:12,color:'#8070a0',cursor:'pointer',textAlign:'left'}}>📋 무료 사주 결과로 돌아가기</button>
-                <button onClick={function(){setCatNavLoading('new');setTimeout(function(){setCatNavShow(false);setCatNavStep(0);setCatNavLoading(null);setPhase('intro');setIntroStep(0);setResult(null);setPremium(null);setAiCache({});setDialogStep(0);setDialogMsgs([]);setResultTab(0);},1000);}} style={{width:'100%',padding:'12px 14px',background:'rgba(160,120,200,0.02)',border:'1px solid rgba(160,120,200,0.06)',borderRadius:10,fontSize:12,color:'#6050a0',cursor:'pointer',textAlign:'left'}}>🔄 다른 사주 보기</button>
-              </div>
-            ):null}
-          </div>
         ):(
-          <button onClick={function(){setCatNavShow(true);setCatNavStep(0);setTimeout(function(){setCatNavStep(1);},300);setTimeout(function(){setCatNavStep(2);},1200);}} style={{width:'100%',padding:'13px',background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:10,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:"'Noto Serif KR',serif",boxShadow:'0 4px 16px rgba(100,60,180,0.2)'}}>
-            다음 →
-          </button>
+          <div style={{display:'flex',flexDirection:'column',gap:8}}>
+            <button onClick={function(){startMansinChat();}} style={{width:'100%',padding:'13px',background:'linear-gradient(135deg,#b48c50,#8a6830)',border:'none',borderRadius:10,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:"'Noto Serif KR',serif",boxShadow:'0 4px 16px rgba(180,140,80,0.3)'}}>🐱 바리만신과 대화하기</button>
+            <button onClick={function(){
+              var ym=getYeoninMatches(result.일간,form.gender);
+              setYeoninMatches(ym);setPhase('matches');
+            }} style={{width:'100%',padding:'11px',background:'transparent',border:'1px solid rgba(160,120,200,0.2)',borderRadius:10,fontSize:12,fontWeight:600,color:'#a090d0',cursor:'pointer'}}>인연 찾기 💜</button>
+            <button onClick={function(){setResultTab(0);setPhase('result');}} style={{width:'100%',background:'transparent',border:'1px solid rgba(160,120,200,0.15)',borderRadius:8,padding:'10px',fontSize:11,color:'#6050a0',cursor:'pointer'}}>무료 사주 결과로 돌아가기</button>
+            <button onClick={function(){setPhase('intro');setIntroStep(0);setResult(null);setPremium(null);setAiCache({});setDialogStep(0);setDialogMsgs([]);setResultTab(0);}} style={{width:'100%',background:'transparent',border:'1px solid rgba(160,120,200,0.08)',borderRadius:8,padding:'10px',fontSize:11,color:'#4a3a60',cursor:'pointer'}}>다른 사주 보기</button>
+          </div>
         )}
       </div>
 
