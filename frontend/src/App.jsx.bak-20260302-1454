@@ -1074,12 +1074,6 @@ export default function App(){
   const[form,setForm]=useState({year:1995,month:5,day:15,hour:12,gender:'남',city:127});
   const[result,setResult]=useState(null);
 
-  // ── 인증 상태 ──
-  const[authUser,setAuthUser]=useState(null);
-  const[authChecked,setAuthChecked]=useState(false);
-  const[nickInput,setNickInput]=useState('');
-  const[nickMode,setNickMode]=useState('auto'); // 'auto' | 'custom'
-
   const[premium,setPremium]=useState(null);
   const[paidTab,setPaidTab]=useState('개인특성');
   const[aiCache,setAiCache]=useState({});
@@ -1122,26 +1116,6 @@ export default function App(){
   useEffect(function(){if(chatRef.current)chatRef.current.scrollTop=chatRef.current.scrollHeight;},[chatMsgs,chatTarget]);
   useEffect(function(){if(yChatEndRef.current)yChatEndRef.current.scrollIntoView({behavior:'smooth'});},[chatMsgs,yChatLoading]);
   useEffect(function(){if(phase!=='transition')return;if(transStep>=6)return;var delays=[800,2200,2000,2200,2400,0];var d=delays[transStep]||2000;var t=setTimeout(function(){setTransStep(function(s){return s+1;});},d);return function(){clearTimeout(t);};},[phase,transStep]);
-  // ── 인증 체크 (마운트 시) ──
-  useEffect(function(){
-    fetch('/auth/me').then(function(r){return r.json();}).then(function(d){
-      if(d.loggedIn){setAuthUser(d.user);setNickInput(d.user.nickname||'');}
-      setAuthChecked(true);
-      var p=new URLSearchParams(window.location.search);
-      if(p.get('login')==='new'){window.history.replaceState({},'','/');setPhase('nickname');}
-      else if(p.get('login')==='ok'){window.history.replaceState({},'','/');/* 이미 로그인됨, intro로 유지 */}
-    }).catch(function(){setAuthChecked(true);});
-  },[]);
-  // 사주 저장 헬퍼
-  function saveSajuToServer(a){
-    if(!authUser)return;
-    fetch('/auth/saju',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gender:form.gender,year:form.year,month:form.month,day:form.day,hour:form.hour,city:form.city,ilgan:a.일간,ilji:a.일지,data:{일간:a.일간,일지:a.일지,saju:a.saju}})}).catch(function(){});
-  }
-  // 활동 기록 헬퍼
-  function trackAct(action,detail){
-    if(!authUser)return;
-    fetch('/auth/activity',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:action,detail:detail||{}})}).catch(function(){});
-  }
   useEffect(function(){if(phase!=='intro')return;if(introStep>=4)return;var delays=[300,1000,1200,1200];var d=delays[introStep]||1000;var t=setTimeout(function(){setIntroStep(function(s){return s+1;});},d);return function(){clearTimeout(t);};},[phase,introStep]);
   useEffect(function(){if(phase!=='loading')return;if(loadStep>=4)return;var delays=[500,1800,2000,1500];var d=delays[loadStep]||1500;var t=setTimeout(function(){setLoadStep(function(s){return s+1;});},d);return function(){clearTimeout(t);};},[phase,loadStep]);
   useEffect(function(){if(dialogRef.current)dialogRef.current.scrollTop=dialogRef.current.scrollHeight;},[dialogMsgs,dialogStep,dialogReady]);
@@ -1383,8 +1357,6 @@ export default function App(){
       const s=birthToSaju(form.year,form.month,form.day,form.hour,form.gender,form.city);
       const a=analyze(s);
       setResult({...a,birthYear:form.year,birthMonth:form.month,birthDay:form.day});
-      saveSajuToServer(a);
-      trackAct('analyze',{ilgan:a.일간,ilji:a.일지});
       setPhase('result');
     },6500);
   };
@@ -1431,7 +1403,6 @@ export default function App(){
 
   // 바리만신 채팅 시작
   var startMansinChat = function() {
-    trackAct('mansin_chat_start');
     setMsChatMsgs([]);
     setMsChatInput('');
     setMsChatInviteStep(0);
@@ -1471,7 +1442,7 @@ export default function App(){
         <div style={{animation:'fadeUp 0.5s ease',marginTop:20,textAlign:'center'}}>
           <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 20px',display:'inline-block',position:'relative'}}>
             <div style={{position:'absolute',top:-7,left:'50%',marginLeft:-7,width:0,height:0,borderLeft:'7px solid transparent',borderRight:'7px solid transparent',borderBottom:'7px solid rgba(180,140,80,0.12)'}}/>
-            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>{authUser?authUser.nickname+', 또 왔네?':'어? 손님이네?'}</p>
+            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>어? 손님이네?</p>
           </div>
         </div>
       )}
@@ -1480,96 +1451,19 @@ export default function App(){
       {introStep>=3&&(
         <div style={{animation:'fadeUp 0.5s ease',marginTop:12,textAlign:'center'}}>
           <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 20px',display:'inline-block'}}>
-            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>{authUser?'사주를 봐줄까? 좋아!':'자네 얼굴에 운기가 좀 꼬여있군.\n로그인하면 사주를 봐줄게.'}</p>
+            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>자네 얼굴에 운기가 좀 꼬여있군.<br/>생년월일시를 알려주면 사주를 봐줄게.</p>
           </div>
         </div>
       )}
 
-      {/* Step 3: 로그인 버튼 OR 사주 봐줘 */}
+      {/* Step 3: 버튼 */}
       {introStep>=4&&(
-        <div style={{animation:'fadeUp 0.6s ease',marginTop:20,display:'flex',flexDirection:'column',gap:10,alignItems:'center',width:'100%',maxWidth:280}}>
-          {authUser?(
-            <button onClick={function(){setDialogStep(0);setDialogMsgs([{who:'cat',text:'좋아! 그럼 사주를 봐줄게.\n먼저, 성별을 알려줘!'}]);setDialogReady(false);setPhase('dialog');}} style={{background:'linear-gradient(135deg,#b48c50,#8a6830)',border:'none',borderRadius:22,padding:'13px 36px',fontSize:15,fontWeight:700,color:'#14110c',cursor:'pointer',boxShadow:'0 4px 16px rgba(180,140,80,0.3)'}}>사주 봐줘</button>
-          ):(
-            <>
-              <button onClick={function(){window.location.href='/auth/kakao';}} style={{width:'100%',padding:'12px',background:'#FEE500',border:'none',borderRadius:12,fontSize:14,fontWeight:700,color:'#3C1E1E',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
-                <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#3C1E1E" d="M9 1C4.58 1 1 3.79 1 7.21c0 2.17 1.45 4.08 3.63 5.18l-.93 3.42c-.08.29.25.52.5.35L8 13.55c.33.03.66.05 1 .05 4.42 0 8-2.79 8-6.21S13.42 1 9 1z"/></svg>
-                카카오로 시작하기
-              </button>
-              <button onClick={function(){window.location.href='/auth/naver';}} style={{width:'100%',padding:'12px',background:'#03C75A',border:'none',borderRadius:12,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
-                <span style={{fontSize:16,fontWeight:800}}>N</span>
-                네이버로 시작하기
-              </button>
-              <button onClick={function(){window.location.href='/auth/google';}} style={{width:'100%',padding:'12px',background:'#fff',border:'1px solid #ddd',borderRadius:12,fontSize:14,fontWeight:700,color:'#333',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
-                <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2a10.4 10.4 0 0 0-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92A8.78 8.78 0 0 0 17.64 9.2z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.91-2.26a5.4 5.4 0 0 1-8.09-2.84H.96v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.96 10.71a5.4 5.4 0 0 1 0-3.42V4.96H.96a9 9 0 0 0 0 8.08l3-2.33z"/><path fill="#EA4335" d="M9 3.58a4.86 4.86 0 0 1 3.44 1.35l2.58-2.59A8.65 8.65 0 0 0 9 0 9 9 0 0 0 .96 4.96l3 2.33A5.36 5.36 0 0 1 9 3.58z"/></svg>
-                구글로 시작하기
-              </button>
-            </>
-          )}
+        <div style={{animation:'fadeUp 0.6s ease',marginTop:20}}>
+          <button onClick={function(){setDialogStep(0);setDialogMsgs([{who:'cat',text:'좋아! 그럼 사주를 봐줄게.\n먼저, 성별을 알려줘!'}]);setDialogReady(false);setPhase('dialog');}} style={{background:'linear-gradient(135deg,#b48c50,#8a6830)',border:'none',borderRadius:22,padding:'13px 36px',fontSize:15,fontWeight:700,color:'#14110c',cursor:'pointer',boxShadow:'0 4px 16px rgba(180,140,80,0.3)'}}>사주 봐줘</button>
         </div>
       )}
 
       <style>{'svg{border:none!important;outline:none!important;box-shadow:none!important}@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}@keyframes float1{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}@keyframes float2{0%,100%{transform:translateY(0) translateX(0)}50%{transform:translateY(-15px) translateX(8px)}}'}</style>
-    </div>
-  );
-
-  // ============================================================
-  // 닉네임 설정
-  // ============================================================
-  if(phase==='nickname'&&authUser)return(
-    <div style={{minHeight:'100vh',background:'radial-gradient(ellipse at 50% 15%,#221c14 0%,#14110c 65%)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',color:'#e8d5a8',fontFamily:"'Noto Sans KR',sans-serif",padding:20,position:'relative'}}>
-      <div style={{opacity:1,transform:'translateY(0) scale(1)',transition:'all 0.8s cubic-bezier(0.34,1.56,0.64,1)'}}>
-        <CatFace size={120}/>
-      </div>
-
-      <div style={{animation:'fadeUp 0.5s ease',marginTop:20,textAlign:'center'}}>
-        <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 20px',display:'inline-block',position:'relative'}}>
-          <div style={{position:'absolute',top:-7,left:'50%',marginLeft:-7,width:0,height:0,borderLeft:'7px solid transparent',borderRight:'7px solid transparent',borderBottom:'7px solid rgba(180,140,80,0.12)'}}/>
-          <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>반갑다! 먼저 이름을 정해줘.</p>
-        </div>
-      </div>
-
-      <div style={{animation:'fadeUp 0.6s 0.3s both ease',marginTop:24,width:'100%',maxWidth:300}}>
-        <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'16px 20px',textAlign:'center'}}>
-          {nickMode==='auto'?(
-            <>
-              <div style={{fontSize:11,color:'#8a7e6d',marginBottom:8}}>자동으로 지어봤어</div>
-              <div style={{fontSize:18,fontWeight:700,color:'#e8d5a8',marginBottom:16,fontFamily:"'Noto Serif KR',serif"}}>{authUser.nickname}</div>
-              <div style={{display:'flex',gap:8}}>
-                <button onClick={function(){
-                  fetch('/auth/nickname',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nickname:authUser.nickname})}).then(function(){
-                    setAuthUser(Object.assign({},authUser,{nickConfirmed:true}));
-                    setPhase('intro');setIntroStep(0);
-                  });
-                }} style={{flex:1,padding:'11px',background:'linear-gradient(135deg,#b48c50,#8a6830)',border:'none',borderRadius:12,fontSize:14,fontWeight:700,color:'#14110c',cursor:'pointer',boxShadow:'0 4px 16px rgba(180,140,80,0.3)'}}>이대로 할래!</button>
-                <button onClick={function(){setNickMode('custom');setNickInput('');}} style={{flex:1,padding:'11px',background:'transparent',border:'1px solid rgba(180,140,80,0.2)',borderRadius:12,fontSize:13,fontWeight:600,color:'#c0b8a0',cursor:'pointer'}}>직접 정할래</button>
-              </div>
-              <button onClick={function(){
-                fetch('/auth/random-nick').then(function(r){return r.json();}).then(function(d){
-                  setAuthUser(Object.assign({},authUser,{nickname:d.nickname}));
-                });
-              }} style={{marginTop:8,background:'transparent',border:'none',fontSize:11,color:'#8a7e6d',cursor:'pointer',textDecoration:'underline'}}>🎲 다른 이름 뽑기</button>
-            </>
-          ):(
-            <>
-              <div style={{fontSize:11,color:'#8a7e6d',marginBottom:8}}>원하는 이름을 적어줘</div>
-              <input value={nickInput} onChange={function(e){setNickInput(e.target.value);}} maxLength={20} placeholder="닉네임 (1~20자)" style={{width:'100%',padding:'10px 14px',background:'rgba(180,140,80,0.04)',border:'1px solid rgba(180,140,80,0.15)',borderRadius:10,color:'#e8d5a8',fontSize:14,outline:'none',textAlign:'center',marginBottom:12,boxSizing:'border-box'}}/>
-              <div style={{display:'flex',gap:8}}>
-                <button onClick={function(){
-                  if(!nickInput.trim())return;
-                  fetch('/auth/nickname',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nickname:nickInput.trim()})}).then(function(){
-                    setAuthUser(Object.assign({},authUser,{nickname:nickInput.trim(),nickConfirmed:true}));
-                    setPhase('intro');setIntroStep(0);
-                  });
-                }} style={{flex:1,padding:'11px',background:nickInput.trim()?'linear-gradient(135deg,#b48c50,#8a6830)':'rgba(180,140,80,0.1)',border:'none',borderRadius:12,fontSize:14,fontWeight:700,color:nickInput.trim()?'#14110c':'#5a5040',cursor:'pointer'}}>확인!</button>
-                <button onClick={function(){setNickMode('auto');}} style={{flex:1,padding:'11px',background:'transparent',border:'1px solid rgba(180,140,80,0.2)',borderRadius:12,fontSize:13,fontWeight:600,color:'#c0b8a0',cursor:'pointer'}}>자동으로 할래</button>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-
-      <style>{'svg{border:none!important;outline:none!important;box-shadow:none!important}@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}'}</style>
     </div>
   );
 
@@ -1929,7 +1823,7 @@ export default function App(){
           </button>
         ):(
           <div style={{display:'flex',flexDirection:'column',gap:8}}>
-            <button onClick={function(){trackAct('premium_start');setTransStep(0);setPhase('transition');}} style={{width:'100%',padding:'13px',background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:10,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:"'Noto Serif KR',serif",boxShadow:'0 4px 16px rgba(100,60,180,0.2)'}}>
+            <button onClick={function(){setTransStep(0);setPhase('transition');}} style={{width:'100%',padding:'13px',background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:10,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:"'Noto Serif KR',serif",boxShadow:'0 4px 16px rgba(100,60,180,0.2)'}}>
               스승님 만나러 가기 🔮
             </button>
             <div style={{textAlign:'center',fontSize:9,color:'#4a3a60'}}>* 데모: 결제 없이 체험</div>
@@ -2131,7 +2025,7 @@ export default function App(){
       {/* 하단 버튼 */}
       <div style={{padding:'12px 16px',borderTop:'1px solid rgba(160,120,200,0.06)',flexShrink:0}}>
         {paidTabList.indexOf(paidTab)<3?(
-          <button onClick={function(){var idx=paidTabList.indexOf(paidTab);trackAct('premium_tab',{tab:paidTabList[idx+1]});setPaidTab(paidTabList[idx+1]);}} style={{width:'100%',padding:'13px',background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:10,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:"'Noto Serif KR',serif",boxShadow:'0 4px 16px rgba(100,60,180,0.2)'}}>
+          <button onClick={function(){var idx=paidTabList.indexOf(paidTab);setPaidTab(paidTabList[idx+1]);}} style={{width:'100%',padding:'13px',background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:10,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:"'Noto Serif KR',serif",boxShadow:'0 4px 16px rgba(100,60,180,0.2)'}}>
             {'다음: '+paidTabIcons[paidTabList.indexOf(paidTab)+1]+' '+paidTabList[paidTabList.indexOf(paidTab)+1]+' →'}
           </button>
         ):(
@@ -2538,7 +2432,7 @@ export default function App(){
       {catNavStep>=3&&!catNavLoading&&(
         <div style={{animation:'fadeUp 0.6s ease',marginTop:24,width:'100%',maxWidth:320,display:'flex',flexDirection:'column',gap:10}}>
           <button onClick={function(){setCatNavLoading('mansin');setTimeout(function(){setCatNavLoading(null);startMansinChat();},1400);}} style={{width:'100%',padding:'13px 18px',background:'linear-gradient(135deg,#b48c50,#8a6830)',border:'none',borderRadius:22,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',boxShadow:'0 4px 16px rgba(180,140,80,0.3)',textAlign:'center'}}>🔮 바리만신과 대화하기</button>
-          <button onClick={function(){setCatNavLoading('yeonin');setTimeout(function(){setCatNavLoading(null);trackAct('yeonin_start');var ym=getYeoninMatches(result.일간,form.gender);setYeoninMatches(ym);setPhase('matches');},1400);}} style={{width:'100%',padding:'13px 18px',background:'linear-gradient(135deg,#b48c50,#8a6830)',border:'none',borderRadius:22,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',boxShadow:'0 4px 16px rgba(180,140,80,0.3)',textAlign:'center'}}>💜 인연 찾기</button>
+          <button onClick={function(){setCatNavLoading('yeonin');setTimeout(function(){setCatNavLoading(null);var ym=getYeoninMatches(result.일간,form.gender);setYeoninMatches(ym);setPhase('matches');},1400);}} style={{width:'100%',padding:'13px 18px',background:'linear-gradient(135deg,#b48c50,#8a6830)',border:'none',borderRadius:22,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',boxShadow:'0 4px 16px rgba(180,140,80,0.3)',textAlign:'center'}}>💜 인연 찾기</button>
           <button onClick={function(){setCatNavLoading('result');setTimeout(function(){setCatNavLoading(null);setResultTab(0);setPhase('result');},1200);}} style={{width:'100%',padding:'13px 18px',background:'linear-gradient(135deg,#b48c50,#8a6830)',border:'none',borderRadius:22,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',boxShadow:'0 4px 16px rgba(180,140,80,0.3)',textAlign:'center'}}>📋 무료 사주 결과</button>
           <button onClick={function(){setCatNavLoading('new');setTimeout(function(){setCatNavLoading(null);setPhase('intro');setIntroStep(0);setResult(null);setPremium(null);setAiCache({});setDialogStep(0);setDialogMsgs([]);setResultTab(0);},1200);}} style={{width:'100%',padding:'13px 18px',background:'linear-gradient(135deg,#b48c50,#8a6830)',border:'none',borderRadius:22,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',boxShadow:'0 4px 16px rgba(180,140,80,0.3)',textAlign:'center'}}>🔄 다른 사주 보기</button>
         </div>
