@@ -51,6 +51,17 @@ db.exec(`
     created_at TEXT DEFAULT (datetime('now')),
     FOREIGN KEY (user_id) REFERENCES users(id)
   );
+
+  CREATE TABLE IF NOT EXISTS chat_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    chat_type TEXT NOT NULL,
+    profile_key TEXT,
+    role TEXT NOT NULL,
+    content TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  );
 `);
 
 // ── Prepared statements ──
@@ -59,14 +70,14 @@ const q = {
   findUser: db.prepare('SELECT * FROM users WHERE provider = ? AND provider_id = ?'),
   getUser: db.prepare('SELECT * FROM users WHERE id = ?'),
   createUser: db.prepare('INSERT INTO users (provider, provider_id, email, nickname, profile_image) VALUES (?, ?, ?, ?, ?)'),
-  updateLogin: db.prepare('UPDATE users SET last_login = datetime("now"), email = COALESCE(?, email), profile_image = COALESCE(?, profile_image) WHERE id = ?'),
+  updateLogin: db.prepare("UPDATE users SET last_login = datetime('now'), email = COALESCE(?, email), profile_image = COALESCE(?, profile_image) WHERE id = ?"),
   setNickname: db.prepare('UPDATE users SET nickname = ?, nickname_confirmed = 1 WHERE id = ?'),
 
   // Sessions
-  getSession: db.prepare('SELECT * FROM sessions WHERE sid = ? AND expires > datetime("now")'),
+  getSession: db.prepare("SELECT * FROM sessions WHERE sid = ? AND expires > datetime('now')"),
   setSession: db.prepare('INSERT OR REPLACE INTO sessions (sid, user_id, expires) VALUES (?, ?, ?)'),
   deleteSession: db.prepare('DELETE FROM sessions WHERE sid = ?'),
-  cleanExpired: db.prepare('DELETE FROM sessions WHERE expires <= datetime("now")'),
+  cleanExpired: db.prepare("DELETE FROM sessions WHERE expires <= datetime('now')"),
 
   // Saju
   saveSaju: db.prepare('INSERT INTO saju_results (user_id, gender, birth_year, birth_month, birth_day, birth_hour, birth_city, ilgan, ilji, saju_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'),
@@ -74,6 +85,12 @@ const q = {
 
   // Activity
   logActivity: db.prepare('INSERT INTO user_activity (user_id, action, detail) VALUES (?, ?, ?)'),
+
+  // Chat messages
+  saveChat: db.prepare('INSERT INTO chat_messages (user_id, chat_type, profile_key, role, content) VALUES (?, ?, ?, ?, ?)'),
+  getChatHistory: db.prepare('SELECT role, content, created_at FROM chat_messages WHERE user_id = ? AND chat_type = ? AND (profile_key = ? OR (profile_key IS NULL AND ? IS NULL)) ORDER BY id ASC'),
+  getLastChatProfile: db.prepare('SELECT DISTINCT profile_key FROM chat_messages WHERE user_id = ? AND chat_type = ? AND profile_key IS NOT NULL ORDER BY id DESC LIMIT 1'),
+  clearChat: db.prepare('DELETE FROM chat_messages WHERE user_id = ? AND chat_type = ? AND (profile_key = ? OR (profile_key IS NULL AND ? IS NULL))'),
 };
 
 module.exports = { db, q };
