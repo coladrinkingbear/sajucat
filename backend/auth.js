@@ -147,10 +147,14 @@ router.get('/me', sessionMw, (req, res) => {
   const u = q.getUser.get(req.userId);
   if (!u) return res.json({ loggedIn: false });
   const saju = q.getLatestSaju.get(req.userId);
+  const mansinChat = q.getChatHistory.all(req.userId, 'mansin', null, null);
+  const lastYeonin = q.getLastChatProfile.get(req.userId, 'yeonin');
   res.json({
     loggedIn: true,
     user: { id: u.id, nickname: u.nickname, nickConfirmed: !!u.nickname_confirmed, provider: u.provider, image: u.profile_image },
-    lastSaju: saju ? { gender: saju.gender, year: saju.birth_year, month: saju.birth_month, day: saju.birth_day, hour: saju.birth_hour, city: saju.birth_city, ilgan: saju.ilgan, ilji: saju.ilji } : null
+    lastSaju: saju ? { gender: saju.gender, year: saju.birth_year, month: saju.birth_month, day: saju.birth_day, hour: saju.birth_hour, city: saju.birth_city, ilgan: saju.ilgan, ilji: saju.ilji } : null,
+    hasMansinChat: mansinChat.length > 0,
+    lastYeoninProfile: lastYeonin ? lastYeonin.profile_key : null
   });
 });
 
@@ -182,6 +186,44 @@ router.post('/activity', sessionMw, express.json(), (req, res) => {
 router.post('/logout', sessionMw, (req, res) => {
   if (req.sid) q.deleteSession.run(req.sid);
   res.clearCookie(COOKIE);
+  res.json({ ok: true });
+});
+
+// 채팅 기록 저장 (배치)
+router.post('/chat-save', sessionMw, express.json(), (req, res) => {
+  if (!req.userId) return res.status(401).json({ error: '로그인 필요' });
+  const { chatType, profileKey, messages } = req.body;
+  if (!chatType || !Array.isArray(messages)) return res.status(400).json({ error: 'invalid' });
+  const insert = q.saveChat;
+  for (const m of messages) {
+    insert.run(req.userId, chatType, profileKey || null, m.role, m.content);
+  }
+  res.json({ ok: true, count: messages.length });
+});
+
+// 채팅 기록 불러오기
+router.get('/chat-history', sessionMw, (req, res) => {
+  if (!req.userId) return res.status(401).json({ error: '로그인 필요' });
+  const { chatType, profileKey } = req.query;
+  if (!chatType) return res.status(400).json({ error: 'chatType required' });
+  const pk = profileKey || null;
+  const rows = q.getChatHistory.all(req.userId, chatType, pk, pk);
+  res.json({ messages: rows });
+});
+
+// 마지막 인연 프로필
+router.get('/chat-last-profile', sessionMw, (req, res) => {
+  if (!req.userId) return res.status(401).json({ error: '로그인 필요' });
+  const row = q.getLastChatProfile.get(req.userId, 'yeonin');
+  res.json({ profileKey: row ? row.profile_key : null });
+});
+
+// 채팅 초기화
+router.post('/chat-clear', sessionMw, express.json(), (req, res) => {
+  if (!req.userId) return res.status(401).json({ error: '로그인 필요' });
+  const { chatType, profileKey } = req.body;
+  const pk = profileKey || null;
+  q.clearChat.run(req.userId, chatType, pk, pk);
   res.json({ ok: true });
 });
 
