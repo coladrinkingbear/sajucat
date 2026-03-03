@@ -1374,7 +1374,7 @@ export default function App(){
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         characterKey:key,
-        userSajuSummary:result?(function(){var r=result,s=r.십성,oh=r.오행;var lines=[];lines.push(r.일간+r.일지+'일주 '+form.gender+'명 | '+r.강약+' | '+r.격국+' | 용신:'+r.용신);var ss=[];['비견','겁재','식신','상관','편재','정재','편관','정관','편인','정인'].forEach(function(k){if(s[k]>0)ss.push(k+s[k]);});lines.push('십성: '+ss.join(' '));var ohArr=[];['목','화','토','금','수'].forEach(function(k){ohArr.push(k+oh.카운트[k]);});lines.push('오행: '+ohArr.join(' ')+(oh.전무.length>0?' | 전무:'+oh.전무.join(','):'')+(oh.과다.length>0?' | 과다:'+oh.과다.join(','):''));if(r.충.length>0)lines.push('충: '+r.충.map(function(c){return c.위치+'('+c.지1+c.지2+')';}).join(', '));if(r.합.length>0)lines.push('합: '+r.합.join(', '));lines.push('성격점수:'+r.성격.점수+' | 가족-아버지인연:'+r.가족.아버지.인연+' 어머니인연:'+r.가족.어머니.인연+' 배우자인연:'+r.가족.배우자.인연+' 자식인연:'+r.가족.자식.인연);return lines.join('\n');})():'',
+        userSajuSummary:result?result.일간+result.일지+' 일주 '+form.gender+'명':'',
         characterSajuSummary:chatTarget.ilju+' 일주',
         matchReason:chatTarget.matchReason||'좋은 궁합',
         messages:apiMessages
