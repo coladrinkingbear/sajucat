@@ -38,11 +38,10 @@ const CITIES=[
 function birthToSaju(year,month,day,hour,gender,longitude){
   // 시 모름이면 시주 없이 계산
   if(hour<0){
-    const s=calculateSaju(year,month,day,undefined,undefined,{longitude:longitude||127,applyTimeCorrection:!!(longitude&&longitude!==135)});
+    const s=calculateSaju(year,month,day,undefined,undefined,{longitude:longitude||127,applyTimeCorrection:!!longitude});
     return{yg:s.yearPillarHanja[0],yj:s.yearPillarHanja[1],mg:s.monthPillarHanja[0],mj:s.monthPillarHanja[1],dg:s.dayPillarHanja[0],dj:s.dayPillarHanja[1],hg:'?',hj:'?',gender:gender||'남'};
   }
-  const useCorr = longitude!==135;
-  const s=calculateSaju(year,month,day,hour,0,{longitude:longitude||127,applyTimeCorrection:useCorr});
+  const s=calculateSaju(year,month,day,hour,0,{longitude:longitude||127,applyTimeCorrection:true});
   return{yg:s.yearPillarHanja[0],yj:s.yearPillarHanja[1],mg:s.monthPillarHanja[0],mj:s.monthPillarHanja[1],dg:s.dayPillarHanja[0],dj:s.dayPillarHanja[1],hg:s.hourPillarHanja[0],hj:s.hourPillarHanja[1],gender:gender||'남'};
 }
 
@@ -432,8 +431,7 @@ var EDU={
 가족:'사주에서 가족 인연은 "십성(十星)"과 "궁성(宮星)"으로 봐.\n\n아버지 → 편재·정재 (재성)\n어머니 → 편인·정인 (인성)\n배우자 → 남자는 재성, 여자는 관성\n자식 → 식신·상관 (식상)\n\n해당 십성이 사주에 있으면 인연이 깊고, 없거나 충(沖)을 받으면 인연이 약해져.\n\n위치도 중요한데 — 연주는 조부모·유년기, 월주는 부모·청년기, 일지는 배우자, 시주는 자녀·노년기를 나타내.',
 재물:'재물운은 재성(정재·편재)으로 판단해.\n\n정재 — 꾸준한 급여·저축형 재물. 성실하게 모으는 스타일.\n편재 — 투자·사업·큰돈의 기운. 들어오는 것도 크지만 나가는 것도 커.\n\n재성이 사주에 있으면 돈에 관심이 많고, 일간이 신강해야 재물을 잘 다룰 수 있어.\n신약한데 재성만 많으면 "재다신약"이라 해서 돈에 끌려다니는 형국이 될 수 있지.\n\n겁재가 많으면 재물이 분산되니 보증이나 동업은 조심해야 해.',
 직장:'직장·명예운은 관성(정관·편관)으로 봐.\n\n정관 — 안정적인 직장, 승진, 규율을 따르는 조직인.\n편관 — 외부 압박과 경쟁 속에서 성장하는 기운. 군인·검찰·경찰에 유리하지.\n\n관성이 없으면 조직보다 자유업이 맞을 수 있어.\n\n"상관견관(傷官見官)"이라는 게 있는데 — 상관이 정관을 극하면 상사와 충돌하거나 이직이 잦을 수 있다는 뜻이야. 직장 변동을 조심해야 하는 구조지.',
-학문:'학문·자아실현은 인성(정인·편인)으로 봐.\n\n정인 — 정통 학문, 자격증, 전문직에 유리한 기운. 배움을 정리하는 능력이 탁월해.\n편인 — 독특한 사고방식, 특수 분야에 깊이 파고드는 성질. 의학·문학·역학 등에 강하지.\n\n인성이 사주에 있으면 배움에 대한 욕구가 강하고, 없으면 독학으로 실력을 쌓는 타입이야.\n\n인성이 너무 많으면 "도식(倒食)"이라 해서 오히려 생각만 많고 행동이 느려질 수 있으니 균형이 중요해.',
-진태양시:'사주캣은 \"진태양시(眞太陽時)\" 보정을 적용해.\n\n한국 표준시는 동경 135도(일본 아카시) 기준인데, 서울은 127도라서 실제 태양 위치가 약 32분 느려.\n\n즉 시계가 오후 1시여도 서울의 진짜 태양 시각은 12시 28분이야. 시주(時柱)는 태양의 실제 위치가 기준이라 이 차이가 중요해.\n\n전문 역술인과 사주수첩·척척만세력 등 전문 사이트도 이 보정을 적용해. 네이버 만세력은 적용하지 않아서 시주가 다를 수 있어.\n\n출생지에서 보정없음을 선택하면 네이버와 동일한 결과가 나와.'
+학문:'학문·자아실현은 인성(정인·편인)으로 봐.\n\n정인 — 정통 학문, 자격증, 전문직에 유리한 기운. 배움을 정리하는 능력이 탁월해.\n편인 — 독특한 사고방식, 특수 분야에 깊이 파고드는 성질. 의학·문학·역학 등에 강하지.\n\n인성이 사주에 있으면 배움에 대한 욕구가 강하고, 없으면 독학으로 실력을 쌓는 타입이야.\n\n인성이 너무 많으면 "도식(倒食)"이라 해서 오히려 생각만 많고 행동이 느려질 수 있으니 균형이 중요해.'
 };
 
 function FortuneBarNew({score,size}){
@@ -1869,7 +1867,7 @@ export default function App(){
                     <button key={h.v} onClick={function(){
                       setForm(function(f){return Object.assign({},f,{hour:h.v});});
                       var disp=h.v>=0?h.v+'시('+시진명D(h.v)+')':'시간 모름';
-                      var resp=h.v>=0?h.v+'시에 태어났구나!\n마지막으로 태어난 지역을 알려줘!\n\n🐱 참고로 사주캣은 진태양시를 적용해. 서울 기준으로 약 32분이 보정되기 때문에 네이버 만세력과 시주가 다를 수 있어. 전문 사주 사이트들도 같은 방식이야.\n다른 사이트와 똑같이 보고 싶으면 \"보정없음\"을 선택하면 돼!':'시간을 모르는구나, 괜찮아!\n마지막으로 태어난 지역을 알려줘!';
+                      var resp=h.v>=0?h.v+'시에 태어났구나!\n마지막! 어디서 태어났어?':'시간을 모르는구나, 괜찮아!\n마지막! 어디서 태어났어?';
                       dialogAnswer(h.v, disp, resp);
                     }} style={{padding:'8px 2px',borderRadius:6,border:'1px solid rgba(180,140,80,0.08)',background:'rgba(180,140,80,0.03)',color:'#8a7e6d',fontSize:11,cursor:'pointer',transition:'all 0.15s',textAlign:'center'}}
                     onMouseEnter={function(e){e.currentTarget.style.background='rgba(180,140,80,0.12)';e.currentTarget.style.color='#e8d5a8';}}
@@ -2028,7 +2026,6 @@ export default function App(){
         <div style={{fontSize:10,letterSpacing:4,color:'#5a5040',marginBottom:4}}>무료 사주 결과</div>
         <div style={{fontSize:16,fontWeight:700,color:'#e8d5a8',fontFamily:"'Noto Serif KR',serif"}}>{result.일간}{result.일지} 일주 · {result.격국}</div>
         <div style={{fontSize:11,color:'#5a5040',marginTop:2}}>{result.강약} · 용신 {result.용신} · {result.saju.gender}</div>
-        {form.city!==135&&<div style={{fontSize:9,color:'#4a4030',marginTop:6,lineHeight:1.5}}>※ 진태양시 적용 ({(CITIES.find(function(c){return c.v===form.city;})||{}).l||'서울'}) · 다른 사이트와 시주가 다를 수 있음</div>}
       </div>
 
       {/* 탭 */}
@@ -2089,7 +2086,6 @@ export default function App(){
                 </div>
               );})}
             </EduBlock>
-            {form.city!==135&&<EduBlock title="🐱 다른 사이트와 시주가 다르다면?"><EduText text={EDU.진태양시}/></EduBlock>}
           </div>
         )}
 
