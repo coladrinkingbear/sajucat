@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import { calculateSaju, applyTrueSolarTime } from './saju-core.js';
-import HanziWriter from 'hanzi-writer';
 
 // ============================================================
 // 기초 데이터
@@ -506,136 +505,88 @@ function SajuTableNew({saju,일간}){
 }
 
 // 서예 만세력 — 붓글씨 애니메이션
-function CalligraphyManseryeok({saju,일간,name,격국,강약}){
-  const containerRef=useRef(null);
-  const[revealed,setRevealed]=useState(false);
-  const ilju=일간+(saju.dj||'');
-  const iljuNarr=ILJU_NARRATIVE[ilju];
-  // 화면 좌→우: 시|일|월|연, 애니메이션: 연→월→일→시(전통 서사순)
+function CalligraphyManseryeok({saju,일간,name}){
+  const[showDetail,setShowDetail]=useState(false);
+  useEffect(()=>{const t=setTimeout(()=>setShowDetail(true),3200);return()=>clearTimeout(t);},[]);
+  // 표시순서: 시주|일주|월주|연주 (좌→우), 애니메이션은 연주부터 (우→좌, 전통 서사순)
   const cols=[
-    {key:'h',label:'시주',sub:'時柱',g:saju.hg,j:saju.hj,ord:3},
-    {key:'d',label:'일주',sub:'日柱',g:saju.dg,j:saju.dj,ord:2,isDay:true},
-    {key:'m',label:'월주',sub:'月柱',g:saju.mg,j:saju.mj,ord:1},
-    {key:'y',label:'연주',sub:'年柱',g:saju.yg,j:saju.yj,ord:0}
+    {label:'시주',sub:'時柱',g:saju.hg,j:saju.hj,anim:3},
+    {label:'일주',sub:'日柱',g:saju.dg,j:saju.dj,anim:2},
+    {label:'월주',sub:'月柱',g:saju.mg,j:saju.mj,anim:1},
+    {label:'연주',sub:'年柱',g:saju.yg,j:saju.yj,anim:0}
   ];
-  const animSeq=[];
-  [...cols].sort((a,b)=>a.ord-b.ord).forEach(c=>{
-    if(c.g&&c.g!=='?')animSeq.push({id:c.key+'g',ch:c.g});
-    if(c.j&&c.j!=='?')animSeq.push({id:c.key+'j',ch:c.j});
-  });
-  useEffect(()=>{
-    if(!containerRef.current)return;
-    let alive=true;
-    const writers=[];
-    animSeq.forEach(item=>{
-      const el=containerRef.current.querySelector('[data-hw="'+item.id+'"]');
-      if(!el)return;
-      el.innerHTML='';
-      const oh=천간오행[item.ch]||지지오행[item.ch]||'';
-      const c=OH_COLOR_MAP[oh];
-      try{
-        writers.push(HanziWriter.create(el,item.ch,{
-          width:58,height:58,padding:2,
-          strokeColor:c?c.fg:'#c8a85a',
-          radicalColor:c?c.fg:'#b48c50',
-          strokeAnimationSpeed:2,
-          delayBetweenStrokes:50,
-          showOutline:false,
-          showCharacter:false
-        }));
-      }catch(e){console.warn('HanziWriter error:',item.ch,e);}
-    });
-    function run(i){
-      if(!alive||i>=writers.length){if(alive)setRevealed(true);return;}
-      writers[i].animateCharacter({onComplete:()=>run(i+1)});
-    }
-    setTimeout(()=>run(0),500);
-    return()=>{alive=false;};
-  },[]);
-  return(
-    <div ref={containerRef} style={{marginBottom:20}}>
-      <style>{
-        '@keyframes detailReveal{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}'+
-        '@keyframes glowPulse{0%,100%{filter:drop-shadow(0 0 6px rgba(200,168,90,0.15))}50%{filter:drop-shadow(0 0 14px rgba(200,168,90,0.35))}}'
-      }</style>
-      {/* 한줄평 — 대형 타이틀 */}
-      {iljuNarr&&(
-        <div style={{textAlign:'center',marginBottom:24,animation:'fadeUp 0.6s ease both'}}>
-          <div style={{fontSize:11,color:'#5a5040',letterSpacing:4,marginBottom:8}}>{ilju}일주</div>
-          <div style={{fontSize:24,fontWeight:800,color:'#e8d5a8',fontFamily:"'Noto Serif KR',serif",lineHeight:1.3,letterSpacing:2}}>
-            {'✦ '+iljuNarr.title}
-          </div>
-          {(격국||강약)&&(
-            <div style={{fontSize:11,color:'#7a7060',marginTop:10,letterSpacing:1}}>
-              {[격국,강약].filter(Boolean).join(' · ')}
-            </div>
-          )}
-        </div>
-      )}
-      {/* 만세력 타이틀 */}
-      <div style={{textAlign:'center',marginBottom:14,animation:'fadeUp 0.5s 0.2s ease both'}}>
-        <div style={{fontSize:14,fontWeight:700,color:'#c8a85a',fontFamily:"'Noto Serif KR',serif",letterSpacing:6}}>四 柱 命 盤</div>
-      </div>
-      {/* 사주 4주 — HanziWriter */}
-      <div style={{display:'flex',justifyContent:'center',gap:5}}>
-        {cols.map((p,i)=>{
-          const gC=OH_COLOR_MAP[천간오행[p.g]||''];
-          const jC=OH_COLOR_MAP[지지오행[p.j]||''];
-          return(
-            <div key={p.key} style={{
-              textAlign:'center',flex:1,maxWidth:80,padding:'12px 2px 10px',
-              background:p.isDay?'rgba(180,140,80,0.1)':'rgba(180,140,80,0.02)',
-              borderRadius:12,
-              border:p.isDay?'1.5px solid rgba(180,140,80,0.3)':'1px solid rgba(180,140,80,0.06)',
-              position:'relative'
-            }}>
-              {/* 일주 "나" 뱃지 */}
-              {p.isDay&&<div style={{position:'absolute',top:-8,left:'50%',transform:'translateX(-50%)',fontSize:8,color:'#b48c50',background:'#1a1510',padding:'1px 8px',borderRadius:4,border:'1px solid rgba(180,140,80,0.2)'}}>나</div>}
-              {/* 柱 라벨 */}
-              <div style={{fontSize:9,color:'#5a5040',marginBottom:4,letterSpacing:2,animation:'fadeUp 0.3s '+(0.3+i*0.1)+'s both'}}>{p.sub}</div>
-              {/* 천간 십성 */}
-              {revealed&&p.g!=='?'&&(
-                <div style={{fontSize:8,color:'#8a7a60',marginBottom:2,animation:'detailReveal 0.4s ease both'}}>{십성(일간,p.g)}</div>
-              )}
-              {/* 천간 HanziWriter 영역 */}
-              <div data-hw={p.key+'g'} style={{
-                width:58,height:58,margin:'0 auto',
-                filter:revealed&&gC?'drop-shadow(0 0 10px '+gC.fg+'33)':'none',
-                transition:'filter 0.5s'
-              }}/>
-              {/* 천간 한글 */}
-              {revealed&&p.g!=='?'&&(
-                <div style={{fontSize:9,color:'#6a6050',marginTop:2,animation:'detailReveal 0.3s ease both'}}>
-                  {천간한[천간.indexOf(p.g)]}
-                </div>
-              )}
-              {/* 구분선 */}
-              <div style={{width:'35%',height:1,background:'rgba(180,140,80,0.15)',margin:'6px auto'}}/>
-              {/* 지지 HanziWriter 영역 */}
-              <div data-hw={p.key+'j'} style={{
-                width:58,height:58,margin:'0 auto',
-                filter:revealed&&jC?'drop-shadow(0 0 10px '+jC.fg+'33)':'none',
-                transition:'filter 0.5s'
-              }}/>
-              {/* 지지 한글 */}
-              {revealed&&p.j!=='?'&&(
-                <div style={{fontSize:9,color:'#6a6050',marginTop:2,animation:'detailReveal 0.3s ease both'}}>
-                  {지지한[지지.indexOf(p.j)]}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-      {/* 요약 바 */}
-      {revealed&&(
-        <div style={{textAlign:'center',marginTop:14,animation:'detailReveal 0.5s ease both'}}>
-          <span style={{fontSize:12,color:'#b48c50',fontFamily:"'Noto Serif KR',serif"}}>{saju.dg} 일간</span>
-          <span style={{fontSize:10,color:'#5a5040',margin:'0 6px'}}>·</span>
-          <span style={{fontSize:12,color:'#7a7060'}}>나 자신을 뜻하는 글자</span>
-        </div>
-      )}
-    </div>
+  return React.createElement('div',{style:{marginBottom:20}},
+    React.createElement('style',null,
+      '@keyframes brushIn{0%{opacity:0;clip-path:inset(0 0 100% 0);transform:translateY(-4px)}'+
+      '50%{opacity:0.8;clip-path:inset(0 0 30% 0);transform:translateY(0)}'+
+      '100%{opacity:1;clip-path:inset(0);transform:translateY(0)}}'+
+      '@keyframes inkSpread{0%{opacity:0;transform:scale(0.7) translateY(-6px);filter:blur(3px)}'+
+      '60%{opacity:1;transform:scale(1.02) translateY(0);filter:blur(0)}'+
+      '100%{opacity:1;transform:scale(1) translateY(0);filter:blur(0)}}'+
+      '@keyframes detailReveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}'
+    ),
+    // 타이틀
+    React.createElement('div',{style:{textAlign:'center',marginBottom:16}},
+      React.createElement('div',{style:{fontSize:10,color:'#5a5040',letterSpacing:6,marginBottom:4,animation:'fadeUp 0.5s ease both'}},'만 세 력'),
+      React.createElement('div',{style:{fontSize:15,fontWeight:700,color:'#e8d5a8',fontFamily:"'Noto Serif KR',serif",letterSpacing:8,animation:'fadeUp 0.5s 0.2s ease both'}},'四 柱 命 盤'),
+      name&&React.createElement('div',{style:{fontSize:11,color:'#7a7060',marginTop:6,animation:'fadeUp 0.5s 0.4s ease both'}},name+'의 타고난 운명')
+    ),
+    // 사주 4주
+    React.createElement('div',{style:{display:'flex',justifyContent:'center',gap:6}},
+      cols.map(function(p,i){
+        var isDay=p.label==='일주';
+        var gC=OH_COLOR_MAP[천간오행[p.g]||''];
+        var jC=OH_COLOR_MAP[지지오행[p.j]||''];
+        var gD=p.anim*0.65;
+        var jD=p.anim*0.65+0.32;
+        return React.createElement('div',{key:i,style:{
+          textAlign:'center',flex:1,maxWidth:76,padding:'14px 4px 10px',
+          background:isDay?'rgba(180,140,80,0.1)':'rgba(180,140,80,0.02)',
+          borderRadius:12,
+          border:isDay?'1.5px solid rgba(180,140,80,0.3)':'1px solid rgba(180,140,80,0.06)',
+          position:'relative'
+        }},
+          // 일주 표시
+          isDay&&React.createElement('div',{style:{position:'absolute',top:-8,left:'50%',transform:'translateX(-50%)',fontSize:8,color:'#b48c50',background:'#1a1510',padding:'1px 8px',borderRadius:4,border:'1px solid rgba(180,140,80,0.2)',whiteSpace:'nowrap',animation:'fadeUp 0.3s '+gD+'s both'}},'나'),
+          // 柱 라벨
+          React.createElement('div',{style:{fontSize:9,color:'#5a5040',marginBottom:10,letterSpacing:2,animation:'fadeUp 0.3s '+gD+'s both'}},p.sub),
+          // 천간 — 서예 애니메이션
+          React.createElement('div',{style:{
+            fontSize:34,fontWeight:700,lineHeight:1.1,
+            color:gC?gC.fg:'#8a7e6d',
+            fontFamily:"'Noto Serif KR',serif",
+            animation:'inkSpread 0.6s '+gD+'s both ease-out',
+            textShadow:gC?'0 0 20px '+gC.fg+'33':'none'
+          }},p.g),
+          // 천간 한글+오행
+          React.createElement('div',{style:{fontSize:9,color:'#6a6050',margin:'3px 0',animation:'fadeUp 0.3s '+(gD+0.3)+'s both'}},
+            p.g!=='?'?(천간한[천간.indexOf(p.g)]+' · '+(천간오행[p.g]||'')):''
+          ),
+          // 구분선
+          React.createElement('div',{style:{width:'40%',height:1,background:'rgba(180,140,80,0.15)',margin:'8px auto'}}),
+          // 지지 — 서예 애니메이션
+          React.createElement('div',{style:{
+            fontSize:34,fontWeight:700,lineHeight:1.1,
+            color:jC?jC.fg:'#8a7e6d',
+            fontFamily:"'Noto Serif KR',serif",
+            animation:'inkSpread 0.6s '+jD+'s both ease-out',
+            textShadow:jC?'0 0 20px '+jC.fg+'33':'none'
+          }},p.j),
+          // 지지 한글+오행
+          React.createElement('div',{style:{fontSize:9,color:'#6a6050',margin:'3px 0',animation:'fadeUp 0.3s '+(jD+0.3)+'s both'}},
+            p.j!=='?'?(지지한[지지.indexOf(p.j)]+' · '+(지지오행[p.j]||'')):''
+          ),
+          // 십성 (애니메이션 후 표시)
+          showDetail&&p.g!=='?'&&React.createElement('div',{style:{fontSize:9,color:'#8a7a60',marginTop:6,padding:'2px 6px',background:'rgba(180,140,80,0.05)',borderRadius:4,animation:'detailReveal 0.4s ease both'}},십성(일간,p.g))
+        );
+      })
+    ),
+    // 일간 강조 라벨
+    showDetail&&React.createElement('div',{style:{textAlign:'center',marginTop:12,animation:'detailReveal 0.5s ease both'}},
+      React.createElement('span',{style:{fontSize:11,color:'#b48c50',fontFamily:"'Noto Serif KR',serif"}},'일간(日干) '),
+      React.createElement('span',{style:{fontSize:13,fontWeight:700,color:'#e8d5a8',fontFamily:"'Noto Serif KR',serif"}},saju.dg),
+      React.createElement('span',{style:{fontSize:11,color:'#7a7060'}},' — 나 자신을 뜻하는 글자')
+    )
   );
 }
 
@@ -2189,7 +2140,7 @@ export default function App(){
         {resultTab===0&&(
           <div style={{animation:'fadeUp 0.5s ease'}}>
             {/* 서예 만세력 — 제일 위 */}
-            <CalligraphyManseryeok saju={result.saju} 일간={result.일간} name={authUser?authUser.nickname:''} 격국={result.격국} 강약={result.강약}/>
+            <CalligraphyManseryeok saju={result.saju} 일간={result.일간} name={authUser?authUser.nickname:''}/>
             <OhDotsNew 카운트={result.오행.카운트}/>
             {result.오행.전무.length>0&&<div style={{textAlign:'center',fontSize:11,color:'#7a5a48',marginTop:4}}>⚠ 전무: {result.오행.전무.join(', ')}</div>}
             <div style={{height:16}}/>
