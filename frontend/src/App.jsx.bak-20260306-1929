@@ -1299,20 +1299,15 @@ export default function App(){
   },[]);
   // 사주 저장 헬퍼
   function saveSajuToServer(a){
-    if(authUser){
-      fetch('/auth/saju',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gender:form.gender,year:form.year,month:form.month,day:form.day,hour:form.hour,city:form.city,ilgan:a.일간,ilji:a.일지,data:{일간:a.일간,일지:a.일지,saju:a.saju}})}).catch(function(){});
-    }
-    // 게스트도 저장
-    fetch('/api/guest/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gender:form.gender,birthYear:form.year,birthMonth:form.month,birthDay:form.day,birthHour:form.hour,city:(CITIES.find(function(c){return c.v===form.city;})||{}).l||'',longitude:form.city,sajuJson:JSON.stringify({saju:a.saju,일간:a.일간,일지:a.일지,격국:a.격국,강약:a.강약,용신:a.용신})})}).catch(function(){});
+    if(!authUser)return;
+    fetch('/auth/saju',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gender:form.gender,year:form.year,month:form.month,day:form.day,hour:form.hour,city:form.city,ilgan:a.일간,ilji:a.일지,data:{일간:a.일간,일지:a.일지,saju:a.saju}})}).catch(function(){});
   }
-  // 활동 기록 헬퍼 (로그인+게스트 공용)
+  // 활동 기록 헬퍼
   function trackAct(action,detail){
-    if(authUser){
-      fetch('/auth/activity',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:action,detail:detail||{}})}).catch(function(){});
-    }
-    fetch('/api/track',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:authUser?authUser.id:null,action:action,detail:typeof detail==='object'?JSON.stringify(detail):detail||null})}).catch(function(){});
+    if(!authUser)return;
+    fetch('/auth/activity',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:action,detail:detail||{}})}).catch(function(){});
   }
-  useEffect(function(){if(phase!=='intro')return;if(introStep>=5)return;var delays=[300,1000,1000,1200,1200];var d=delays[introStep]||1000;var t=setTimeout(function(){setIntroStep(function(s){return s+1;});},d);return function(){clearTimeout(t);};},[phase,introStep]);
+  useEffect(function(){if(phase!=='intro')return;if(introStep>=4)return;var delays=[300,1000,1200,1200];var d=delays[introStep]||1000;var t=setTimeout(function(){setIntroStep(function(s){return s+1;});},d);return function(){clearTimeout(t);};},[phase,introStep]);
   useEffect(function(){if(phase!=='loading')return;if(loadStep>=4)return;var delays=[500,1800,2000,1500];var d=delays[loadStep]||1500;var t=setTimeout(function(){setLoadStep(function(s){return s+1;});},d);return function(){clearTimeout(t);};},[phase,loadStep]);
   useEffect(function(){if(dialogRef.current)dialogRef.current.scrollTop=dialogRef.current.scrollHeight;},[dialogMsgs,dialogStep,dialogReady]);
   useEffect(function(){if(phase!=='dialog')return;setDialogReady(false);var t=setTimeout(function(){setDialogReady(true);},600);return function(){clearTimeout(t);};},[dialogStep,phase]);
@@ -1649,31 +1644,22 @@ export default function App(){
         <div style={{animation:'fadeUp 0.5s ease',marginTop:20,textAlign:'center'}}>
           <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 20px',display:'inline-block',position:'relative'}}>
             <div style={{position:'absolute',top:-7,left:'50%',marginLeft:-7,width:0,height:0,borderLeft:'7px solid transparent',borderRight:'7px solid transparent',borderBottom:'7px solid rgba(180,140,80,0.12)'}}/>
-            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>{authUser?authUser.nickname+', 또 왔군.':'어? 손님이네.'}</p>
+            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>{authUser?authUser.nickname+', 또 왔군.':'어? 손님이로군.'}</p>
           </div>
         </div>
       )}
 
-      {/* Step 2: 두번째 */}
+      {/* Step 2: 추가 대사 */}
       {introStep>=3&&(
         <div style={{animation:'fadeUp 0.5s ease',marginTop:12,textAlign:'center'}}>
           <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 20px',display:'inline-block'}}>
-            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>{authUser?'오늘도 사주를 풀어보겠나?':'이리 보니 자네 얼굴에 운기가 좀 꼬여있군.'}</p>
+            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>{authUser?'오늘도 사주를 풀어보겠나?':'자네 얼굴에 운기가 좀 꼬여있군.\n생년월일시를 일러주게.'}</p>
           </div>
         </div>
       )}
 
-      {/* Step 3: 세번째 */}
-      {introStep>=4&&!authUser&&(
-        <div style={{animation:'fadeUp 0.5s ease',marginTop:12,textAlign:'center'}}>
-          <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 20px',display:'inline-block'}}>
-            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>생년월일시를 알려주면 사주를 봐줄게.</p>
-          </div>
-        </div>
-      )}
-
-      {/* Step 4: 사주 봐줘 버튼 */}
-      {introStep>=(authUser?4:5)&&(
+      {/* Step 3: 사주 봐줘 버튼 */}
+      {introStep>=4&&(
         <div style={{animation:'fadeUp 0.6s ease',marginTop:20}}>
           <button onClick={function(){
             if(authUser&&lastSaju){
@@ -2082,7 +2068,7 @@ export default function App(){
     const cityLabel=CITIES.find(c=>c.v===form.city);
     return(
     <div style={{minHeight:'100vh',background:'radial-gradient(ellipse at 50% 15%,#221c14 0%,#14110c 65%)',color:'#e8d5a8',fontFamily:"'Noto Sans KR',sans-serif",padding:'40px 20px'}}>
-      <div style={{textAlign:'center',marginBottom:16}}><CatFace size={70}/><p style={{fontSize:13,color:'#b48c50',marginTop:8}}>생년월일시를 알려주게.</p></div>
+      <div style={{textAlign:'center',marginBottom:16}}><CatFace size={70}/><p style={{fontSize:13,color:'#b48c50',marginTop:8}}>생년월일시를 일러주게.</p></div>
       <div style={{textAlign:'center',marginBottom:16,padding:'12px 16px',background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.15)',borderRadius:10}}>
         <span style={{fontSize:20,fontWeight:800,color:'#e8d5a8',letterSpacing:1,textShadow:'0 0 12px rgba(180,140,80,0.3)'}}>{form.year}년 {form.month}월 {form.day}일 {form.hour>=0?`${form.hour}시(${시진명(form.hour)})`:'모름'}</span>
         <div style={{fontSize:11,color:'#b48c50',marginTop:4}}>{form.gender==='남'?'👨 남자':'👩 여자'} · {cityLabel?cityLabel.l.split(' ')[0]:'서울'}</div>
@@ -2178,40 +2164,18 @@ export default function App(){
   return(
     <div style={{minHeight:'100vh',background:'radial-gradient(ellipse at 50% 15%,#221c14 0%,#14110c 65%)',color:'#e8d5a8',fontFamily:"'Noto Sans KR',sans-serif",display:'flex',flexDirection:'column',maxWidth:440,margin:'0 auto'}}>
 
-      {/* 헤더 — 프로필 + 공유 */}
-      <div style={{padding:'14px 16px',borderBottom:'1px solid rgba(180,140,80,0.08)',flexShrink:0}}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
-          {/* 좌측: 이름/생년월일/도시 */}
-          <div>
-            <div style={{fontSize:13,fontWeight:600,color:'#c0b8a0'}}>
-              {authUser?authUser.nickname:''} {result.saju.gender==='남'?'男':'女'}
-            </div>
-            <div style={{fontSize:10,color:'#5a5040',marginTop:3}}>
-              {result.birthYear}.{String(result.birthMonth).padStart(2,'0')}.{String(result.birthDay).padStart(2,'0')}{form.hour>=0?' '+String(form.hour).padStart(2,'0')+':00':''} {(CITIES.find(function(c){return c.v===form.city;})||{}).l||''}
-            </div>
-            {form.city!==135&&<div style={{fontSize:9,color:'#4a4030',marginTop:2}}>진태양시 적용</div>}
-          </div>
-          {/* 우측: 공유 버튼 */}
-          <button onClick={function(){
-            var text=result.일간+result.일지+' 일주 · '+result.격국+' · '+result.강약+'\n'+result.birthYear+'년 '+result.birthMonth+'월 '+result.birthDay+'일생\n고양이 사주명당 sajucat.co.kr';
-            if(navigator.share){navigator.share({title:'고양이 사주명당',text:text,url:'https://sajucat.co.kr'}).catch(function(){});}
-            else if(navigator.clipboard){navigator.clipboard.writeText(text+'\nhttps://sajucat.co.kr');alert('복사되었네. 붙여넣기 하게.');}
-          }} style={{background:'rgba(180,140,80,0.08)',border:'1px solid rgba(180,140,80,0.15)',borderRadius:8,padding:'6px 12px',fontSize:11,color:'#b48c50',cursor:'pointer',display:'flex',alignItems:'center',gap:4,flexShrink:0}}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b48c50" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-            공유
-          </button>
-        </div>
-        {/* 격국 요약 */}
-        <div style={{textAlign:'center',marginTop:12}}>
-          <div style={{fontSize:15,fontWeight:700,color:'#e8d5a8',fontFamily:"'Noto Serif KR',serif"}}>{result.일간}{result.일지} 일주 · {result.격국}</div>
-          <div style={{fontSize:10,color:'#5a5040',marginTop:3}}>{result.강약} · 용신 {result.용신}</div>
-        </div>
+      {/* 헤더 */}
+      <div style={{padding:'16px',borderBottom:'1px solid rgba(180,140,80,0.08)',flexShrink:0,textAlign:'center'}}>
+        <div style={{fontSize:10,letterSpacing:4,color:'#5a5040',marginBottom:4}}>무료 사주 결과</div>
+        <div style={{fontSize:16,fontWeight:700,color:'#e8d5a8',fontFamily:"'Noto Serif KR',serif"}}>{result.일간}{result.일지} 일주 · {result.격국}</div>
+        <div style={{fontSize:11,color:'#5a5040',marginTop:2}}>{result.강약} · 용신 {result.용신} · {result.saju.gender}</div>
+        {form.city!==135&&<div style={{fontSize:9,color:'#4a4030',marginTop:6,lineHeight:1.5}}>※ 진태양시 적용 ({(CITIES.find(function(c){return c.v===form.city;})||{}).l||'서울'}) · 다른 사이트와 시주가 다를 수 있음</div>}
       </div>
 
       {/* 탭 */}
       <div style={{display:'flex',padding:'0 12px',borderBottom:'1px solid rgba(180,140,80,0.06)',flexShrink:0}}>
         {rPartTitles.map(function(title,i){return(
-          <button key={i} onClick={function(){setResultTab(i);trackAct('tab_view',{tab:rPartTitles[i]});if(resultScrollRef.current)resultScrollRef.current.scrollTop=0;}} style={{flex:1,padding:'10px 4px',fontSize:11,fontWeight:resultTab===i?700:400,color:resultTab===i?'#e8d5a8':'#5a5040',background:'transparent',border:'none',cursor:'pointer',borderBottom:resultTab===i?'2px solid #b48c50':'2px solid transparent',transition:'all 0.3s',fontFamily:"'Noto Serif KR',serif"}}>{title}</button>
+          <button key={i} onClick={function(){setResultTab(i);if(resultScrollRef.current)resultScrollRef.current.scrollTop=0;}} style={{flex:1,padding:'10px 4px',fontSize:11,fontWeight:resultTab===i?700:400,color:resultTab===i?'#e8d5a8':'#5a5040',background:'transparent',border:'none',cursor:'pointer',borderBottom:resultTab===i?'2px solid #b48c50':'2px solid transparent',transition:'all 0.3s',fontFamily:"'Noto Serif KR',serif"}}>{title}</button>
         );})}
       </div>
 
@@ -2520,7 +2484,7 @@ export default function App(){
             {'다음: '+paidTabIcons[paidTabList.indexOf(paidTab)+1]+' '+paidTabList[paidTabList.indexOf(paidTab)+1]+' →'}
           </button>
         ):(
-          <button onClick={function(){setCatNavStep(0);setPhase('catNav');setTimeout(function(){setCatNavStep(1);},400);setTimeout(function(){setCatNavStep(2);},1600);setTimeout(function(){setCatNavStep(3);},3000);setTimeout(function(){setCatNavStep(4);},4400);setTimeout(function(){setCatNavStep(5);},6000);setTimeout(function(){setCatNavStep(6);},7600);}} style={{width:'100%',padding:'13px',background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:10,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:"'Noto Serif KR',serif",boxShadow:'0 4px 16px rgba(100,60,180,0.2)'}}>
+          <button onClick={function(){setCatNavStep(0);setPhase('catNav');setTimeout(function(){setCatNavStep(1);},400);setTimeout(function(){setCatNavStep(2);},1600);setTimeout(function(){setCatNavStep(3);},2400);}} style={{width:'100%',padding:'13px',background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:10,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:"'Noto Serif KR',serif",boxShadow:'0 4px 16px rgba(100,60,180,0.2)'}}>
             다음 →
           </button>
         )}
@@ -2898,53 +2862,12 @@ export default function App(){
         <CatFace size={120}/>
       </div>
 
-      {/* 대사 1 */}
+      {/* 대사 */}
       {catNavStep>=2&&!catNavLoading&&(
         <div style={{animation:'fadeUp 0.5s ease',marginTop:20,textAlign:'center'}}>
           <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 20px',display:'inline-block',position:'relative'}}>
             <div style={{position:'absolute',top:-7,left:'50%',marginLeft:-7,width:0,height:0,borderLeft:'7px solid transparent',borderRight:'7px solid transparent',borderBottom:'7px solid rgba(180,140,80,0.12)'}}/>
-            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>다 봤는가?</p>
-          </div>
-        </div>
-      )}
-
-      {/* 대사 2 */}
-      {catNavStep>=3&&!catNavLoading&&(
-        <div style={{animation:'fadeUp 0.5s ease',marginTop:10,textAlign:'center'}}>
-          <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 20px',display:'inline-block'}}>
-            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>스승님의 실력은 자네도 잘 봤겠지.</p>
-          </div>
-        </div>
-      )}
-
-      {/* 대사 3 */}
-      {catNavStep>=4&&!catNavLoading&&(
-        <div style={{animation:'fadeUp 0.5s ease',marginTop:10,textAlign:'center'}}>
-          <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 20px',display:'inline-block'}}>
-            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>마침 스승님께서 자네에게 관심이 있어<br/>원한다면 더 대화를 할 수 있네.</p>
-          </div>
-        </div>
-      )}
-
-      {/* 대사 4 */}
-      {catNavStep>=5&&!catNavLoading&&(
-        <div style={{animation:'fadeUp 0.5s ease',marginTop:10,textAlign:'center'}}>
-          <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 20px',display:'inline-block'}}>
-            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>아니면 우리 신당에서 주선하는<br/>인연채팅을 이용할 수도 있네.</p>
-          </div>
-        </div>
-      )}
-
-      {/* 비로그인: 로그인 유도 */}
-      {catNavStep>=6&&!authUser&&!catNavLoading&&(
-        <div style={{animation:'fadeUp 0.5s ease',marginTop:10,textAlign:'center'}}>
-          <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 20px',display:'inline-block'}}>
-            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>이용하려면 로그인을 해야하네.<br/>해볼 텐가?</p>
-          </div>
-          <div style={{marginTop:16,display:'flex',flexDirection:'column',gap:8,maxWidth:280,margin:'16px auto 0'}}>
-            <button onClick={function(){window.location.href='/auth/kakao';}} style={{width:'100%',padding:'12px',background:'#FEE500',border:'none',borderRadius:10,fontSize:13,fontWeight:600,color:'#191919',cursor:'pointer'}}>카카오로 로그인</button>
-            <button onClick={function(){window.location.href='/auth/google';}} style={{width:'100%',padding:'12px',background:'#fff',border:'1px solid #ddd',borderRadius:10,fontSize:13,fontWeight:600,color:'#333',cursor:'pointer'}}>Google로 로그인</button>
-            <button onClick={function(){setCatNavStep(7);}} style={{width:'100%',padding:'10px',background:'transparent',border:'none',fontSize:11,color:'#5a5040',cursor:'pointer',textDecoration:'underline'}}>나중에 할게</button>
+            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>다 봤는가?<br/>다음은 뭘 해볼 텐가?</p>
           </div>
         </div>
       )}
@@ -2954,19 +2877,19 @@ export default function App(){
         <div style={{animation:'fadeUp 0.5s ease',marginTop:20,textAlign:'center'}}>
           <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 20px',display:'inline-block',position:'relative'}}>
             <div style={{position:'absolute',top:-7,left:'50%',marginLeft:-7,width:0,height:0,borderLeft:'7px solid transparent',borderRight:'7px solid transparent',borderBottom:'7px solid rgba(180,140,80,0.12)'}}/>
-            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>{catNavLoading==='mansin'?'스승님한테 안내해주겠네.':catNavLoading==='yeonin'?'좋은 인연을 찾아보겠네.':catNavLoading==='result'?'무료 결과로 돌아가겠네.':'새로운 사주를 봐주겠네.'}</p>
+            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>{catNavLoading==='mansin'?'스승님한테 안내해주겠네. 🔮':catNavLoading==='yeonin'?'좋은 인연을 찾아보겠네.':catNavLoading==='result'?'무료 결과로 돌아가겠네.':'새로운 사주를 봐주겠네.'}</p>
           </div>
 <div style={{marginTop:16}}><span style={{fontSize:24,animation:'shimmer 1s infinite'}}>🐱 ✨</span></div>
         </div>
       )}
 
-      {/* 선택지 — 로그인 사용자: 4개 / 비로그인 '나중에': 2개 */}
-      {((authUser&&catNavStep>=6)||catNavStep>=7)&&!catNavLoading&&(
-        <div style={{animation:'fadeUp 0.6s ease',marginTop:20,width:'100%',maxWidth:320,display:'flex',flexDirection:'column',gap:8}}>
-          {authUser&&<button onClick={function(){setCatNavLoading('mansin');setTimeout(function(){setCatNavLoading(null);startMansinChat();},1400);}} style={{width:'100%',padding:'13px 18px',background:'transparent',border:'1px solid rgba(180,140,80,0.2)',borderRadius:12,fontSize:13,fontWeight:600,color:'#c0b8a0',cursor:'pointer',textAlign:'center'}}>🔮 바리만신과 대화하기</button>}
-          {authUser&&<button onClick={function(){setCatNavLoading('yeonin');setTimeout(function(){setCatNavLoading(null);trackAct('yeonin_start');var ym=getYeoninMatches(result.일간,form.gender);setYeoninMatches(ym);setPhase('matches');},1400);}} style={{width:'100%',padding:'13px 18px',background:'transparent',border:'1px solid rgba(160,120,200,0.2)',borderRadius:12,fontSize:13,fontWeight:600,color:'#b0a0d0',cursor:'pointer',textAlign:'center'}}>💜 인연 찾기</button>}
-          <button onClick={function(){setCatNavLoading('result');setTimeout(function(){setCatNavLoading(null);setResultTab(0);setPhase('result');},1200);}} style={{width:'100%',padding:'13px 18px',background:'transparent',border:'1px solid rgba(180,140,80,0.1)',borderRadius:12,fontSize:13,fontWeight:400,color:'#7a7060',cursor:'pointer',textAlign:'center'}}>📋 무료 사주 결과</button>
-          <button onClick={function(){setCatNavLoading('new');setTimeout(function(){setCatNavLoading(null);setPhase('intro');setIntroStep(0);setResult(null);setPremium(null);setAiCache({});setDialogStep(0);setDialogMsgs([]);setResultTab(0);},1200);}} style={{width:'100%',padding:'13px 18px',background:'transparent',border:'1px solid rgba(180,140,80,0.1)',borderRadius:12,fontSize:13,fontWeight:400,color:'#7a7060',cursor:'pointer',textAlign:'center'}}>🔄 다른 사주 보기</button>
+      {/* 선택지 4개 — 갈색 통일 */}
+      {catNavStep>=3&&!catNavLoading&&(
+        <div style={{animation:'fadeUp 0.6s ease',marginTop:24,width:'100%',maxWidth:320,display:'flex',flexDirection:'column',gap:10}}>
+          <button onClick={function(){setCatNavLoading('mansin');setTimeout(function(){setCatNavLoading(null);startMansinChat();},1400);}} style={{width:'100%',padding:'13px 18px',background:'linear-gradient(135deg,#b48c50,#8a6830)',border:'none',borderRadius:22,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',boxShadow:'0 4px 16px rgba(180,140,80,0.3)',textAlign:'center'}}>🔮 바리만신과 대화하기</button>
+          <button onClick={function(){setCatNavLoading('yeonin');setTimeout(function(){setCatNavLoading(null);trackAct('yeonin_start');var ym=getYeoninMatches(result.일간,form.gender);setYeoninMatches(ym);setPhase('matches');},1400);}} style={{width:'100%',padding:'13px 18px',background:'linear-gradient(135deg,#b48c50,#8a6830)',border:'none',borderRadius:22,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',boxShadow:'0 4px 16px rgba(180,140,80,0.3)',textAlign:'center'}}>💜 인연 찾기</button>
+          <button onClick={function(){setCatNavLoading('result');setTimeout(function(){setCatNavLoading(null);setResultTab(0);setPhase('result');},1200);}} style={{width:'100%',padding:'13px 18px',background:'linear-gradient(135deg,#b48c50,#8a6830)',border:'none',borderRadius:22,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',boxShadow:'0 4px 16px rgba(180,140,80,0.3)',textAlign:'center'}}>📋 무료 사주 결과</button>
+          <button onClick={function(){setCatNavLoading('new');setTimeout(function(){setCatNavLoading(null);setPhase('intro');setIntroStep(0);setResult(null);setPremium(null);setAiCache({});setDialogStep(0);setDialogMsgs([]);setResultTab(0);},1200);}} style={{width:'100%',padding:'13px 18px',background:'linear-gradient(135deg,#b48c50,#8a6830)',border:'none',borderRadius:22,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',boxShadow:'0 4px 16px rgba(180,140,80,0.3)',textAlign:'center'}}>🔄 다른 사주 보기</button>
         </div>
       )}
 
