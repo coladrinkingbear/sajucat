@@ -439,7 +439,7 @@ var EDU={
 재물:'재물운은 재성(정재·편재)으로 판단해.\n\n정재 — 꾸준한 급여·저축형 재물. 성실하게 모으는 스타일.\n편재 — 투자·사업·큰돈의 기운. 들어오는 것도 크지만 나가는 것도 커.\n\n재성이 사주에 있으면 돈에 관심이 많고, 일간이 신강해야 재물을 잘 다룰 수 있어.\n신약한데 재성만 많으면 "재다신약"이라 해서 돈에 끌려다니는 형국이 될 수 있지.\n\n겁재가 많으면 재물이 분산되니 보증이나 동업은 조심해야 해.',
 직장:'직장·명예운은 관성(정관·편관)으로 봐.\n\n정관 — 안정적인 직장, 승진, 규율을 따르는 조직인.\n편관 — 외부 압박과 경쟁 속에서 성장하는 기운. 군인·검찰·경찰에 유리하지.\n\n관성이 없으면 조직보다 자유업이 맞을 수 있어.\n\n"상관견관(傷官見官)"이라는 게 있는데 — 상관이 정관을 극하면 상사와 충돌하거나 이직이 잦을 수 있다는 뜻이야. 직장 변동을 조심해야 하는 구조지.',
 학문:'학문·자아실현은 인성(정인·편인)으로 봐.\n\n정인 — 정통 학문, 자격증, 전문직에 유리한 기운. 배움을 정리하는 능력이 탁월해.\n편인 — 독특한 사고방식, 특수 분야에 깊이 파고드는 성질. 의학·문학·역학 등에 강하지.\n\n인성이 사주에 있으면 배움에 대한 욕구가 강하고, 없으면 독학으로 실력을 쌓는 타입이야.\n\n인성이 너무 많으면 "도식(倒食)"이라 해서 오히려 생각만 많고 행동이 느려질 수 있으니 균형이 중요해.',
-진태양시:'고양이 사주명당은 \"진태양시(眞太陽時)\" 보정을 적용하네.\n\n한국 표준시는 동경 135도(일본 아카시) 기준인데, 서울은 127도라서 실제 태양 위치가 약 32분 느리지.\n\n즉 시계가 오후 1시여도 서울의 진짜 태양 시각은 12시 28분이야. 시주(時柱)는 태양의 실제 위치가 기준이라 이 차이가 중요하네.\n\n전문 역술인과 사주수첩·척척만세력 등 전문 사이트도 이 보정을 적용하지. 네이버 만세력은 적용하지 않아서 시주가 다를 수 있어.\n\n출생지에서 보정없음을 선택하면 네이버와 동일한 결과가 나오네.'
+진태양시:'사주캣은 \"진태양시(眞太陽時)\" 보정을 적용해.\n\n한국 표준시는 동경 135도(일본 아카시) 기준인데, 서울은 127도라서 실제 태양 위치가 약 32분 느려.\n\n즉 시계가 오후 1시여도 서울의 진짜 태양 시각은 12시 28분이야. 시주(時柱)는 태양의 실제 위치가 기준이라 이 차이가 중요해.\n\n전문 역술인과 사주수첩·척척만세력 등 전문 사이트도 이 보정을 적용해. 네이버 만세력은 적용하지 않아서 시주가 다를 수 있어.\n\n출생지에서 보정없음을 선택하면 네이버와 동일한 결과가 나와.'
 };
 
 function FortuneBarNew({score,size}){
@@ -1158,7 +1158,7 @@ export default function App(){
         setLoginStep(4);setPhase('loginFlow');
       }else if(p.get('login')==='ok'){
         window.history.replaceState({},'','/');
-        setDialogStep(0);setDialogMsgs([{who:'cat',text:d.user.nickname+', 또 왔군.\n그럼 사주를 봐주지. 자네 성별이 뭔가?'}]);setDialogReady(false);setPhase('dialog');
+        setDialogStep(0);setDialogMsgs([{who:'cat',text:d.user.nickname+', 또 왔다냥! 좋아!\n그럼 사주를 봐줄게. 먼저, 성별을 알려줘!'}]);setDialogReady(false);setPhase('dialog');
       }
     }).catch(function(){setAuthChecked(true);});
   },[]);
@@ -1509,7 +1509,7 @@ export default function App(){
         <div style={{animation:'fadeUp 0.5s ease',marginTop:20,textAlign:'center'}}>
           <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 20px',display:'inline-block',position:'relative'}}>
             <div style={{position:'absolute',top:-7,left:'50%',marginLeft:-7,width:0,height:0,borderLeft:'7px solid transparent',borderRight:'7px solid transparent',borderBottom:'7px solid rgba(180,140,80,0.12)'}}/>
-            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>{authUser?authUser.nickname+', 또 왔군.':'어? 손님이로군.'}</p>
+            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>{authUser?authUser.nickname+', 또 왔다냥!':'어? 손님이네?'}</p>
           </div>
         </div>
       )}
@@ -1518,7 +1518,7 @@ export default function App(){
       {introStep>=3&&(
         <div style={{animation:'fadeUp 0.5s ease',marginTop:12,textAlign:'center'}}>
           <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 20px',display:'inline-block'}}>
-            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>{authUser?'오늘도 사주를 봐줄까?':'자네 얼굴에 운기가 좀 꼬여있군.\n생년월일시를 알려주게.'}</p>
+            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>{authUser?'오늘도 사주를 봐줄까냥?':'자네 얼굴에 운기가 좀 꼬여있군.\n생년월일시를 알려주면 사주를 봐줄게.'}</p>
           </div>
         </div>
       )}
@@ -1530,7 +1530,7 @@ export default function App(){
             if(authUser&&lastSaju){
               setPhase('returnMenu');
             }else if(authUser){
-              setDialogStep(0);setDialogMsgs([{who:'cat',text:'좋아. 그럼 사주를 봐주지.\n자네 성별이 뭔가?'}]);setDialogReady(false);setPhase('dialog');
+              setDialogStep(0);setDialogMsgs([{who:'cat',text:'좋아! 그럼 사주를 봐줄게.\n먼저, 성별을 알려줘!'}]);setDialogReady(false);setPhase('dialog');
             }else{
               setLoginStep(0);setPhase('loginFlow');
               setTimeout(function(){setLoginStep(1);},500);
@@ -1559,7 +1559,7 @@ export default function App(){
       <div style={{animation:'fadeUp 0.5s ease',marginTop:20,textAlign:'center'}}>
         <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'14px 20px',position:'relative'}}>
           <div style={{position:'absolute',top:-7,left:'50%',marginLeft:-7,width:0,height:0,borderLeft:'7px solid transparent',borderRight:'7px solid transparent',borderBottom:'7px solid rgba(180,140,80,0.12)'}}/>
-          <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>{authUser.nickname}, 또 왔군.<br/>오늘은 뭘 해볼 텐가?</p>
+          <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>{authUser.nickname}, 또 왔다냥! 🐾<br/>오늘은 뭘 해볼까냥?</p>
         </div>
       </div>
 
@@ -1641,7 +1641,7 @@ export default function App(){
 
         {/* 새로운 사주 보기 */}
         <button onClick={function(){
-          setDialogStep(0);setDialogMsgs([{who:'cat',text:'좋아. 새로운 사주를 봐주지.\n자네 성별이 뭔가?'}]);setDialogReady(false);setPhase('dialog');
+          setDialogStep(0);setDialogMsgs([{who:'cat',text:'좋아! 새로운 사주를 봐줄게.\n먼저, 성별을 알려줘!'}]);setDialogReady(false);setPhase('dialog');
         }} style={{width:'100%',padding:'14px 18px',background:'transparent',border:'1px solid rgba(180,140,80,0.2)',borderRadius:16,fontSize:14,fontWeight:700,color:'#c0b8a0',cursor:'pointer',textAlign:'left',display:'flex',alignItems:'center',gap:10}}>
           <span style={{fontSize:20}}>🆕</span>
           <div>새로운 사주 보기</div>
@@ -1671,12 +1671,12 @@ export default function App(){
         </div>
       )}
 
-      {/* Step 2: 로그인할건가? */}
+      {/* Step 2: 로그인할거냥? */}
       {loginStep>=2&&loginStep<3&&(
         <div style={{animation:'fadeUp 0.5s ease',marginTop:20,textAlign:'center',width:'100%',maxWidth:320}}>
           <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'14px 20px',position:'relative',marginBottom:20}}>
             <div style={{position:'absolute',top:-7,left:'50%',marginLeft:-7,width:0,height:0,borderLeft:'7px solid transparent',borderRight:'7px solid transparent',borderBottom:'7px solid rgba(180,140,80,0.12)'}}/>
-            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>어서 오게.<br/>로그인하면 이것저것 편리하지.</p>
+            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>어서 오라냥! 🐾<br/>로그인하면 좋은 게 많다냥~</p>
             <div style={{marginTop:10,fontSize:12,color:'#8a7e6d',lineHeight:1.8,textAlign:'left'}}>
               <div>✨ 예전 사주팔자 기록을 저장</div>
               <div>🔮 바리만신과의 채팅 내역 보관</div>
@@ -1685,7 +1685,7 @@ export default function App(){
           </div>
           <div style={{display:'flex',gap:10}}>
             <button onClick={function(){setLoginStep(3);}} style={{flex:1,padding:'12px',background:'linear-gradient(135deg,#b48c50,#8a6830)',border:'none',borderRadius:12,fontSize:14,fontWeight:700,color:'#14110c',cursor:'pointer',boxShadow:'0 4px 16px rgba(180,140,80,0.3)'}}>좋아, 할래!</button>
-            <button onClick={function(){setDialogStep(0);setDialogMsgs([{who:'cat',text:'알겠네. 그럼 바로 사주를 봐주지.\n자네 성별이 뭔가?'}]);setDialogReady(false);setPhase('dialog');}} style={{flex:1,padding:'12px',background:'transparent',border:'1px solid rgba(180,140,80,0.2)',borderRadius:12,fontSize:13,fontWeight:600,color:'#c0b8a0',cursor:'pointer'}}>아니, 그냥 볼래</button>
+            <button onClick={function(){setDialogStep(0);setDialogMsgs([{who:'cat',text:'알겠다냥. 그럼 바로 사주를 봐줄게!\n먼저, 성별을 알려줘!'}]);setDialogReady(false);setPhase('dialog');}} style={{flex:1,padding:'12px',background:'transparent',border:'1px solid rgba(180,140,80,0.2)',borderRadius:12,fontSize:13,fontWeight:600,color:'#c0b8a0',cursor:'pointer'}}>아니, 그냥 볼래</button>
           </div>
         </div>
       )}
@@ -1695,7 +1695,7 @@ export default function App(){
         <div style={{animation:'fadeUp 0.5s ease',marginTop:20,textAlign:'center',width:'100%',maxWidth:300}}>
           <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 20px',position:'relative',marginBottom:16}}>
             <div style={{position:'absolute',top:-7,left:'50%',marginLeft:-7,width:0,height:0,borderLeft:'7px solid transparent',borderRight:'7px solid transparent',borderBottom:'7px solid rgba(180,140,80,0.12)'}}/>
-            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>뭘로 로그인할 텐가?</p>
+            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>뭘로 로그인할거냥? 🐱</p>
           </div>
           <div style={{display:'flex',flexDirection:'column',gap:10}}>
             <button onClick={function(){window.location.href='/auth/kakao';}} style={{width:'100%',padding:'13px',background:'#FEE500',border:'none',borderRadius:12,fontSize:14,fontWeight:700,color:'#3C1E1E',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
@@ -1716,18 +1716,18 @@ export default function App(){
         <div style={{animation:'fadeUp 0.5s ease',marginTop:20,textAlign:'center',width:'100%',maxWidth:300}}>
           <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 20px',position:'relative',marginBottom:16}}>
             <div style={{position:'absolute',top:-7,left:'50%',marginLeft:-7,width:0,height:0,borderLeft:'7px solid transparent',borderRight:'7px solid transparent',borderBottom:'7px solid rgba(180,140,80,0.12)'}}/>
-            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>로그인 완료했네.<br/>이름은 뭘로 할 텐가?</p>
+            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>로그인 완료했다냥! 🎉<br/>이름은 뭘로 할거냥?</p>
           </div>
           <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'16px 20px',textAlign:'center'}}>
             {nickMode==='auto'?(
               <>
-                <div style={{fontSize:11,color:'#8a7e6d',marginBottom:8}}>자동으로 지어봤네</div>
+                <div style={{fontSize:11,color:'#8a7e6d',marginBottom:8}}>자동으로 지어봤다냥</div>
                 <div style={{fontSize:18,fontWeight:700,color:'#e8d5a8',marginBottom:16,fontFamily:"'Noto Serif KR',serif"}}>{authUser.nickname}</div>
                 <div style={{display:'flex',gap:8}}>
                   <button onClick={function(){
                     fetch('/auth/nickname',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nickname:authUser.nickname})}).then(function(){
                       setAuthUser(Object.assign({},authUser,{nickConfirmed:true}));
-                      setDialogStep(0);setDialogMsgs([{who:'cat',text:authUser.nickname+', 좋은 이름이군.\n그럼 사주를 봐주지. 자네 성별이 뭔가?'}]);setDialogReady(false);setPhase('dialog');
+                      setDialogStep(0);setDialogMsgs([{who:'cat',text:authUser.nickname+', 좋은 이름이다냥!\n그럼 사주를 봐줄게. 먼저, 성별을 알려줘!'}]);setDialogReady(false);setPhase('dialog');
                     });
                   }} style={{flex:1,padding:'11px',background:'linear-gradient(135deg,#b48c50,#8a6830)',border:'none',borderRadius:12,fontSize:14,fontWeight:700,color:'#14110c',cursor:'pointer',boxShadow:'0 4px 16px rgba(180,140,80,0.3)'}}>이대로 할래!</button>
                   <button onClick={function(){setNickMode('custom');setNickInput('');}} style={{flex:1,padding:'11px',background:'transparent',border:'1px solid rgba(180,140,80,0.2)',borderRadius:12,fontSize:13,fontWeight:600,color:'#c0b8a0',cursor:'pointer'}}>직접 정할래</button>
@@ -1747,7 +1747,7 @@ export default function App(){
                     if(!nickInput.trim())return;
                     fetch('/auth/nickname',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nickname:nickInput.trim()})}).then(function(){
                       setAuthUser(Object.assign({},authUser,{nickname:nickInput.trim(),nickConfirmed:true}));
-                      setDialogStep(0);setDialogMsgs([{who:'cat',text:nickInput.trim()+', 좋은 이름이군.\n그럼 사주를 봐주지. 자네 성별이 뭔가?'}]);setDialogReady(false);setPhase('dialog');
+                      setDialogStep(0);setDialogMsgs([{who:'cat',text:nickInput.trim()+', 좋은 이름이다냥!\n그럼 사주를 봐줄게. 먼저, 성별을 알려줘!'}]);setDialogReady(false);setPhase('dialog');
                     });
                   }} style={{flex:1,padding:'11px',background:nickInput.trim()?'linear-gradient(135deg,#b48c50,#8a6830)':'rgba(180,140,80,0.1)',border:'none',borderRadius:12,fontSize:14,fontWeight:700,color:nickInput.trim()?'#14110c':'#5a5040',cursor:'pointer'}}>확인!</button>
                   <button onClick={function(){setNickMode('auto');}} style={{flex:1,padding:'11px',background:'transparent',border:'1px solid rgba(180,140,80,0.2)',borderRadius:12,fontSize:13,fontWeight:600,color:'#c0b8a0',cursor:'pointer'}}>자동으로 할래</button>
@@ -1784,7 +1784,7 @@ export default function App(){
         <CatFace size={36}/>
         <div>
           <div style={{fontSize:14,fontWeight:700,color:'#e8d5a8',fontFamily:"'Noto Serif KR',serif"}}>고양이 사주 명당</div>
-          <div style={{fontSize:10,color:'#5a5040'}}>사주 정보를 알려주게</div>
+          <div style={{fontSize:10,color:'#5a5040'}}>사주 정보를 알려주라냥</div>
         </div>
       </div>
 
@@ -1861,7 +1861,7 @@ export default function App(){
                 {DAYS.map(function(d){return(
                   <button key={d.v} onClick={function(){
                     setForm(function(f){return Object.assign({},f,{day:d.v});});
-                    dialogAnswer(d.v, d.v+'일', d.v+'일이로군.\n태어난 시간은 아는가?');
+                    dialogAnswer(d.v, d.v+'일', d.v+'일이구나.\n태어난 시간은 알아?');
                   }} style={{padding:'8px 2px',borderRadius:6,border:form.day===d.v?'1px solid rgba(180,140,80,0.5)':'1px solid rgba(180,140,80,0.08)',background:form.day===d.v?'rgba(180,140,80,0.12)':'rgba(180,140,80,0.02)',color:form.day===d.v?'#e8d5a8':'#8a7e6d',fontSize:13,fontWeight:form.day===d.v?700:400,cursor:'pointer',transition:'all 0.15s'}}>{d.v}</button>
                 );})}
               </div>
@@ -1875,7 +1875,7 @@ export default function App(){
                     <button key={h.v} onClick={function(){
                       setForm(function(f){return Object.assign({},f,{hour:h.v});});
                       var disp=h.v>=0?h.v+'시('+시진명D(h.v)+')':'시간 모름';
-                      var resp=h.v>=0?h.v+'시에 태어났군.\n마지막으로 태어난 지역을 알려주게.\n\n🐱 참고로 고양이 사주명당은 진태양시를 적용하네. 서울 기준으로 약 32분이 보정되기 때문에 네이버 만세력과 시주가 다를 수 있어. 전문 사주 사이트들도 같은 방식이지.\n다른 사이트와 똑같이 보고 싶으면 \"보정없음\"을 선택하면 되네.':'시간을 모르는군, 괜찮네.\n마지막으로 태어난 지역을 알려주게.';
+                      var resp=h.v>=0?h.v+'시에 태어났구나!\n마지막으로 태어난 지역을 알려줘!\n\n🐱 참고로 사주캣은 진태양시를 적용해. 서울 기준으로 약 32분이 보정되기 때문에 네이버 만세력과 시주가 다를 수 있어. 전문 사주 사이트들도 같은 방식이야.\n다른 사이트와 똑같이 보고 싶으면 \"보정없음\"을 선택하면 돼!':'시간을 모르는구나, 괜찮아!\n마지막으로 태어난 지역을 알려줘!';
                       dialogAnswer(h.v, disp, resp);
                     }} style={{padding:'8px 2px',borderRadius:6,border:'1px solid rgba(180,140,80,0.08)',background:'rgba(180,140,80,0.03)',color:'#8a7e6d',fontSize:11,cursor:'pointer',transition:'all 0.15s',textAlign:'center'}}
                     onMouseEnter={function(e){e.currentTarget.style.background='rgba(180,140,80,0.12)';e.currentTarget.style.color='#e8d5a8';}}
@@ -1933,7 +1933,7 @@ export default function App(){
     const cityLabel=CITIES.find(c=>c.v===form.city);
     return(
     <div style={{minHeight:'100vh',background:'radial-gradient(ellipse at 50% 15%,#221c14 0%,#14110c 65%)',color:'#e8d5a8',fontFamily:"'Noto Sans KR',sans-serif",padding:'40px 20px'}}>
-      <div style={{textAlign:'center',marginBottom:16}}><CatFace size={70}/><p style={{fontSize:13,color:'#b48c50',marginTop:8}}>생년월일시를 알려주게.</p></div>
+      <div style={{textAlign:'center',marginBottom:16}}><CatFace size={70}/><p style={{fontSize:13,color:'#b48c50',marginTop:8}}>생년월일시를 알려줘.</p></div>
       <div style={{textAlign:'center',marginBottom:16,padding:'12px 16px',background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.15)',borderRadius:10}}>
         <span style={{fontSize:20,fontWeight:800,color:'#e8d5a8',letterSpacing:1,textShadow:'0 0 12px rgba(180,140,80,0.3)'}}>{form.year}년 {form.month}월 {form.day}일 {form.hour>=0?`${form.hour}시(${시진명(form.hour)})`:'모름'}</span>
         <div style={{fontSize:11,color:'#b48c50',marginTop:4}}>{form.gender==='남'?'👨 남자':'👩 여자'} · {cityLabel?cityLabel.l.split(' ')[0]:'서울'}</div>
@@ -2585,7 +2585,7 @@ export default function App(){
         {msChatInviteStep>=1&&(
           <div style={{animation:'fadeUp 0.6s ease',textAlign:'center',marginBottom:12}}>
             <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 20px',display:'inline-block'}}>
-              <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>다 봤는가? 꽤 흥미로운 사주더군.</p>
+              <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>다 봤냥? 꽤 흥미로운 사주더라.</p>
             </div>
           </div>
         )}
@@ -2731,7 +2731,7 @@ export default function App(){
         <div style={{animation:'fadeUp 0.5s ease',marginTop:20,textAlign:'center'}}>
           <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 20px',display:'inline-block',position:'relative'}}>
             <div style={{position:'absolute',top:-7,left:'50%',marginLeft:-7,width:0,height:0,borderLeft:'7px solid transparent',borderRight:'7px solid transparent',borderBottom:'7px solid rgba(180,140,80,0.12)'}}/>
-            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>다 봤는가?<br/>다음은 뭘 해볼 텐가?</p>
+            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>다 봤냥? 🐾<br/>다음은 뭘 해볼까냥~</p>
           </div>
         </div>
       )}
@@ -2741,9 +2741,9 @@ export default function App(){
         <div style={{animation:'fadeUp 0.5s ease',marginTop:20,textAlign:'center'}}>
           <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 20px',display:'inline-block',position:'relative'}}>
             <div style={{position:'absolute',top:-7,left:'50%',marginLeft:-7,width:0,height:0,borderLeft:'7px solid transparent',borderRight:'7px solid transparent',borderBottom:'7px solid rgba(180,140,80,0.12)'}}/>
-            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>{catNavLoading==='mansin'?'스승님한테 안내해주겠네. 🔮':catNavLoading==='yeonin'?'좋은 인연을 찾아보겠네.':catNavLoading==='result'?'무료 결과로 돌아가겠네.':'새로운 사주를 봐주겠네.'}</p>
+            <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>{catNavLoading==='mansin'?'스승님한테 안내해주겠냥! 🔮':catNavLoading==='yeonin'?'좋은 인연을 찾아보겠냥! 💜':catNavLoading==='result'?'무료 결과로 돌아가겠냥~':'새로운 사주를 봐주겠냥!'}</p>
           </div>
-<div style={{marginTop:16}}><span style={{fontSize:24,animation:'shimmer 1s infinite'}}>🐱 ✨</span></div>
+          <div style={{marginTop:16}}><span style={{fontSize:24,animation:'shimmer 1s infinite'}}>🐱 ✨</span></div>
         </div>
       )}
 
