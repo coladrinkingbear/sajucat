@@ -2386,8 +2386,8 @@ export default function App(){
                 );})}
               </div>
             )}
-            <EduBlock title="사주 원국이란?"><EduText text={EDU.사주원국}/></EduBlock>
-            <EduBlock title="오행(木火土金水)이란?">
+            <EduBlock title="🐱 사주 원국이란?" defaultOpen={true}><EduText text={EDU.사주원국}/></EduBlock>
+            <EduBlock title="🐱 오행(木火土金水)이란?">
               {EDU.오행.map(function(oh,i){return(
                 <div key={i} style={{padding:'8px 10px',marginBottom:6,background:'rgba(180,140,80,0.02)',borderLeft:'3px solid '+oh.color,borderRadius:'0 8px 8px 0'}}>
                   <div style={{fontSize:12,fontWeight:700,color:oh.color,marginBottom:2,fontFamily:"'Noto Serif KR',serif"}}>{oh.title}</div>
@@ -2395,7 +2395,7 @@ export default function App(){
                 </div>
               );})}
             </EduBlock>
-            {form.city!==135&&<EduBlock title="다른 사이트와 시주가 다른 이유"><EduText text={EDU.진태양시}/></EduBlock>}
+            {form.city!==135&&<EduBlock title="🐱 다른 사이트와 시주가 다른 이유"><EduText text={EDU.진태양시}/></EduBlock>}
           </div>
         )}
 
@@ -2404,7 +2404,7 @@ export default function App(){
           <div style={{display:'flex',flexDirection:'column',gap:12,animation:'fadeUp 0.5s ease'}}>
             <SocialCardNew name="성격 원만성" icon="🧠" 점수={result.성격.점수} 특징={result.성격.특징} delay={0.1}/>
             <SocialCardNew name="체력과 건강" icon="💪" 점수={result.건강.점수} 특징={result.건강.경고.length>0?result.건강.경고:['전반적으로 양호한 건강운이야']} delay={0.2}/>
-            <EduBlock title="신강·신약과 용신이란?"><EduText text={EDU.강약}/></EduBlock>
+            <EduBlock title="🐱 신강·신약과 용신이란?" defaultOpen={true}><EduText text={EDU.강약}/></EduBlock>
           </div>
         )}
 
@@ -2415,7 +2415,7 @@ export default function App(){
             <RelCardNew name="어머니" icon="👩‍👦" 인연={result.가족.어머니.인연} 복덕={result.가족.어머니.복덕} delay={0.2}/>
             <RelCardNew name="배우자" icon="💑" 인연={result.가족.배우자.인연} 복덕={result.가족.배우자.복덕} delay={0.3}/>
             <RelCardNew name="자식" icon="👶" 인연={result.가족.자식.인연} 복덕={result.가족.자식.복덕} delay={0.4}/>
-            <EduBlock title="가족 인연의 판단 기준"><EduText text={EDU.가족}/></EduBlock>
+            <EduBlock title="🐱 가족 인연의 판단 기준" defaultOpen={true}><EduText text={EDU.가족}/></EduBlock>
           </div>
         )}
 
@@ -2423,11 +2423,11 @@ export default function App(){
         {resultTab===3&&(
           <div style={{display:'flex',flexDirection:'column',gap:12,animation:'fadeUp 0.5s ease'}}>
             <SocialCardNew name="재물과 사업" icon="💰" 점수={result.사회.재물.점수} 특징={result.사회.재물.특징} delay={0.1}/>
-            <EduBlock title="재물운의 판단 기준"><EduText text={EDU.재물}/></EduBlock>
+            <EduBlock title="🐱 재물운의 판단 기준"><EduText text={EDU.재물}/></EduBlock>
             <SocialCardNew name="직장과 명예" icon="🏢" 점수={result.사회.직장.점수} 특징={result.사회.직장.특징} delay={0.2}/>
-            <EduBlock title="직장·명예운의 판단 기준"><EduText text={EDU.직장}/></EduBlock>
+            <EduBlock title="🐱 직장·명예운의 판단 기준"><EduText text={EDU.직장}/></EduBlock>
             <SocialCardNew name="인격과 학문" icon="📚" 점수={result.사회.학문.점수} 특징={result.사회.학문.특징} delay={0.3}/>
-            <EduBlock title="학문운의 판단 기준"><EduText text={EDU.학문}/></EduBlock>
+            <EduBlock title="🐱 학문운의 판단 기준"><EduText text={EDU.학문}/></EduBlock>
           </div>
         )}
 
