@@ -75,12 +75,12 @@ function toMansin(t){
 // 분석 엔진
 // ============================================================
 // ── 사주 서사 블록 시스템 ──
-const ILJU_NARRATIVE={'甲子':{title:'겨울 숲의 우레',desc:'한겨울에 뿌리를 내린 거목 — 겉은 고요하지만 속에 거대한 에너지를 품고 있는 사주이네. 학문과 예술에 천부적 재능이 있고, 말년에 큰 복록이 기다리고 있네.'},'甲戌':{title:'민둥산의 고목',desc:'황야에 홀로 선 나무처럼 강인한 독립심을 가진 사주이네. 직감이 뛰어나고 리더십이 타고났네.'},'甲申':{title:'절벽 위의 소나무',desc:'절처봉생(絕處逢生) — 위기에서 빛나는 사주이네. 다재다능하고 임기응변에 뛰어나네.'},'甲午':{title:'푸른 야생마',desc:'청운의 꿈을 품은 열정적인 사주이네. 도전정신과 개척자 기질이 넘치네. 불꽃 같은 에너지를 조절할 줄 알면 큰 그릇이 될 수 있네.'},'甲辰':{title:'청룡백호의 기세',desc:'변화무쌍한 용의 기운을 타고난 사주이네. 속전속결의 결단력이 있고, 고난 뒤에 재물복이 찾아오네.'},'甲寅':{title:'깊은 산의 맹호',desc:'심산맹호(深山猛虎) — 타고난 1등의 기질을 가진 사주이네. 순수하면서도 자존심이 강하네. 동량지재(棟梁之材)의 큰 인물이 될 수 있네.'},'乙丑':{title:'인동초의 생명력',desc:'한겨울에도 꽃을 피우는 인동초 같은 사주이네. 인내심과 지구력이 남다르고, 초지일관의 끈기로 반드시 결실을 맺네.'},'乙亥':{title:'물 위의 수련',desc:'청순한 수련처럼 고고하고 아름다운 사주이네. 겉보기보다 강인하네. 무역이나 해외 인연이 강하네.'},'乙酉':{title:'정갈한 분재',desc:'정성스레 다듬어진 분재처럼 반듯하고 세련된 사주이네. 생명력이 강하고 직감이 뛰어나네.'},'乙未':{title:'초원의 갈대',desc:'바람에 흔들려도 꺾이지 않는 갈대 같은 사주이네. 자기보존 능력이 최고이네. 생활력이 강해서 어디서든 뿌리를 내리네.'},'乙巳':{title:'봄날의 촉새',desc:'화사하게 피어난 봄꽃처럼 밝고 활발한 사주이네. 화술이 뛰어나고 용모가 수려하네.'},'乙卯':{title:'봄숲의 산토끼',desc:'순수하면서도 외유내강(外柔內剛)한 사주이네. 민첩하고 근면해서 어떤 난관도 극복하는 힘이 있네.'},'丙寅':{title:'양춘의 해맞이',desc:'봄날 동쪽에서 떠오르는 태양 같은 사주이네. 목화통명(木火通明)의 총명함이 있어 학업과 교육에서 빛나네.'},'丙子':{title:'호수 위의 태양',desc:'맑은 호수에 비친 태양처럼 외양내음의 깊이가 있는 사주이네. 영감이 뛰어나고 신비로운 매력이 있네.'},'丙戌':{title:'서산의 노을',desc:'장엄한 석양 같은 사주이네. 책임감이 강하고 지독한 일벌레 기질이 있네. 용광로처럼 무엇이든 녹여내는 포용력을 가졌네.'},'丙申':{title:'불꽃놀이의 마술사',desc:'화려한 불꽃놀이처럼 다재다능하고 능수능란한 사주이네. 팔방미인에 엔터테인먼트 감각이 탁월하네.'},'丙午':{title:'한낮의 제왕',desc:'정오의 태양처럼 강렬한 빛을 발하는 사주이네. 제왕지좌에 앉아 타고난 리더십과 카리스마가 있네.'},'丙辰':{title:'불 뿜는 적룡',desc:'하늘을 나는 적룡(赤龍)처럼 화술과 입담이 뛰어난 사주이네. 스케일이 크고 당당하며 만인을 구제할 기운을 품고 있네.'},'丁卯':{title:'숲속의 별빛',desc:'어둠 속에서 빛나는 별처럼 낭만적이고 순수한 사주이네. 명석한 두뇌와 동정심을 겸비한 음유시인의 기질이 있네.'},'丁丑':{title:'섣달의 촛불',desc:'한겨울 어둠을 밝히는 촛불 같은 사주이네. 고뇌와 창작의 에너지가 넘치네. 일복과 재복을 동시에 잡을 수 있네.'},'丁亥':{title:'별빛 비친 호수',desc:'깊은 호수에 비친 별빛처럼 영민하고 명석한 사주이네. 독심술에 가까운 직관력이 있네.'},'丁酉':{title:'산사의 반딧불',desc:'고요한 산사에서 빛나는 반딧불 같은 사주이네. 카리스마와 섬세함을 동시에 가진 분위기의 달인이네.'},'丁未':{title:'화원의 별빛',desc:'밤하늘 아래 아름다운 화원처럼 풍류와 기예에 재능이 있는 사주이네. 달변가이며 멘토 기질이 있네.'},'丁巳':{title:'타오르는 별',desc:'별빛이 불꽃으로 변한 강렬한 사주이네. 리더십이 뛰어나고 솔직담백하네. 주변을 압도하는 카리스마가 있네.'},'戊辰':{title:'진흙 속의 용',desc:'고진감래(苦盡甘來)의 사주이네. 때가 오면 하늘로 비상할 거대한 잠재력을 품고 있네.'},'戊寅':{title:'민둥산의 호랑이',desc:'과시욕과 지도력을 겸비한 강인한 사주이네. 자존심이 강하고 자립심이 대단하네.'},'戊子':{title:'계곡의 산',desc:'묵직하고 총명한 사주이네. 보수적이며 모성애가 깊네. 학문에 뜻을 두면 크게 이룰 수 있네.'},'戊戌':{title:'첩첩산중의 장군',desc:'겹겹이 쌓인 산맥처럼 웅장하고 깊은 사주이네. 높은 뜻이 있으면서도 누구든 품어주는 포용력이 있네.'},'戊申':{title:'철광산의 보물',desc:'산 속에 숨겨진 금맥처럼 재물복이 타고난 사주이네. 사업가 기질이 있고 스케일이 크네.'},'戊午':{title:'활화산의 용암',desc:'뜨거운 용암처럼 폭발적인 에너지를 가진 사주이네. 미적 감각이 뛰어나 손재주가 좋네. 리더 기질과 정교함을 동시에 가졌네.'},'己巳':{title:'불을 품은 대지',desc:'화로처럼 뜨거운 열정을 품은 사주이네. 진취적이고 변신의 달인이네. 은근한 카리스마가 있네.'},'己卯':{title:'들판의 자유로운 토끼',desc:'기묘(奇妙)한 팔자를 타고난 자유로운 영혼의 사주이네. 민첩하고 자유분방하네.'},'己丑':{title:'기름진 밭의 황소',desc:'비옥한 토지에서 묵묵히 일하는 황소처럼 근면성실한 사주이네. 의식주가 풍족하고 초지일관의 집념이 대단하네.'},'己亥':{title:'안개 속의 오리',desc:'물에 잠긴 토양처럼 깊은 사색의 사주이네. 겉보기에는 한가한 듯하지만 수면 아래에서 부지런히 발을 젓고 있네.'},'己酉':{title:'산사의 종소리',desc:'맑은 종소리처럼 멘토 기질이 타고난 사주이네. 외유내강하며 절제력이 뛰어나네.'},'己未':{title:'들판의 전봇대',desc:'넓은 들판에 우뚝 서서 빛을 밝히는 사주이네. 겉은 선하지만 속은 단단하네.'},'庚午':{title:'백마 탄 기사',desc:'고고한 백마처럼 품위를 추구하는 사주이네. 미적 감각이 뛰어나고 뜨거운 내면을 화려한 겉모습으로 감싸고 있네.'},'庚辰':{title:'백룡의 눈빛',desc:'총명하고 출세욕이 강한 백룡의 사주이네. 팔방미인에 눈치가 빠르고 속전속결의 결단력이 있네.'},'庚寅':{title:'새벽의 백호',desc:'숲속을 질주하는 백호처럼 의리 있고 강직한 사주이네. 프론티어 정신이 강하고 한번 결심하면 거침이 없네.'},'庚子':{title:'바위 아래 석간수',desc:'금수쌍청 — 바위 틈을 흐르는 맑은 물처럼 깨끗하고 냉철한 사주이네. 차가운 지성 속에 따뜻함이 숨어있네.'},'庚戌':{title:'서산의 보름달',desc:'직감력과 관찰력이 뛰어난 사주이네. 유아독존의 고고한 기질에 만인을 계도할 지도력이 있네.'},'庚申':{title:'강철의 의지',desc:'쇠뭉치처럼 단단한 의지력을 가진 사주이네. 혁명적이고 목표 지향적이며 다재다능하네.'},'辛未':{title:'서리 내린 꽃밭',desc:'서리 속에서도 빛나는 꽃처럼 냉정하면서도 아름다운 사주이네. 기획력이 뛰어나고 재물복까지 갖추었네.'},'辛巳':{title:'비밀의 신사',desc:'신사 같은 품격에 탐정 같은 통찰력을 가진 사주이네. 냉철한 판단력으로 큰 일을 이루네.'},'辛卯':{title:'달빛 아래 옥토끼',desc:'깔끔하고 단정한 사주이네. 외모가 수려하고 예술적 감각이 뛰어나네.'},'辛丑':{title:'워낭의 소리',desc:'인내력이 대단한 사주이네. 우직하면서도 섬세하고, 신용을 목숨처럼 여겨.'},'辛亥':{title:'물속의 보석',desc:'물에 씻어 빛나는 주옥처럼 창의력이 넘치는 사주이네. 유레카의 순간이 자주 찾아오네.'},'辛酉':{title:'순백의 달',desc:'순백의 아름다움을 가진 사주이네. 청량하고 순수하며 호불호가 분명하네.'},'壬申':{title:'물속의 금맥',desc:'깊은 물속에 숨겨진 광맥 같은 사주이네. 여유와 융통성이 있고 해외 인연이 강하네.'},'壬午':{title:'검은 명마',desc:'오추마처럼 힘차게 달리는 사주이네. 배우자에게 충실하고 수완가 기질이 있네.'},'壬辰':{title:'잠룡의 기운',desc:'물속에 잠긴 흑룡처럼 변화무쌍하고 거대한 잠재력을 품은 사주이네.'},'壬寅':{title:'물가의 야행 호랑이',desc:'포커페이스의 달인이자 호시탐탐 기회를 노리는 사주이네. 학식이 풍부하고 자비심이 깊네.'},'壬子':{title:'망망대해의 주인',desc:'끝없는 바다처럼 포용력과 진중함을 가진 사주이네. 조직을 이끄는 CEO의 기질이 있네.'},'壬戌':{title:'사력댐의 영웅',desc:'만인에게 덕을 베푸는 영웅호걸의 사주이네. 통이 크고 위기에서 더 빛나네. 숨겨진 재복이 대단하네.'},'癸酉':{title:'봄비 내리는 산사',desc:'고요한 산사에 내리는 봄비처럼 맑고 결백한 사주이네. 종교적 감성과 예술적 기질을 타고났네.'},'癸未':{title:'개미집의 여왕',desc:'겉은 소박하지만 풍족한 식록을 품고 있는 사주이네. 밖에서는 능력자이면서 단단한 생활력이 있네.'},'癸巳':{title:'한낮의 실개천',desc:'햇살 아래 반짝이는 실개천처럼 여유롭고 지혜로운 사주이네. 의식주가 넉넉하고 인정이 많아.'},'癸卯':{title:'옹달샘의 토끼',desc:'초목과 봄비가 어우러진 평화로운 사주이네. 만사순성의 기운이 있고 식복이 좋네.'},'癸丑':{title:'엄동설한의 불꽃',desc:'한겨울 눈보라 속에서 피어나는 불꽃 같은 사주이네. 절처봉생의 반전 기운이 있네.'},'癸亥':{title:'지혜의 바다',desc:'유유자적하는 지혜의 신 같은 사주이네. 속전속결의 결단력과 대인관계의 달인이네.'}};
-const GANGYA_NARR={'신강':{p:'타고난 체력과 추진력이 강해서, 스스로 길을 개척하는 자수성가형이네.',c:'너무 강한 기운은 때로 고집으로 나타날 수 있으니 주변의 조언에 귀를 기울여보게.'},'신약':{p:'예민하고 섬세한 감각이 있어서, 시대의 흐름을 빠르게 읽는 촉이 있네.',c:'에너지가 분산되기 쉬운 구조라 용신 환경을 잘 활용하는 게 성공의 열쇠이네.'}};
-const GYEOKGUK_NARR={'식신격':'타고난 표현력과 창작 능력이 있네. 먹는 것에 복이 있고 교육 분야에서 두각을 나타낼 수 있네.','상관격':'틀을 깨는 창의력과 반항적 에너지가 있네. 혁신가 기질이 강하네.','정재격':'안정적으로 재물을 모으는 축재의 기운이 있네. 꾸준히 부를 쌓아가는 타입이네.','편재격':'큰돈을 다루는 그릇이네. 투자나 사업에 감이 있네.','정관격':'질서와 원칙을 중시하는 사주이네. 승진운과 사회적 인정이 따르네.','편관격':'강렬한 카리스마와 통솔력이 있네. 리더십이 요구되는 분야에 적합하네.','정인격':'학문과 자격증에 강한 사주이네. 귀인이 따르고 배움으로 인생을 열어가는 타입이네.','편인격':'독특한 사고방식과 비범한 재능이 있네. 의술, 종교, 철학 등에서 빛을 발하네.','비견격':'독립심이 강하고 경쟁에서 이기는 힘이 있네. 자기 사업으로 성공할 수 있네.','겁재격':'승부욕이 강하고 대담하네. 도전정신으로 큰 판을 벌일 수 있네.'};
-const CHUNG_NARR={'자오충':'삶에 극적인 전환점이 오는 사주이네. 큰 변화 속에서 성장하는 힘이 있네.','축미충':'가치관의 충돌을 경험하지만, 이를 통해 자신만의 철학을 세울 수 있네.','인신충':'끊임없는 이동과 변화 속에서 기회를 잡는 사주이네.','묘유충':'감성과 이성의 갈등이 있지만, 이를 조화시키면 놀라운 창작 능력이 발휘되네.','진술충':'큰 변화의 기운이네. 고집이 세지만 그만큼 큰일을 벌일 수 있네.','사해충':'지혜와 행동 사이의 긴장감이 있네. 위기에서 기회를 만들어내.'};
-const HAP_NARR={'자축합':'안정과 결속의 기운이 강하네. 신뢰할 수 있는 파트너를 만나면 시너지가 폭발하네.','인해합':'봉사와 출세를 동시에 추구하는 기운이네.','묘술합':'재적 성취를 향한 강한 추진력이 있네.','진유합':'문학과 예술적 감각이 뛰어나네.','사신합':'지혜와 활동력의 조합이네. 수완이 좋고 대인관계에서 유리하네.','오미합':'태양과 대지의 만남처럼 풍요롭고 따뜻한 기운이네. 가정에 복이 있네.'};
-function generateNarrative(r){var b=[];var ilju=r.일간+r.일지;var ij=ILJU_NARRATIVE[ilju];if(ij)b.push({type:'ilju',title:'✦ '+ilju+'일주 — '+ij.title,text:ij.desc});var gn=GANGYA_NARR[r.강약];if(gn)b.push({type:'gangya',text:gn.p+' '+gn.c});if(r.격국&&GYEOKGUK_NARR[r.격국])b.push({type:'gyeokguk',title:r.격국,text:GYEOKGUK_NARR[r.격국]});var ss=r.십성;if(r.강약==='신약'&&(ss.정재+ss.편재)>=3)b.push({type:'special',text:'재물이 많이 보이지만 잡기 어려운 형국이네. 용신 대운이 오면 한번에 크게 잡을 수 있네.'});if(ss.정관>=1&&ss.편관>=1)b.push({type:'special',text:'관살혼잡의 구조이네. 여러 갈래의 압박이 있지만, 극복하면 큰 성취가 가능하네.'});if((ss.식신+ss.상관)>=1&&(ss.정재+ss.편재)>=1)b.push({type:'special',text:'식상생재의 흐름이 있네. 재능으로 돈을 버는 구조이네.'});if(ss.편관>=1&&(ss.정인+ss.편인)>=1)b.push({type:'special',text:'살인상생의 좋은 구조이네. 외부의 압력을 학문과 지혜로 승화시키는 힘이 있네.'});if((ss.정재+ss.편재)>=1&&(ss.정관+ss.편관)>=1&&r.강약==='신강')b.push({type:'special',text:'재관이 함께 있고 일간이 강해서 재물과 명예를 동시에 쥘 수 있는 팔자이네.'});if(r.충)r.충.forEach(function(c){var j1=c.지1,j2=c.지2;var jmap={'子':'자','丑':'축','寅':'인','卯':'묘','辰':'진','巳':'사','午':'오','未':'미','申':'신','酉':'유','戌':'술','亥':'해'};var k=(jmap[j1]||'')+(jmap[j2]||'')+'충';if(CHUNG_NARR[k])b.push({type:'chung',text:CHUNG_NARR[k]});});if(r.합)r.합.forEach(function(h){var hs=typeof h==='string'?h:'';Object.keys(HAP_NARR).forEach(function(k){var hj={'자':'子','축':'丑','인':'寅','묘':'卯','진':'辰','사':'巳','오':'午','미':'未','신':'申','유':'酉','술':'戌','해':'亥'};var c1=hj[k[0]],c2=hj[k[1]];if(c1&&c2&&hs.includes(c1)&&hs.includes(c2))b.push({type:'hap',text:HAP_NARR[k]});});});if(r.대운&&r.대운.length>0){var yoh=r.용신;var goh={'甲':'목','乙':'목','丙':'화','丁':'화','戊':'토','己':'토','庚':'금','辛':'금','壬':'수','癸':'수'};for(var i=0;i<r.대운.length;i++){var dw=r.대운[i];var tc=dw.간지?dw.간지[0]:'';if(tc&&goh[tc]===yoh){var age=(i+1)*10;b.push({type:'reversal',text:age+'대 무렵('+dw.간지+' 대운)에 용신 '+yoh+'의 기운이 들어와 큰 전환점이 될 수 있네. 이 시기를 잘 준비하면 인생이 크게 달라질 것이네.'});break;}}}return b;}
+const ILJU_NARRATIVE={'甲子':{title:'겨울 숲의 우레',desc:'한겨울에 뿌리를 내린 거목 — 겉은 고요하지만 속에 거대한 에너지를 품고 있는 사주야. 학문과 예술에 천부적 재능이 있고, 말년에 큰 복록이 기다리고 있어.'},'甲戌':{title:'민둥산의 고목',desc:'황야에 홀로 선 나무처럼 강인한 독립심을 가진 사주야. 직감이 뛰어나고 리더십이 타고났어.'},'甲申':{title:'절벽 위의 소나무',desc:'절처봉생(絕處逢生) — 위기에서 빛나는 사주야. 다재다능하고 임기응변에 뛰어나.'},'甲午':{title:'푸른 야생마',desc:'청운의 꿈을 품은 열정적인 사주야. 도전정신과 개척자 기질이 넘쳐. 불꽃 같은 에너지를 조절할 줄 알면 큰 그릇이 될 수 있어.'},'甲辰':{title:'청룡백호의 기세',desc:'변화무쌍한 용의 기운을 타고난 사주야. 속전속결의 결단력이 있고, 고난 뒤에 재물복이 찾아와.'},'甲寅':{title:'깊은 산의 맹호',desc:'심산맹호(深山猛虎) — 타고난 1등의 기질을 가진 사주야. 순수하면서도 자존심이 강해. 동량지재(棟梁之材)의 큰 인물이 될 수 있어.'},'乙丑':{title:'인동초의 생명력',desc:'한겨울에도 꽃을 피우는 인동초 같은 사주야. 인내심과 지구력이 남다르고, 초지일관의 끈기로 반드시 결실을 맺어.'},'乙亥':{title:'물 위의 수련',desc:'청순한 수련처럼 고고하고 아름다운 사주야. 겉보기보다 강인해. 무역이나 해외 인연이 강해.'},'乙酉':{title:'정갈한 분재',desc:'정성스레 다듬어진 분재처럼 반듯하고 세련된 사주야. 생명력이 강하고 직감이 뛰어나.'},'乙未':{title:'초원의 갈대',desc:'바람에 흔들려도 꺾이지 않는 갈대 같은 사주야. 자기보존 능력이 최고야. 생활력이 강해서 어디서든 뿌리를 내려.'},'乙巳':{title:'봄날의 촉새',desc:'화사하게 피어난 봄꽃처럼 밝고 활발한 사주야. 화술이 뛰어나고 용모가 수려해.'},'乙卯':{title:'봄숲의 산토끼',desc:'순수하면서도 외유내강(外柔內剛)한 사주야. 민첩하고 근면해서 어떤 난관도 극복하는 힘이 있어.'},'丙寅':{title:'양춘의 해맞이',desc:'봄날 동쪽에서 떠오르는 태양 같은 사주야. 목화통명(木火通明)의 총명함이 있어 학업과 교육에서 빛나.'},'丙子':{title:'호수 위의 태양',desc:'맑은 호수에 비친 태양처럼 외양내음의 깊이가 있는 사주야. 영감이 뛰어나고 신비로운 매력이 있어.'},'丙戌':{title:'서산의 노을',desc:'장엄한 석양 같은 사주야. 책임감이 강하고 지독한 일벌레 기질이 있어. 용광로처럼 무엇이든 녹여내는 포용력을 가졌어.'},'丙申':{title:'불꽃놀이의 마술사',desc:'화려한 불꽃놀이처럼 다재다능하고 능수능란한 사주야. 팔방미인에 엔터테인먼트 감각이 탁월해.'},'丙午':{title:'한낮의 제왕',desc:'정오의 태양처럼 강렬한 빛을 발하는 사주야. 제왕지좌에 앉아 타고난 리더십과 카리스마가 있어.'},'丙辰':{title:'불 뿜는 적룡',desc:'하늘을 나는 적룡(赤龍)처럼 화술과 입담이 뛰어난 사주야. 스케일이 크고 당당하며 만인을 구제할 기운을 품고 있어.'},'丁卯':{title:'숲속의 별빛',desc:'어둠 속에서 빛나는 별처럼 낭만적이고 순수한 사주야. 명석한 두뇌와 동정심을 겸비한 음유시인의 기질이 있어.'},'丁丑':{title:'섣달의 촛불',desc:'한겨울 어둠을 밝히는 촛불 같은 사주야. 고뇌와 창작의 에너지가 넘쳐. 일복과 재복을 동시에 잡을 수 있어.'},'丁亥':{title:'별빛 비친 호수',desc:'깊은 호수에 비친 별빛처럼 영민하고 명석한 사주야. 독심술에 가까운 직관력이 있어.'},'丁酉':{title:'산사의 반딧불',desc:'고요한 산사에서 빛나는 반딧불 같은 사주야. 카리스마와 섬세함을 동시에 가진 분위기의 달인이야.'},'丁未':{title:'화원의 별빛',desc:'밤하늘 아래 아름다운 화원처럼 풍류와 기예에 재능이 있는 사주야. 달변가이며 멘토 기질이 있어.'},'丁巳':{title:'타오르는 별',desc:'별빛이 불꽃으로 변한 강렬한 사주야. 리더십이 뛰어나고 솔직담백해. 주변을 압도하는 카리스마가 있어.'},'戊辰':{title:'진흙 속의 용',desc:'고진감래(苦盡甘來)의 사주야. 때가 오면 하늘로 비상할 거대한 잠재력을 품고 있어.'},'戊寅':{title:'민둥산의 호랑이',desc:'과시욕과 지도력을 겸비한 강인한 사주야. 자존심이 강하고 자립심이 대단해.'},'戊子':{title:'계곡의 산',desc:'묵직하고 총명한 사주야. 보수적이며 모성애가 깊어. 학문에 뜻을 두면 크게 이룰 수 있어.'},'戊戌':{title:'첩첩산중의 장군',desc:'겹겹이 쌓인 산맥처럼 웅장하고 깊은 사주야. 높은 뜻이 있으면서도 누구든 품어주는 포용력이 있어.'},'戊申':{title:'철광산의 보물',desc:'산 속에 숨겨진 금맥처럼 재물복이 타고난 사주야. 사업가 기질이 있고 스케일이 커.'},'戊午':{title:'활화산의 용암',desc:'뜨거운 용암처럼 폭발적인 에너지를 가진 사주야. 미적 감각이 뛰어나 손재주가 좋아. 리더 기질과 정교함을 동시에 가졌어.'},'己巳':{title:'불을 품은 대지',desc:'화로처럼 뜨거운 열정을 품은 사주야. 진취적이고 변신의 달인이야. 은근한 카리스마가 있어.'},'己卯':{title:'들판의 자유로운 토끼',desc:'기묘(奇妙)한 팔자를 타고난 자유로운 영혼의 사주야. 민첩하고 자유분방해.'},'己丑':{title:'기름진 밭의 황소',desc:'비옥한 토지에서 묵묵히 일하는 황소처럼 근면성실한 사주야. 의식주가 풍족하고 초지일관의 집념이 대단해.'},'己亥':{title:'안개 속의 오리',desc:'물에 잠긴 토양처럼 깊은 사색의 사주야. 겉보기에는 한가한 듯하지만 수면 아래에서 부지런히 발을 젓고 있어.'},'己酉':{title:'산사의 종소리',desc:'맑은 종소리처럼 멘토 기질이 타고난 사주야. 외유내강하며 절제력이 뛰어나.'},'己未':{title:'들판의 전봇대',desc:'넓은 들판에 우뚝 서서 빛을 밝히는 사주야. 겉은 선하지만 속은 단단해.'},'庚午':{title:'백마 탄 기사',desc:'고고한 백마처럼 품위를 추구하는 사주야. 미적 감각이 뛰어나고 뜨거운 내면을 화려한 겉모습으로 감싸고 있어.'},'庚辰':{title:'백룡의 눈빛',desc:'총명하고 출세욕이 강한 백룡의 사주야. 팔방미인에 눈치가 빠르고 속전속결의 결단력이 있어.'},'庚寅':{title:'새벽의 백호',desc:'숲속을 질주하는 백호처럼 의리 있고 강직한 사주야. 프론티어 정신이 강하고 한번 결심하면 거침이 없어.'},'庚子':{title:'바위 아래 석간수',desc:'금수쌍청 — 바위 틈을 흐르는 맑은 물처럼 깨끗하고 냉철한 사주야. 차가운 지성 속에 따뜻함이 숨어있어.'},'庚戌':{title:'서산의 보름달',desc:'직감력과 관찰력이 뛰어난 사주야. 유아독존의 고고한 기질에 만인을 계도할 지도력이 있어.'},'庚申':{title:'강철의 의지',desc:'쇠뭉치처럼 단단한 의지력을 가진 사주야. 혁명적이고 목표 지향적이며 다재다능해.'},'辛未':{title:'서리 내린 꽃밭',desc:'서리 속에서도 빛나는 꽃처럼 냉정하면서도 아름다운 사주야. 기획력이 뛰어나고 재물복까지 갖추었어.'},'辛巳':{title:'비밀의 신사',desc:'신사 같은 품격에 탐정 같은 통찰력을 가진 사주야. 냉철한 판단력으로 큰 일을 이뤄.'},'辛卯':{title:'달빛 아래 옥토끼',desc:'깔끔하고 단정한 사주야. 외모가 수려하고 예술적 감각이 뛰어나.'},'辛丑':{title:'워낭의 소리',desc:'인내력이 대단한 사주야. 우직하면서도 섬세하고, 신용을 목숨처럼 여겨.'},'辛亥':{title:'물속의 보석',desc:'물에 씻어 빛나는 주옥처럼 창의력이 넘치는 사주야. 유레카의 순간이 자주 찾아와.'},'辛酉':{title:'순백의 달',desc:'순백의 아름다움을 가진 사주야. 청량하고 순수하며 호불호가 분명해.'},'壬申':{title:'물속의 금맥',desc:'깊은 물속에 숨겨진 광맥 같은 사주야. 여유와 융통성이 있고 해외 인연이 강해.'},'壬午':{title:'검은 명마',desc:'오추마처럼 힘차게 달리는 사주야. 배우자에게 충실하고 수완가 기질이 있어.'},'壬辰':{title:'잠룡의 기운',desc:'물속에 잠긴 흑룡처럼 변화무쌍하고 거대한 잠재력을 품은 사주야.'},'壬寅':{title:'물가의 야행 호랑이',desc:'포커페이스의 달인이자 호시탐탐 기회를 노리는 사주야. 학식이 풍부하고 자비심이 깊어.'},'壬子':{title:'망망대해의 주인',desc:'끝없는 바다처럼 포용력과 진중함을 가진 사주야. 조직을 이끄는 CEO의 기질이 있어.'},'壬戌':{title:'사력댐의 영웅',desc:'만인에게 덕을 베푸는 영웅호걸의 사주야. 통이 크고 위기에서 더 빛나. 숨겨진 재복이 대단해.'},'癸酉':{title:'봄비 내리는 산사',desc:'고요한 산사에 내리는 봄비처럼 맑고 결백한 사주야. 종교적 감성과 예술적 기질을 타고났어.'},'癸未':{title:'개미집의 여왕',desc:'겉은 소박하지만 풍족한 식록을 품고 있는 사주야. 밖에서는 능력자이면서 단단한 생활력이 있어.'},'癸巳':{title:'한낮의 실개천',desc:'햇살 아래 반짝이는 실개천처럼 여유롭고 지혜로운 사주야. 의식주가 넉넉하고 인정이 많아.'},'癸卯':{title:'옹달샘의 토끼',desc:'초목과 봄비가 어우러진 평화로운 사주야. 만사순성의 기운이 있고 식복이 좋아.'},'癸丑':{title:'엄동설한의 불꽃',desc:'한겨울 눈보라 속에서 피어나는 불꽃 같은 사주야. 절처봉생의 반전 기운이 있어.'},'癸亥':{title:'지혜의 바다',desc:'유유자적하는 지혜의 신 같은 사주야. 속전속결의 결단력과 대인관계의 달인이야.'}};
+const GANGYA_NARR={'신강':{p:'타고난 체력과 추진력이 강해서, 스스로 길을 개척하는 자수성가형이야.',c:'너무 강한 기운은 때로 고집으로 나타날 수 있으니 주변의 조언에 귀를 기울여봐.'},'신약':{p:'예민하고 섬세한 감각이 있어서, 시대의 흐름을 빠르게 읽는 촉이 있어.',c:'에너지가 분산되기 쉬운 구조라 용신 환경을 잘 활용하는 게 성공의 열쇠야.'}};
+const GYEOKGUK_NARR={'식신격':'타고난 표현력과 창작 능력이 있어. 먹는 것에 복이 있고 교육 분야에서 두각을 나타낼 수 있어.','상관격':'틀을 깨는 창의력과 반항적 에너지가 있어. 혁신가 기질이 강해.','정재격':'안정적으로 재물을 모으는 축재의 기운이 있어. 꾸준히 부를 쌓아가는 타입이야.','편재격':'큰돈을 다루는 그릇이야. 투자나 사업에 감이 있어.','정관격':'질서와 원칙을 중시하는 사주야. 승진운과 사회적 인정이 따라.','편관격':'강렬한 카리스마와 통솔력이 있어. 리더십이 요구되는 분야에 적합해.','정인격':'학문과 자격증에 강한 사주야. 귀인이 따르고 배움으로 인생을 열어가는 타입이야.','편인격':'독특한 사고방식과 비범한 재능이 있어. 의술, 종교, 철학 등에서 빛을 발해.','비견격':'독립심이 강하고 경쟁에서 이기는 힘이 있어. 자기 사업으로 성공할 수 있어.','겁재격':'승부욕이 강하고 대담해. 도전정신으로 큰 판을 벌일 수 있어.'};
+const CHUNG_NARR={'자오충':'삶에 극적인 전환점이 오는 사주야. 큰 변화 속에서 성장하는 힘이 있어.','축미충':'가치관의 충돌을 경험하지만, 이를 통해 자신만의 철학을 세울 수 있어.','인신충':'끊임없는 이동과 변화 속에서 기회를 잡는 사주야.','묘유충':'감성과 이성의 갈등이 있지만, 이를 조화시키면 놀라운 창작 능력이 발휘돼.','진술충':'큰 변화의 기운이야. 고집이 세지만 그만큼 큰일을 벌일 수 있어.','사해충':'지혜와 행동 사이의 긴장감이 있어. 위기에서 기회를 만들어내.'};
+const HAP_NARR={'자축합':'안정과 결속의 기운이 강해. 신뢰할 수 있는 파트너를 만나면 시너지가 폭발해.','인해합':'봉사와 출세를 동시에 추구하는 기운이야.','묘술합':'재적 성취를 향한 강한 추진력이 있어.','진유합':'문학과 예술적 감각이 뛰어나.','사신합':'지혜와 활동력의 조합이야. 수완이 좋고 대인관계에서 유리해.','오미합':'태양과 대지의 만남처럼 풍요롭고 따뜻한 기운이야. 가정에 복이 있어.'};
+function generateNarrative(r){var b=[];var ilju=r.일간+r.일지;var ij=ILJU_NARRATIVE[ilju];if(ij)b.push({type:'ilju',title:'✦ '+ilju+'일주 — '+ij.title,text:ij.desc});var gn=GANGYA_NARR[r.강약];if(gn)b.push({type:'gangya',text:gn.p+' '+gn.c});if(r.격국&&GYEOKGUK_NARR[r.격국])b.push({type:'gyeokguk',title:r.격국,text:GYEOKGUK_NARR[r.격국]});var ss=r.십성;if(r.강약==='신약'&&(ss.정재+ss.편재)>=3)b.push({type:'special',text:'재물이 많이 보이지만 잡기 어려운 형국이야. 용신 대운이 오면 한번에 크게 잡을 수 있어.'});if(ss.정관>=1&&ss.편관>=1)b.push({type:'special',text:'관살혼잡의 구조야. 여러 갈래의 압박이 있지만, 극복하면 큰 성취가 가능해.'});if((ss.식신+ss.상관)>=1&&(ss.정재+ss.편재)>=1)b.push({type:'special',text:'식상생재의 흐름이 있어. 재능으로 돈을 버는 구조야.'});if(ss.편관>=1&&(ss.정인+ss.편인)>=1)b.push({type:'special',text:'살인상생의 좋은 구조야. 외부의 압력을 학문과 지혜로 승화시키는 힘이 있어.'});if((ss.정재+ss.편재)>=1&&(ss.정관+ss.편관)>=1&&r.강약==='신강')b.push({type:'special',text:'재관이 함께 있고 일간이 강해서 재물과 명예를 동시에 쥘 수 있는 팔자야.'});if(r.충)r.충.forEach(function(c){var j1=c.지1,j2=c.지2;var jmap={'子':'자','丑':'축','寅':'인','卯':'묘','辰':'진','巳':'사','午':'오','未':'미','申':'신','酉':'유','戌':'술','亥':'해'};var k=(jmap[j1]||'')+(jmap[j2]||'')+'충';if(CHUNG_NARR[k])b.push({type:'chung',text:CHUNG_NARR[k]});});if(r.합)r.합.forEach(function(h){var hs=typeof h==='string'?h:'';Object.keys(HAP_NARR).forEach(function(k){var hj={'자':'子','축':'丑','인':'寅','묘':'卯','진':'辰','사':'巳','오':'午','미':'未','신':'申','유':'酉','술':'戌','해':'亥'};var c1=hj[k[0]],c2=hj[k[1]];if(c1&&c2&&hs.includes(c1)&&hs.includes(c2))b.push({type:'hap',text:HAP_NARR[k]});});});if(r.대운&&r.대운.length>0){var yoh=r.용신;var goh={'甲':'목','乙':'목','丙':'화','丁':'화','戊':'토','己':'토','庚':'금','辛':'금','壬':'수','癸':'수'};for(var i=0;i<r.대운.length;i++){var dw=r.대운[i];var tc=dw.간지?dw.간지[0]:'';if(tc&&goh[tc]===yoh){var age=(i+1)*10;b.push({type:'reversal',text:age+'대 무렵('+dw.간지+' 대운)에 용신 '+yoh+'의 기운이 들어와 큰 전환점이 될 수 있어. 이 시기를 잘 준비하면 인생이 크게 달라질 거야.'});break;}}}return b;}
 
 function analyze(s){
   const G=[s.yg,s.mg,s.dg,s.hg], Z=[s.yj,s.mj,s.dj,s.hj];
@@ -427,19 +427,19 @@ var OH_COLOR_MAP={목:{bg:'#2a3a28',fg:'#8abf7a',label:'木'},화:{bg:'#3a2828',
 
 var EDU={
 오행:[
-{title:'木 목',color:OH_COLOR_MAP.목.fg,text:'생명의 시작이네. 봄의 기운으로 뻗어나가려는 성정이 있지. 본성은 인(仁)으로 어질고 선한 기질이네. 환경 적응력과 리더십이 뛰어나지만, 좌절하면 회복이 느린 편이네.'},
-{title:'火 화',color:OH_COLOR_MAP.화.fg,text:'정열과 밝음의 기운이네. 염상(炎上), 위로 타오르는 성질이지. 예(禮)의 기운으로 다정다감하고 끼가 넘치네. 다만 감정 기복이 있고, 즉흥적인 면도 있네.'},
-{title:'土 토',color:OH_COLOR_MAP.토.fg,text:'가색(稼穡), 중화의 기운이네. 목화와 금수 사이 교량 역할을 하지. 신(信)의 성질로 인내심이 강하고 안정을 추구하네. 다만 고집이 세고 융통성이 부족할 수 있네.'},
-{title:'金 금',color:OH_COLOR_MAP.금.fg,text:'종혁(從革), 숙살지기이네. 가을의 결실처럼 원칙적이고 결단력이 있지. 의(義)의 기운으로 정의감이 강하지만 냉정할 수도 있네.'},
-{title:'水 수',color:OH_COLOR_MAP.수.fg,text:'지혜의 기운, 윤하(潤下)이네. 물처럼 적응력이 뛰어나고 임기응변에 능하지. 지(智)의 성질로 깊은 사고력을 가졌네. 겨울의 저장 에너지와 같네.'}
+{title:'木 목',color:OH_COLOR_MAP.목.fg,text:'생명의 시작이야. 봄의 기운으로 뻗어나가려는 성정이 있어. 본성은 인(仁)으로 어질고 선한 기질이지. 환경 적응력과 리더십이 뛰어나지만, 좌절하면 회복이 느린 편이야.'},
+{title:'火 화',color:OH_COLOR_MAP.화.fg,text:'정열과 밝음의 기운이야. 염상(炎上), 위로 타오르는 성질이지. 예(禮)의 기운으로 다정다감하고 끼가 넘쳐. 다만 감정 기복이 있고, 즉흥적인 면도 있어.'},
+{title:'土 토',color:OH_COLOR_MAP.토.fg,text:'가색(稼穡), 중화의 기운이야. 목화와 금수 사이 교량 역할을 해. 신(信)의 성질로 인내심이 강하고 안정을 추구하지. 다만 고집이 세고 융통성이 부족할 수 있어.'},
+{title:'金 금',color:OH_COLOR_MAP.금.fg,text:'종혁(從革), 숙살지기야. 가을의 결실처럼 원칙적이고 결단력이 있어. 의(義)의 기운으로 정의감이 강하지만 냉정할 수도 있지.'},
+{title:'水 수',color:OH_COLOR_MAP.수.fg,text:'지혜의 기운, 윤하(潤下)야. 물처럼 적응력이 뛰어나고 임기응변에 능해. 지(智)의 성질로 깊은 사고력을 가졌어. 겨울의 저장 에너지와 같지.'}
 ],
-사주원국:'사주팔자는 태어난 연·월·일·시를 천간(天干)과 지지(地支)로 변환한 8글자이네.\n\n위 4칸에서 위쪽 글자가 천간, 아래쪽 글자가 지지인데, 각각 오행(목화토금수)에 속해 있지.\n\n이 8글자의 오행 분포가 균형적인지, 어떤 게 많고 없는지가 운명의 바탕이 되네.\n\n특히 \"일간\"(일주의 천간)이 나 자신을 뜻하고, 나머지 7글자가 나를 둘러싼 환경이네.',
-강약:'사주의 \"강약\"은 일간(나 자신)의 에너지가 강한지 약한지를 뜻하네.\n\n핵심 판단 기준은 \"월지\"이네 — 일간이 태어난 계절의 기운을 득했느냐가 가장 중요하지.\n\n신강(身强)이면 비겁·인성이 많아서 자기 주장이 강하고 독립적이네.\n신약(身弱)이면 식상·재성·관성이 많아서 외부 환경에 민감하게 반응하네.\n\n용신(用神)은 이 불균형을 보완해주는 오행이네.\n일간의 비타민 같은 존재라고 생각하면 되네.',
-가족:'사주에서 가족 인연은 \"십성(十星)\"과 \"궁성(宮星)\"으로 보네.\n\n아버지 → 편재·정재 (재성)\n어머니 → 편인·정인 (인성)\n배우자 → 남자는 재성, 여자는 관성\n자식 → 식신·상관 (식상)\n\n해당 십성이 사주에 있으면 인연이 깊고, 없거나 충(沖)을 받으면 인연이 약해지네.\n\n위치도 중요한데 — 연주는 조부모·유년기, 월주는 부모·청년기, 일지는 배우자, 시주는 자녀·노년기를 나타내네.',
-재물:'재물운은 재성(정재·편재)으로 판단하네.\n\n정재 — 꾸준한 급여·저축형 재물. 성실하게 모으는 스타일이네.\n편재 — 투자·사업·큰돈의 기운. 들어오는 것도 크지만 나가는 것도 크네.\n\n재성이 사주에 있으면 돈에 관심이 많고, 일간이 신강해야 재물을 잘 다룰 수 있네.\n신약한데 재성만 많으면 \"재다신약\"이라 해서 돈에 끌려다니는 형국이 될 수 있지.\n\n겁재가 많으면 재물이 분산되니 보증이나 동업은 조심해야 하네.',
-직장:'직장·명예운은 관성(정관·편관)으로 보네.\n\n정관 — 안정적인 직장, 승진, 규율을 따르는 조직인이네.\n편관 — 외부 압박과 경쟁 속에서 성장하는 기운. 군인·검찰·경찰에 유리하지.\n\n관성이 없으면 조직보다 자유업이 맞을 수 있네.\n\n\"상관견관(傷官見官)\"이라는 게 있는데 — 상관이 정관을 극하면 상사와 충돌하거나 이직이 잦을 수 있다는 뜻이네. 직장 변동을 조심해야 하는 구조이지.',
-학문:'학문·자아실현은 인성(정인·편인)으로 보네.\n\n정인 — 정통 학문, 자격증, 전문직에 유리한 기운. 배움을 정리하는 능력이 탁월하네.\n편인 — 독특한 사고방식, 특수 분야에 깊이 파고드는 성질. 의학·문학·역학 등에 강하지.\n\n인성이 사주에 있으면 배움에 대한 욕구가 강하고, 없으면 독학으로 실력을 쌓는 타입이네.\n\n인성이 너무 많으면 \"도식(倒食)\"이라 해서 오히려 생각만 많고 행동이 느려질 수 있으니 균형이 중요하네.',
-진태양시:'고양이 사주명당은 \"진태양시(眞太陽時)\" 보정을 적용하네.\n\n한국 표준시는 동경 135도(일본 아카시) 기준인데, 서울은 127도라서 실제 태양 위치가 약 32분 느리지.\n\n즉 시계가 오후 1시여도 서울의 진짜 태양 시각은 12시 28분이네. 시주(時柱)는 태양의 실제 위치가 기준이라 이 차이가 중요하네.\n\n전문 역술인과 사주수첩·척척만세력 등 전문 사이트도 이 보정을 적용하지. 네이버 만세력은 적용하지 않아서 시주가 다를 수 있네.\n\n출생지에서 보정없음을 선택하면 네이버와 동일한 결과가 나오네.'
+사주원국:'사주팔자는 태어난 연·월·일·시를 천간(天干)과 지지(地支)로 변환한 8글자야.\n\n위 4칸에서 위쪽 글자가 천간, 아래쪽 글자가 지지인데, 각각 오행(목화토금수)에 속해 있어.\n\n이 8글자의 오행 분포가 균형적인지, 어떤 게 많고 없는지가 운명의 바탕이 돼.\n\n특히 "일간"(일주의 천간)이 나 자신을 뜻하고, 나머지 7글자가 나를 둘러싼 환경이야.',
+강약:'사주의 "강약"은 일간(나 자신)의 에너지가 강한지 약한지를 뜻해.\n\n핵심 판단 기준은 "월지"야 — 일간이 태어난 계절의 기운을 득했느냐가 가장 중요하지.\n\n신강(身强)이면 비겁·인성이 많아서 자기 주장이 강하고 독립적이야.\n신약(身弱)이면 식상·재성·관성이 많아서 외부 환경에 민감하게 반응해.\n\n용신(用神)은 이 불균형을 보완해주는 오행이야.\n일간의 비타민 같은 존재라고 생각하면 돼!',
+가족:'사주에서 가족 인연은 "십성(十星)"과 "궁성(宮星)"으로 봐.\n\n아버지 → 편재·정재 (재성)\n어머니 → 편인·정인 (인성)\n배우자 → 남자는 재성, 여자는 관성\n자식 → 식신·상관 (식상)\n\n해당 십성이 사주에 있으면 인연이 깊고, 없거나 충(沖)을 받으면 인연이 약해져.\n\n위치도 중요한데 — 연주는 조부모·유년기, 월주는 부모·청년기, 일지는 배우자, 시주는 자녀·노년기를 나타내.',
+재물:'재물운은 재성(정재·편재)으로 판단해.\n\n정재 — 꾸준한 급여·저축형 재물. 성실하게 모으는 스타일.\n편재 — 투자·사업·큰돈의 기운. 들어오는 것도 크지만 나가는 것도 커.\n\n재성이 사주에 있으면 돈에 관심이 많고, 일간이 신강해야 재물을 잘 다룰 수 있어.\n신약한데 재성만 많으면 "재다신약"이라 해서 돈에 끌려다니는 형국이 될 수 있지.\n\n겁재가 많으면 재물이 분산되니 보증이나 동업은 조심해야 해.',
+직장:'직장·명예운은 관성(정관·편관)으로 봐.\n\n정관 — 안정적인 직장, 승진, 규율을 따르는 조직인.\n편관 — 외부 압박과 경쟁 속에서 성장하는 기운. 군인·검찰·경찰에 유리하지.\n\n관성이 없으면 조직보다 자유업이 맞을 수 있어.\n\n"상관견관(傷官見官)"이라는 게 있는데 — 상관이 정관을 극하면 상사와 충돌하거나 이직이 잦을 수 있다는 뜻이야. 직장 변동을 조심해야 하는 구조지.',
+학문:'학문·자아실현은 인성(정인·편인)으로 봐.\n\n정인 — 정통 학문, 자격증, 전문직에 유리한 기운. 배움을 정리하는 능력이 탁월해.\n편인 — 독특한 사고방식, 특수 분야에 깊이 파고드는 성질. 의학·문학·역학 등에 강하지.\n\n인성이 사주에 있으면 배움에 대한 욕구가 강하고, 없으면 독학으로 실력을 쌓는 타입이야.\n\n인성이 너무 많으면 "도식(倒食)"이라 해서 오히려 생각만 많고 행동이 느려질 수 있으니 균형이 중요해.',
+진태양시:'고양이 사주명당은 \"진태양시(眞太陽時)\" 보정을 적용하네.\n\n한국 표준시는 동경 135도(일본 아카시) 기준인데, 서울은 127도라서 실제 태양 위치가 약 32분 느리지.\n\n즉 시계가 오후 1시여도 서울의 진짜 태양 시각은 12시 28분이야. 시주(時柱)는 태양의 실제 위치가 기준이라 이 차이가 중요하네.\n\n전문 역술인과 사주수첩·척척만세력 등 전문 사이트도 이 보정을 적용하지. 네이버 만세력은 적용하지 않아서 시주가 다를 수 있어.\n\n출생지에서 보정없음을 선택하면 네이버와 동일한 결과가 나오네.'
 };
 
 function FortuneBarNew({score,size}){
@@ -501,92 +501,6 @@ function SajuTableNew({saju,일간}){
         col.g!=='?'&&React.createElement('div',{style:{fontSize:9,color:'#4a4030',marginTop:2}},십성(일간,col.g))
       );
     })
-  );
-}
-
-// 서예 만세력 — 붓글씨 애니메이션
-function CalligraphyManseryeok({saju,일간,name}){
-  const[showDetail,setShowDetail]=useState(false);
-  useEffect(()=>{const t=setTimeout(()=>setShowDetail(true),3200);return()=>clearTimeout(t);},[]);
-  // 표시순서: 시주|일주|월주|연주 (좌→우), 애니메이션은 연주부터 (우→좌, 전통 서사순)
-  const cols=[
-    {label:'시주',sub:'時柱',g:saju.hg,j:saju.hj,anim:3},
-    {label:'일주',sub:'日柱',g:saju.dg,j:saju.dj,anim:2},
-    {label:'월주',sub:'月柱',g:saju.mg,j:saju.mj,anim:1},
-    {label:'연주',sub:'年柱',g:saju.yg,j:saju.yj,anim:0}
-  ];
-  return React.createElement('div',{style:{marginBottom:20}},
-    React.createElement('style',null,
-      '@keyframes brushIn{0%{opacity:0;clip-path:inset(0 0 100% 0);transform:translateY(-4px)}'+
-      '50%{opacity:0.8;clip-path:inset(0 0 30% 0);transform:translateY(0)}'+
-      '100%{opacity:1;clip-path:inset(0);transform:translateY(0)}}'+
-      '@keyframes inkSpread{0%{opacity:0;transform:scale(0.7) translateY(-6px);filter:blur(3px)}'+
-      '60%{opacity:1;transform:scale(1.02) translateY(0);filter:blur(0)}'+
-      '100%{opacity:1;transform:scale(1) translateY(0);filter:blur(0)}}'+
-      '@keyframes detailReveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}'
-    ),
-    // 타이틀
-    React.createElement('div',{style:{textAlign:'center',marginBottom:16}},
-      React.createElement('div',{style:{fontSize:10,color:'#5a5040',letterSpacing:6,marginBottom:4,animation:'fadeUp 0.5s ease both'}},'만 세 력'),
-      React.createElement('div',{style:{fontSize:15,fontWeight:700,color:'#e8d5a8',fontFamily:"'Noto Serif KR',serif",letterSpacing:8,animation:'fadeUp 0.5s 0.2s ease both'}},'四 柱 命 盤'),
-      name&&React.createElement('div',{style:{fontSize:11,color:'#7a7060',marginTop:6,animation:'fadeUp 0.5s 0.4s ease both'}},name+'의 타고난 운명')
-    ),
-    // 사주 4주
-    React.createElement('div',{style:{display:'flex',justifyContent:'center',gap:6}},
-      cols.map(function(p,i){
-        var isDay=p.label==='일주';
-        var gC=OH_COLOR_MAP[천간오행[p.g]||''];
-        var jC=OH_COLOR_MAP[지지오행[p.j]||''];
-        var gD=p.anim*0.65;
-        var jD=p.anim*0.65+0.32;
-        return React.createElement('div',{key:i,style:{
-          textAlign:'center',flex:1,maxWidth:76,padding:'14px 4px 10px',
-          background:isDay?'rgba(180,140,80,0.1)':'rgba(180,140,80,0.02)',
-          borderRadius:12,
-          border:isDay?'1.5px solid rgba(180,140,80,0.3)':'1px solid rgba(180,140,80,0.06)',
-          position:'relative'
-        }},
-          // 일주 표시
-          isDay&&React.createElement('div',{style:{position:'absolute',top:-8,left:'50%',transform:'translateX(-50%)',fontSize:8,color:'#b48c50',background:'#1a1510',padding:'1px 8px',borderRadius:4,border:'1px solid rgba(180,140,80,0.2)',whiteSpace:'nowrap',animation:'fadeUp 0.3s '+gD+'s both'}},'나'),
-          // 柱 라벨
-          React.createElement('div',{style:{fontSize:9,color:'#5a5040',marginBottom:10,letterSpacing:2,animation:'fadeUp 0.3s '+gD+'s both'}},p.sub),
-          // 천간 — 서예 애니메이션
-          React.createElement('div',{style:{
-            fontSize:34,fontWeight:700,lineHeight:1.1,
-            color:gC?gC.fg:'#8a7e6d',
-            fontFamily:"'Noto Serif KR',serif",
-            animation:'inkSpread 0.6s '+gD+'s both ease-out',
-            textShadow:gC?'0 0 20px '+gC.fg+'33':'none'
-          }},p.g),
-          // 천간 한글+오행
-          React.createElement('div',{style:{fontSize:9,color:'#6a6050',margin:'3px 0',animation:'fadeUp 0.3s '+(gD+0.3)+'s both'}},
-            p.g!=='?'?(천간한[천간.indexOf(p.g)]+' · '+(천간오행[p.g]||'')):''
-          ),
-          // 구분선
-          React.createElement('div',{style:{width:'40%',height:1,background:'rgba(180,140,80,0.15)',margin:'8px auto'}}),
-          // 지지 — 서예 애니메이션
-          React.createElement('div',{style:{
-            fontSize:34,fontWeight:700,lineHeight:1.1,
-            color:jC?jC.fg:'#8a7e6d',
-            fontFamily:"'Noto Serif KR',serif",
-            animation:'inkSpread 0.6s '+jD+'s both ease-out',
-            textShadow:jC?'0 0 20px '+jC.fg+'33':'none'
-          }},p.j),
-          // 지지 한글+오행
-          React.createElement('div',{style:{fontSize:9,color:'#6a6050',margin:'3px 0',animation:'fadeUp 0.3s '+(jD+0.3)+'s both'}},
-            p.j!=='?'?(지지한[지지.indexOf(p.j)]+' · '+(지지오행[p.j]||'')):''
-          ),
-          // 십성 (애니메이션 후 표시)
-          showDetail&&p.g!=='?'&&React.createElement('div',{style:{fontSize:9,color:'#8a7a60',marginTop:6,padding:'2px 6px',background:'rgba(180,140,80,0.05)',borderRadius:4,animation:'detailReveal 0.4s ease both'}},십성(일간,p.g))
-        );
-      })
-    ),
-    // 일간 강조 라벨
-    showDetail&&React.createElement('div',{style:{textAlign:'center',marginTop:12,animation:'detailReveal 0.5s ease both'}},
-      React.createElement('span',{style:{fontSize:11,color:'#b48c50',fontFamily:"'Noto Serif KR',serif"}},'일간(日干) '),
-      React.createElement('span',{style:{fontSize:13,fontWeight:700,color:'#e8d5a8',fontFamily:"'Noto Serif KR',serif"}},saju.dg),
-      React.createElement('span',{style:{fontSize:11,color:'#7a7060'}},' — 나 자신을 뜻하는 글자')
-    )
   );
 }
 
@@ -1961,7 +1875,7 @@ export default function App(){
                     <button key={h.v} onClick={function(){
                       setForm(function(f){return Object.assign({},f,{hour:h.v});});
                       var disp=h.v>=0?h.v+'시('+시진명D(h.v)+')':'시간 모름';
-                      var resp=h.v>=0?h.v+'시에 태어났군.\n마지막으로 태어난 지역을 알려주게.\n\n🐱 참고로 고양이 사주명당은 진태양시를 적용하네. 서울 기준으로 약 32분이 보정되기 때문에 네이버 만세력과 시주가 다를 수 있네. 전문 사주 사이트들도 같은 방식이네.\n다른 사이트와 똑같이 보고 싶으면 \"보정없음\"을 선택하면 되네.':'시간을 모르는군, 괜찮네.\n마지막으로 태어난 지역을 알려주게.';
+                      var resp=h.v>=0?h.v+'시에 태어났군.\n마지막으로 태어난 지역을 알려주게.\n\n🐱 참고로 고양이 사주명당은 진태양시를 적용하네. 서울 기준으로 약 32분이 보정되기 때문에 네이버 만세력과 시주가 다를 수 있어. 전문 사주 사이트들도 같은 방식이지.\n다른 사이트와 똑같이 보고 싶으면 \"보정없음\"을 선택하면 되네.':'시간을 모르는군, 괜찮네.\n마지막으로 태어난 지역을 알려주게.';
                       dialogAnswer(h.v, disp, resp);
                     }} style={{padding:'8px 2px',borderRadius:6,border:'1px solid rgba(180,140,80,0.08)',background:'rgba(180,140,80,0.03)',color:'#8a7e6d',fontSize:11,cursor:'pointer',transition:'all 0.15s',textAlign:'center'}}
                     onMouseEnter={function(e){e.currentTarget.style.background='rgba(180,140,80,0.12)';e.currentTarget.style.color='#e8d5a8';}}
@@ -1981,7 +1895,7 @@ export default function App(){
                     var cityName=c.l.split(' ')[0];
                     var finalMsgs=dialogMsgs.concat([
                       {who:'user',text:cityName},
-                      {who:'cat',text:cityName+'.\n좋네, 다 모았네. 사주를 풀어보겠네...'}
+                      {who:'cat',text:cityName+'!\n좋아, 다 모았다. 사주를 풀어볼게...'}
                     ]);
                     setDialogMsgs(finalMsgs);
                     setDialogReady(false);
@@ -2076,7 +1990,7 @@ export default function App(){
           <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 18px'}}>
             <p style={{fontSize:13,lineHeight:1.8,color:'#c0b8a0',margin:0}}>
               천간과 지지를 펼치고...<br/>
-              오행의 흐름을 읽는 중이네.
+              오행의 흐름을 읽는 중이야.
             </p>
           </div>
         </div>
@@ -2087,8 +2001,8 @@ export default function App(){
         <div style={{animation:'fadeUp 0.5s ease',textAlign:'center',maxWidth:300}}>
           <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'12px 18px'}}>
             <p style={{fontSize:13,lineHeight:1.8,color:'#c0b8a0',margin:0}}>
-              오, 꽤 흥미로운 사주이군.<br/>
-              곧 보여주겠네, 잠시만...
+              오! 꽤 재미있는 사주인걸?<br/>
+              곧 보여줄게, 잠깐만...
             </p>
           </div>
           <div style={{marginTop:16}}>
@@ -2107,10 +2021,10 @@ export default function App(){
   if(phase==='result'&&result){
   var rPartTitles=['사주 원국','개인 성향','가족 인연','사회 & 운세'];
   var rCatLines=[
-    result.birthYear+'년 '+result.birthMonth+'월 '+result.birthDay+'일생 '+result.saju.gender+'자...\n어디 한번 살펴볼까. 이게 자네의 사주이네.',
-    '자, 그럼 자네의 성격과 건강부터 보겠네.\n'+(result.강약==='신강'?'신강한 사주라 기본 체력은 좋은 편이네.':'신약한 사주라 에너지를 잘 관리해야 하네.'),
-    '이번엔 가족 인연을 보겠네.\n사주에 나타난 인연의 깊고 얕음을 짚어주지.',
-    '마지막으로 사회운이네.\n재물, 직장, 학문운을 살펴보겠네.'
+    result.birthYear+'년 '+result.birthMonth+'월 '+result.birthDay+'일생 '+result.saju.gender+'자...\n어디 한번 살펴볼까. 이게 너의 사주야.',
+    '자, 그럼 너의 성격과 건강부터 볼게.\n'+(result.강약==='신강'?'신강한 사주라 기본 체력은 좋은 편이야.':'신약한 사주라 에너지를 잘 관리해야 해.'),
+    '이번엔 가족 인연을 보자.\n사주에 나타난 인연의 깊고 얕음을 말해줄게.',
+    '마지막으로 사회운이야.\n재물, 직장, 학문운을 살펴볼게.'
   ];
   return(
     <div style={{minHeight:'100vh',background:'radial-gradient(ellipse at 50% 15%,#221c14 0%,#14110c 65%)',color:'#e8d5a8',fontFamily:"'Noto Sans KR',sans-serif",display:'flex',flexDirection:'column',maxWidth:440,margin:'0 auto'}}>
@@ -2139,11 +2053,6 @@ export default function App(){
         {/* Part 0: 사주표 */}
         {resultTab===0&&(
           <div style={{animation:'fadeUp 0.5s ease'}}>
-            {/* 서예 만세력 — 제일 위 */}
-            <CalligraphyManseryeok saju={result.saju} 일간={result.일간} name={authUser?authUser.nickname:''}/>
-            <OhDotsNew 카운트={result.오행.카운트}/>
-            {result.오행.전무.length>0&&<div style={{textAlign:'center',fontSize:11,color:'#7a5a48',marginTop:4}}>⚠ 전무: {result.오행.전무.join(', ')}</div>}
-            <div style={{height:16}}/>
             {/* 서사 블록 */}
             {(function(){var nb=generateNarrative(result);return nb.map(function(block,bi){
               if(block.type==='cat')return(
@@ -2165,6 +2074,10 @@ export default function App(){
                 <div key={'nb'+bi} style={{fontSize:12,lineHeight:1.9,color:'#a09880',padding:'8px 12px',marginBottom:6,background:'rgba(180,140,80,0.03)',borderLeft:'2px solid rgba(180,140,80,0.2)',borderRadius:'0 8px 8px 0'}}>{block.title?<span style={{color:'#c8a85a',fontWeight:600}}>{block.title}: </span>:null}{block.text}</div>
               );
             });})()}
+            <div style={{height:12}}/>
+            <SajuTableNew saju={result.saju} 일간={result.일간}/>
+            <OhDotsNew 카운트={result.오행.카운트}/>
+            {result.오행.전무.length>0&&<div style={{textAlign:'center',fontSize:11,color:'#7a5a48',marginTop:4}}>⚠ 전무: {result.오행.전무.join(', ')}</div>}
             {result.특이.length>0&&(
               <div style={{marginTop:16}}>
                 <div style={{fontSize:12,fontWeight:700,color:'#c8a85a',marginBottom:8,fontFamily:"'Noto Serif KR',serif"}}>✦ 특이 사항</div>
@@ -2173,8 +2086,8 @@ export default function App(){
                 );})}
               </div>
             )}
-            <EduBlock title="🐱 사주 원국이란?" defaultOpen={true}><EduText text={EDU.사주원국}/></EduBlock>
-            <EduBlock title="🐱 오행(木火土金水)이란?">
+            <EduBlock title="🐱 사주 원국이 뭐야?" defaultOpen={true}><EduText text={EDU.사주원국}/></EduBlock>
+            <EduBlock title="🐱 오행(木火土金水)은 뭘 뜻해?">
               {EDU.오행.map(function(oh,i){return(
                 <div key={i} style={{padding:'8px 10px',marginBottom:6,background:'rgba(180,140,80,0.02)',borderLeft:'3px solid '+oh.color,borderRadius:'0 8px 8px 0'}}>
                   <div style={{fontSize:12,fontWeight:700,color:oh.color,marginBottom:2,fontFamily:"'Noto Serif KR',serif"}}>{oh.title}</div>
@@ -2182,7 +2095,7 @@ export default function App(){
                 </div>
               );})}
             </EduBlock>
-            {form.city!==135&&<EduBlock title="🐱 다른 사이트와 시주가 다른 이유"><EduText text={EDU.진태양시}/></EduBlock>}
+            {form.city!==135&&<EduBlock title="🐱 다른 사이트와 시주가 다르다면?"><EduText text={EDU.진태양시}/></EduBlock>}
           </div>
         )}
 
@@ -2191,7 +2104,7 @@ export default function App(){
           <div style={{display:'flex',flexDirection:'column',gap:12,animation:'fadeUp 0.5s ease'}}>
             <SocialCardNew name="성격 원만성" icon="🧠" 점수={result.성격.점수} 특징={result.성격.특징} delay={0.1}/>
             <SocialCardNew name="체력과 건강" icon="💪" 점수={result.건강.점수} 특징={result.건강.경고.length>0?result.건강.경고:['전반적으로 양호한 건강운이야']} delay={0.2}/>
-            <EduBlock title="🐱 신강·신약과 용신이란?" defaultOpen={true}><EduText text={EDU.강약}/></EduBlock>
+            <EduBlock title="🐱 신강·신약이 뭐야? 용신은?" defaultOpen={true}><EduText text={EDU.강약}/></EduBlock>
           </div>
         )}
 
@@ -2202,7 +2115,7 @@ export default function App(){
             <RelCardNew name="어머니" icon="👩‍👦" 인연={result.가족.어머니.인연} 복덕={result.가족.어머니.복덕} delay={0.2}/>
             <RelCardNew name="배우자" icon="💑" 인연={result.가족.배우자.인연} 복덕={result.가족.배우자.복덕} delay={0.3}/>
             <RelCardNew name="자식" icon="👶" 인연={result.가족.자식.인연} 복덕={result.가족.자식.복덕} delay={0.4}/>
-            <EduBlock title="🐱 가족 인연의 판단 기준" defaultOpen={true}><EduText text={EDU.가족}/></EduBlock>
+            <EduBlock title="🐱 가족 인연은 어떻게 판단해?" defaultOpen={true}><EduText text={EDU.가족}/></EduBlock>
           </div>
         )}
 
@@ -2210,11 +2123,11 @@ export default function App(){
         {resultTab===3&&(
           <div style={{display:'flex',flexDirection:'column',gap:12,animation:'fadeUp 0.5s ease'}}>
             <SocialCardNew name="재물과 사업" icon="💰" 점수={result.사회.재물.점수} 특징={result.사회.재물.특징} delay={0.1}/>
-            <EduBlock title="🐱 재물운의 판단 기준"><EduText text={EDU.재물}/></EduBlock>
+            <EduBlock title="🐱 재물운은 어떻게 봐?"><EduText text={EDU.재물}/></EduBlock>
             <SocialCardNew name="직장과 명예" icon="🏢" 점수={result.사회.직장.점수} 특징={result.사회.직장.특징} delay={0.2}/>
-            <EduBlock title="🐱 직장·명예운의 판단 기준"><EduText text={EDU.직장}/></EduBlock>
+            <EduBlock title="🐱 직장·명예운은 어떻게 봐?"><EduText text={EDU.직장}/></EduBlock>
             <SocialCardNew name="인격과 학문" icon="📚" 점수={result.사회.학문.점수} 특징={result.사회.학문.특징} delay={0.3}/>
-            <EduBlock title="🐱 학문운의 판단 기준"><EduText text={EDU.학문}/></EduBlock>
+            <EduBlock title="🐱 학문운은 어떻게 봐?"><EduText text={EDU.학문}/></EduBlock>
           </div>
         )}
 
@@ -2252,7 +2165,7 @@ export default function App(){
   // 탭별 대화 대사
   var premiumDialogs={
     '개인특성':{
-      mansin:'허, '+result.일간+result.일지+' 일주라...\n'+(result.강약==='신강'?'기운이 넘치는 명식이로구나. 설기와 극제의 균형이 관건이겠구나.':'기운이 약한 명식이니, 인성과 비겁의 도움이 절실하겠구나.'),
+      mansin:'허, '+result.일간+result.일지+' 일주라...\n'+(result.강약==='신강'?'기운이 넘치는 명식이로구나. 설기와 극제의 균형이 관건이겠어.':'기운이 약한 명식이니, 인성과 비겁의 도움이 절실하겠구나.'),
       cat:'스승님, 이 분의 성격이랑 건강은 어떤가요?',
       reply:'어디 자세히 살펴보마.'
     },
@@ -2602,7 +2515,7 @@ export default function App(){
             <p style={{fontSize:13,lineHeight:1.9,color:'#c0b8d0',margin:0}}>
               허허, 어디 보자꾸나...<br/>
               <b style={{color:'#d0b0ff'}}>{result.일간}{result.일지}</b>라.
-              {result.강약==='신강'?' 기운이 넘치는 명식이로구나. 설기(洩氣)와 극제(克制)의 균형이 관건이겠구나.':' 기운이 약한 명식이니, 인성과 비겁의 도움이 절실하겠구나.'}
+              {result.강약==='신강'?' 기운이 넘치는 명식이로구나. 설기(洩氣)와 극제(克制)의 균형이 관건이겠어.':' 기운이 약한 명식이니, 인성과 비겁의 도움이 절실하겠구나.'}
             </p>
           </div>
         </div>
@@ -2693,7 +2606,7 @@ export default function App(){
                 적천수(滴天髓)와 궁통보감(窮通寶鑑)을 섭렵하시고<br/>
                 자평진전(子平眞銓)과 연해자평(淵海子平)을<br/>
                 두루 통달하신 대가이시니...<br/>
-                <span style={{fontSize:11,color:'#8a7e9d'}}>무엇이든 여쭤보면 되네.</span>
+                <span style={{fontSize:11,color:'#8a7e9d'}}>무엇이든 여쭤봐도 좋을 거야.</span>
               </p>
             </div>
           </div>
