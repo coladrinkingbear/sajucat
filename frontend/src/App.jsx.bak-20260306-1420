@@ -41,14 +41,17 @@ function birthToSaju(year,month,day,hour,gender,longitude){
     const s=calculateSaju(year,month,day,12,0);
     return{yg:s.연주.천간,yj:s.연주.지지,mg:s.월주.천간,mj:s.월주.지지,dg:s.일주.천간,dj:s.일주.지지,hg:'?',hj:'?',gender:gender||'남'};
   }
-  // 진태양시 보정 — 시주 판정에만 사용, 일주/월주/연주는 원래 양력 날짜 유지
-  let adjHour=hour,adjMinute=0;
+  // 진태양시 보정
+  let adjYear=year,adjMonth=month,adjDay=day,adjHour=hour,adjMinute=0;
   if(longitude&&longitude!==135){
     const corr=applyTrueSolarTime(hour,0,longitude);
     adjHour=corr.hour;adjMinute=corr.minute;
-    // dayOffset 무시 — 날짜는 원래 양력 기준
+    if(corr.dayOffset!==0){
+      const d=new Date(year,month-1,day+corr.dayOffset);
+      adjYear=d.getFullYear();adjMonth=d.getMonth()+1;adjDay=d.getDate();
+    }
   }
-  const s=calculateSaju(year,month,day,adjHour,adjMinute);
+  const s=calculateSaju(adjYear,adjMonth,adjDay,adjHour,adjMinute);
   return{yg:s.연주.천간,yj:s.연주.지지,mg:s.월주.천간,mj:s.월주.지지,dg:s.일주.천간,dj:s.일주.지지,hg:s.시주.천간,hj:s.시주.지지,gender:gender||'남'};
 }
 
@@ -392,10 +395,10 @@ function SajuTable({saju,일간}){
         <div key={i} style={{textAlign:'center',minWidth:60,background:i===1?'rgba(180,140,80,0.08)':'#1a1510',borderRadius:8,padding:'8px 4px',border:i===1?'1px solid rgba(180,140,80,0.2)':'1px solid rgba(180,140,80,0.05)'}}>
           <div style={{fontSize:9,color:'#5a5040',marginBottom:4}}>{c.label}</div>
           <div style={{fontSize:20,fontWeight:700,color:오행색[천간오행[c.g]]||'#8a7e6d',fontFamily:'serif'}}>{c.g}</div>
-          <div style={{fontSize:9,color:'#5a5040',margin:'2px 0'}}>{c.g!=='?'?천간한[천간.indexOf(c.g)]:''}</div>
+          <div style={{fontSize:9,color:'#5a5040',margin:'2px 0'}}>{c.g!=='?'?천간오행[c.g]:''}</div>
           <div style={{width:'80%',height:1,background:'rgba(180,140,80,0.1)',margin:'4px auto'}}/>
           <div style={{fontSize:20,fontWeight:700,color:오행색[지지오행[c.j]]||'#8a7e6d',fontFamily:'serif'}}>{c.j}</div>
-          <div style={{fontSize:9,color:'#5a5040',margin:'2px 0'}}>{c.j!=='?'?지지한[지지.indexOf(c.j)]:''}</div>
+          <div style={{fontSize:9,color:'#5a5040',margin:'2px 0'}}>{c.j!=='?'?지지오행[c.j]:''}</div>
           {c.g!=='?'&&<div style={{fontSize:9,color:'#3a3530'}}>{십성(일간,c.g)}</div>}
         </div>
       ))}
@@ -494,10 +497,10 @@ function SajuTableNew({saju,일간}){
       return React.createElement('div',{key:i,style:{textAlign:'center',minWidth:68,padding:'10px 6px',background:isDay?'rgba(180,140,80,0.08)':'rgba(180,140,80,0.02)',borderRadius:10,border:isDay?'1px solid rgba(180,140,80,0.2)':'1px solid rgba(180,140,80,0.06)',animation:'fadeUp 0.4s '+(i*0.1)+'s both ease-out'}},
         React.createElement('div',{style:{fontSize:9,color:'#5a5040',marginBottom:6,letterSpacing:2}},col.label),
         React.createElement('div',{style:{fontSize:22,fontWeight:700,color:gC?gC.fg:'#8a7e6d',fontFamily:"'Noto Serif KR',serif"}},col.g),
-        React.createElement('div',{style:{fontSize:9,color:'#5a5040',margin:'2px 0'}},col.g!=='?'?천간한[천간.indexOf(col.g)]:''),
+        React.createElement('div',{style:{fontSize:9,color:'#5a5040',margin:'2px 0'}},gOh),
         React.createElement('div',{style:{width:'60%',height:1,background:'rgba(180,140,80,0.1)',margin:'6px auto'}}),
         React.createElement('div',{style:{fontSize:22,fontWeight:700,color:jC?jC.fg:'#8a7e6d',fontFamily:"'Noto Serif KR',serif"}},col.j),
-        React.createElement('div',{style:{fontSize:9,color:'#5a5040',margin:'2px 0'}},col.j!=='?'?지지한[지지.indexOf(col.j)]:''),
+        React.createElement('div',{style:{fontSize:9,color:'#5a5040',margin:'2px 0'}},jOh),
         col.g!=='?'&&React.createElement('div',{style:{fontSize:9,color:'#4a4030',marginTop:2}},십성(일간,col.g))
       );
     })
