@@ -90,35 +90,31 @@ function analyze(s){
   const G=[s.yg,s.mg,s.dg,s.hg], Z=[s.yj,s.mj,s.dj,s.hj];
   const 일간=s.dg, 일지=s.dj, gender=s.gender;
   
-  // 오행 분포 — 지장간 가중치 + 왕상휴수사 월령 보정
-  // 왕상휴수사: 계절에 따른 오행 기운 강약 (왕=1.8, 상=1.3, 휴=1.0, 수=0.7, 사=0.5)
-  var 월지계절={'寅':'봄','卯':'봄','辰':'봄','巳':'여름','午':'여름','未':'여름','申':'가을','酉':'가을','戌':'가을','亥':'겨울','子':'겨울','丑':'겨울'};
-  var 왕상표={
-    '봄':{목:1.8,화:1.3,토:0.5,금:0.7,수:1.0},
-    '여름':{화:1.8,토:1.3,금:0.5,수:0.7,목:1.0},
-    '가을':{금:1.8,수:1.3,목:0.5,화:0.7,토:1.0},
-    '겨울':{수:1.8,목:1.3,화:0.5,토:0.7,금:1.0}
-  };
-  var 계절=월지계절[s.mj]||'봄';
-  var 왕상=왕상표[계절];
-  
+  // 오행 분포 — 지장간 가중치 반영 (정기60%+중기30%+여기10%)
   const 오행카운트={목:0,화:0,토:0,금:0,수:0};
-  // 천간: 각 1.0 × 왕상 계수
-  G.forEach(function(g){var oh=천간오행[g];if(oh)오행카운트[oh]+=1*(왕상[oh]||1);});
-  // 지지: 지장간 가중치 × 왕상 계수
+  // 천간: 각 1.0
+  G.forEach(function(g){if(천간오행[g])오행카운트[천간오행[g]]+=1;});
+  // 지지: 지장간 가중치
   Z.forEach(function(z){
     var jj=지장간T[z];
     if(!jj)return;
-    var weights=jj.length===3?[0.1,0.3,0.6]:jj.length===2?[0.3,0.7]:[1];
-    jj.forEach(function(ch,idx){
-      var oh=천간오행[ch];
-      if(oh)오행카운트[oh]+=weights[idx]*(왕상[oh]||1);
-    });
+    if(jj.length===3){
+      // [여기, 중기, 정기] → 10%, 30%, 60%
+      if(천간오행[jj[0]])오행카운트[천간오행[jj[0]]]+=0.1;
+      if(천간오행[jj[1]])오행카운트[천간오행[jj[1]]]+=0.3;
+      if(천간오행[jj[2]])오행카운트[천간오행[jj[2]]]+=0.6;
+    }else if(jj.length===2){
+      // [여기, 정기] → 30%, 70%
+      if(천간오행[jj[0]])오행카운트[천간오행[jj[0]]]+=0.3;
+      if(천간오행[jj[1]])오행카운트[천간오행[jj[1]]]+=0.7;
+    }else if(jj.length===1){
+      if(천간오행[jj[0]])오행카운트[천간오행[jj[0]]]+=1;
+    }
   });
   // 소수점 정리
   Object.keys(오행카운트).forEach(function(k){오행카운트[k]=Math.round(오행카운트[k]*100)/100;});
   const total=Object.values(오행카운트).reduce(function(a,b){return a+b;},0);
-  // 전무/과다 판정
+  // 전무/과다 판정 — 가중치 기준 (0.1 이하면 사실상 전무)
   const 전무=Object.keys(오행카운트).filter(function(k){return 오행카운트[k]<0.1;});
   const 과다=Object.keys(오행카운트).filter(function(k){return total>0&&(오행카운트[k]/total)>=0.35;});
   // 백분율 계산
@@ -295,13 +291,10 @@ function analyze(s){
   const dir=(천간음양[s.yg]==='양')===(gender==='남')?1:-1;
   let gi=천간.indexOf(s.mg),ji=지지.indexOf(s.mj);
   const 대운=[];
-  // 대운 시작나이 추정 (정확한 계산은 절기 거리 필요 — 여기선 근사치 사용)
-  var 대운시작나이=s.대운시작나이||3; // saju-core에서 넘어오면 사용, 아니면 기본 3세
   for(let i=0;i<10;i++){
     gi=((gi+dir)%10+10)%10;ji=((ji+dir)%12+12)%12;
     const g=천간[gi],j=지지[ji];
-    const startAge=대운시작나이+(i*10);
-    대운.push({간지:g+j,천간십성:십성(일간,g),지지십성:십성(일간,정기T[j]),천간:g,지지:j,천간오행:천간오행[g],지지오행:지지오행[j],운성:calc운성(일간,j),start:startAge,시작:startAge});
+    대운.push({간지:g+j,천간십성:십성(일간,g),지지십성:십성(일간,정기T[j]),천간:g,지지:j,천간오행:천간오행[g],지지오행:지지오행[j],운성:calc운성(일간,j)});
   }
   // 대운 길흉 판정
   const 대운길흉결과=대운길흉(대운, 용신오행, 용신결과.기신, 일간, Z);
@@ -918,7 +911,7 @@ function OhengRadar({카운트,용신,전무,과다}){
           ),
           // 수치
           React.createElement('div',{style:{width:32,textAlign:'right',fontSize:10,fontWeight:600,color:isZero?'#3a3530':c.fg,opacity:isZero?0.4:1}},pct+'%'),
-          React.createElement('div',{style:{width:14,textAlign:'right',fontSize:8,color:'#4a4030'}},Math.round(cnt*10)/10)
+          React.createElement('div',{style:{width:14,textAlign:'right',fontSize:8,color:'#4a4030'}},cnt)
         );
       })
     ),
