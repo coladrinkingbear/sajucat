@@ -1709,7 +1709,6 @@ export default function App(){
   const[introStep,setIntroStep]=useState(0);
   const[loadStep,setLoadStep]=useState(0);
   const[dialogStep,setDialogStep]=useState(0);
-  const[mapCity,setMapCity]=useState(null);
   const[dialogMsgs,setDialogMsgs]=useState([]);
   const[dialogReady,setDialogReady]=useState(false);
   const dialogRef=useRef(null);
@@ -2518,40 +2517,32 @@ export default function App(){
                       {React.createElement('polygon',{points:NK_MAP,fill:'rgba(80,70,60,0.12)',stroke:'rgba(120,100,80,0.08)',strokeWidth:0.6,strokeLinejoin:'round'})}
                       {SK_MAP.map(function(p,i){return React.createElement('polygon',{key:'sk'+i,points:p,fill:'rgba(180,140,80,0.04)',stroke:'rgba(180,140,80,0.12)',strokeWidth:0.7,strokeLinejoin:'round'});})}
                       {CITIES.filter(function(c){return c.v!==135&&c.x>0;}).map(function(c,i){
-                        var cn=c.l.split(' ')[0];
-                        var isSel=mapCity===cn;
-                        var lb={서울:[-8,-14],인천:[-10,6],수원:[10,6],춘천:[-10,0],강릉:[10,0],세종:[-10,-4],청주:[10,-4],대전:[10,0],전주:[-10,0],광주:[-10,0],대구:[10,0],부산:[10,8],울산:[10,0],포항:[10,0],제주:[10,0]};
-                        var off=lb[cn]||[10,0];
-                        return React.createElement('g',{key:'c'+i,onClick:function(){setMapCity(cn);setForm(function(f){return Object.assign({},f,{city:c.v});});},style:{cursor:'pointer'}},
+                        var isSel=form.city===c.v;
+                        var isLeft=['인천','세종','전주','광주','춘천'].indexOf(c.l.split(' ')[0])>=0;
+                        var lx=isLeft?-10:10;
+                        var ly=c.l.indexOf('수원')>=0?12:c.l.indexOf('서울')>=0?-10:c.l.indexOf('인천')>=0?6:0;
+                        return React.createElement('g',{key:'c'+i,onClick:function(){setForm(function(f){return Object.assign({},f,{city:c.v});});},style:{cursor:'pointer'}},
                           React.createElement('circle',{cx:c.x,cy:c.y,r:22,fill:'transparent'}),
                           isSel&&React.createElement('circle',{cx:c.x,cy:c.y,r:9,fill:'#c8a85a',opacity:0.12}),
+                          isSel&&React.createElement('circle',{cx:c.x,cy:c.y,r:12,fill:'none',stroke:'#c8a85a',strokeWidth:1.5,opacity:0.4,children:[React.createElement('animate',{key:'a1',attributeName:'r',from:'8',to:'20',dur:'1.5s',repeatCount:'indefinite'}),React.createElement('animate',{key:'a2',attributeName:'opacity',from:'0.5',to:'0',dur:'1.5s',repeatCount:'indefinite'})]}),
                           React.createElement('circle',{cx:c.x,cy:c.y,r:isSel?6:4.5,fill:isSel?'#c8a85a':'rgba(200,168,90,0.6)',stroke:isSel?'#e8d5a8':'rgba(200,168,90,0.25)',strokeWidth:isSel?1.5:0.8}),
-                          React.createElement('text',{x:c.x+off[0],y:c.y+off[1],textAnchor:off[0]<0?'end':'start',dominantBaseline:'central',fill:isSel?'#e8d5a8':'#8a7e6d',fontSize:isSel?'12':'10',fontWeight:isSel?'700':'400',fontFamily:"'Noto Serif KR',serif"},cn)
+                          React.createElement('text',{x:c.x+lx,y:c.y+ly,textAnchor:isLeft?'end':'start',dominantBaseline:'central',fill:isSel?'#e8d5a8':'#8a7e6d',fontSize:isSel?'12':'10',fontWeight:isSel?'700':'400',fontFamily:"'Noto Serif KR',serif"},c.l.split(' ')[0])
                         );
                       })}
                     </svg>
                   </div>
                 </div>
-                {/* 선택된 도시 정보 */}
-                {mapCity&&(
-                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 12px',margin:'8px 0 0',background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:8,animation:'fadeUp 0.2s ease'}}>
-                    <div>
-                      <span style={{fontSize:14,fontWeight:700,color:'#e8d5a8',fontFamily:"'Noto Serif KR',serif"}}>{mapCity}</span>
-                      <span style={{fontSize:10,color:'#8a7e6d',marginLeft:8}}>{(CITIES.find(function(c){return c.l.indexOf(mapCity)===0;})||{}).l.match(/\(([^)]+)\)/)?.[1]||''}</span>
-                    </div>
-                  </div>
-                )}
-                <div style={{display:'flex',gap:8,marginTop:8}}>
+                <div style={{display:'flex',gap:8,marginTop:10}}>
                   <button onClick={function(){
-                    var cn=mapCity||'서울';
+                    var cityName=(CITIES.find(function(c){return c.v===form.city;})||{l:'서울'}).l.split(' ')[0];
                     var finalMsgs=dialogMsgs.concat([
-                      {who:'user',text:cn},
-                      {who:'cat',text:cn+'.\n좋네, 다 모았네. 사주를 풀어보겠네...'}
+                      {who:'user',text:cityName},
+                      {who:'cat',text:cityName+'.\n좋네, 다 모았네. 사주를 풀어보겠네...'}
                     ]);
                     setDialogMsgs(finalMsgs);
                     setDialogReady(false);
                     setDialogStep(6);
-                  }} style={{flex:1,background:mapCity?'linear-gradient(135deg,#b48c50,#8a6830)':'rgba(180,140,80,0.15)',border:'none',borderRadius:8,padding:'11px',fontSize:14,fontWeight:700,color:mapCity?'#14110c':'#5a5040',cursor:mapCity?'pointer':'default',opacity:mapCity?1:0.5}}>선택</button>
+                  }} style={{flex:1,background:'linear-gradient(135deg,#b48c50,#8a6830)',border:'none',borderRadius:8,padding:'11px',fontSize:14,fontWeight:700,color:'#14110c',cursor:'pointer'}}>선택</button>
                   <button onClick={function(){
                     setForm(function(f){return Object.assign({},f,{city:135});});
                     var finalMsgs=dialogMsgs.concat([
