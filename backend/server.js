@@ -30,6 +30,11 @@ const { router: guestRouter, initGuest } = require('./routes/guest');
 initGuest(db);
 app.use('/api', guestRouter);
 
+// Share routes
+const { router: shareRouter, initShare } = require('./routes/share');
+initShare(db);
+app.use('/api', shareRouter);
+
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
 

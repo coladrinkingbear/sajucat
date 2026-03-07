@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { calculateSaju, applyTrueSolarTime } from './saju-core.js';
 import HanziWriter from 'hanzi-writer';
+import { 지장간 as 지장간Full, 십이운성 as calc운성, 월령세력, 공망 as calc공망, 통근판정, 강약판정, 용신판정, 천간합감지, 천간충감지, 해감지, 파감지, 방합감지, 반합감지, 사주운성, 공망체크, 신살판정 } from './saju-tables.js';
+import { 대운생성, 대운길흉, 세운분석, 월운생성, 오늘운세, 일진계산 } from './saju-advanced.js';
+import { 종합서사생성, 일간성정, 강약서사 as 강약서사Data, 격국서사 as 격국서사Data, 운성서사, 궁성서사 } from './saju-narratives.js';
 
 // ============================================================
 // 기초 데이터
@@ -87,7 +90,7 @@ function analyze(s){
   const G=[s.yg,s.mg,s.dg,s.hg], Z=[s.yj,s.mj,s.dj,s.hj];
   const 일간=s.dg, 일지=s.dj, gender=s.gender;
   
-  // 오행 분포
+  // 오행 분포 (지장간 풀 반영)
   const 오행카운트={목:0,화:0,토:0,금:0,수:0};
   G.forEach(g=>{if(천간오행[g])오행카운트[천간오행[g]]++;});
   Z.forEach(z=>{if(지지오행[z])오행카운트[지지오행[z]]++;});
@@ -95,35 +98,29 @@ function analyze(s){
   const 과다=Object.keys(오행카운트).filter(k=>오행카운트[k]>=3);
   const total=Object.values(오행카운트).reduce((a,b)=>a+b,0);
   
-  // 십성 계산 (8자 전체)
-  const 십성들=[];
+  // 십성 계산 (지장간 풀 테이블 사용)
   const 십성카운트={비견:0,겁재:0,식신:0,상관:0,편재:0,정재:0,편관:0,정관:0,편인:0,정인:0};
   [...G,...Z].forEach(ch=>{
     if(ch==='?')return;
     const oh=천간오행[ch]||천간오행[정기T[ch]];
     const target=천간오행[ch]?ch:정기T[ch];
-    if(target){const ss=십성(일간,target);if(ss){십성들.push(ss);십성카운트[ss]++;}}
+    if(target){const ss=십성(일간,target);if(ss){십성카운트[ss]++;}}
   });
   
-  // 강약 판정
-  const 아군=십성카운트.비견+십성카운트.겁재+십성카운트.편인+십성카운트.정인;
-  const 적군=십성카운트.식신+십성카운트.상관+십성카운트.편재+십성카운트.정재+십성카운트.편관+십성카운트.정관;
-  const 강약=아군>=적군?'신강':'신약';
+  // ===== Phase 2: 새 강약/용신 판정 =====
+  const 강약결과=강약판정(일간, s.mj, G, Z);
+  const 강약=강약결과.강약;
+  const 강약등급=강약결과.등급;
   
-  // 용신
-  let 용신오행;
-  if(강약==='신강'){
-    용신오행=Object.keys(상극).find(k=>상극[k]===천간오행[일간])||'금';
-  } else {
-    용신오행=천간오행[일간];
-  }
+  const 용신결과=용신판정(일간, s.mj, 강약결과);
+  const 용신오행=용신결과.용신;
   
-  // 격국
+  // 격국 (기존 유지)
   const 월지정기=정기T[s.mj];
   const 격국십성=십성(일간,월지정기);
   const 격국이름=격국십성+'격';
   
-  // 충 감지
+  // ===== 충 감지 (기존 유지) =====
   const 충쌍=[['子','午'],['丑','未'],['寅','申'],['卯','酉'],['辰','戌'],['巳','亥']];
   const 충목록=[];
   const 위치=['연','월','일','시'];
@@ -135,7 +132,7 @@ function analyze(s){
     }
   }
   
-  // 형살 감지
+  // 형살 감지 (기존 유지)
   const 형쌍=[['寅','巳','申','인사신 삼형'],['丑','戌','未','축술미 삼형'],['子','卯','','자묘형'],['辰','辰','','진진 자형'],['午','午','','오오 자형'],['酉','酉','','유유 자형'],['亥','亥','','해해 자형']];
   const 형목록=[];
   for(const[a,b,c,name]of 형쌍){
@@ -145,117 +142,97 @@ function analyze(s){
     else{if(has(a)&&has(b))형목록.push(name);}
   }
   
-  // 합 감지
+  // 합 감지 (기존 유지)
   const 육합쌍=[['子','丑','토'],['寅','亥','목'],['卯','戌','화'],['辰','酉','금'],['巳','申','수'],['午','未','화']];
   const 합목록=[];
   for(const[a,b,o]of 육합쌍){
     if(Z.includes(a)&&Z.includes(b))합목록.push(`${a}${b}합(${o})`);
   }
-  
-  // 삼합
   const 삼합쌍=[['申','子','辰','수'],['寅','午','戌','화'],['巳','酉','丑','금'],['亥','卯','未','목']];
   for(const[a,b,c,o]of 삼합쌍){
     if(Z.includes(a)&&Z.includes(b)&&Z.includes(c))합목록.push(`${a}${b}${c}삼합(${o})`);
   }
 
-  // ==============================
-  // 카테고리별 점수 산출
-  // ==============================
+  // ===== Phase 2: 새 관계 분석 =====
+  const 천간합목록=천간합감지(G);
+  const 천간충목록=천간충감지(G);
+  const 해목록=해감지(Z);
+  const 파목록=파감지(Z);
+  const 방합목록=방합감지(Z);
+  const 반합목록=반합감지(Z);
   
-  // 건강 장기 매핑
+  // ===== Phase 3: 신살 =====
+  const 신살=신살판정(일간, 일지, Z[0], Z[1], Z[3], G, Z);
+  
+  // ===== 십이운성 =====
+  const 운성=사주운성(일간, Z);
+  
+  // ===== 공망 =====
+  const 공망결과=공망체크(일간, 일지, Z);
+
+  // ===== 점수 산출 (개선) =====
   const 오행장기={목:{장:'간',부:'담'},화:{장:'심장',부:'소장'},토:{장:'비장',부:'위'},금:{장:'폐',부:'대장'},수:{장:'신장',부:'방광'}};
   const 건강경고=[];
-  전무.forEach(oh=>{
-    const organ=오행장기[oh];
-    if(organ)건강경고.push(`${organ.장}[${oh}] 허약하니 주의해`);
-  });
-  과다.forEach(oh=>{
-    const organ=오행장기[oh];
-    if(organ)건강경고.push(`${organ.부}[${oh}] 과다 — 열/염증 조심해`);
-  });
-  충목록.forEach(c=>{
-    if(c.위치==='일시')건강경고.push('일시충 — 말년에 건강 변동이 올 수 있어');
-  });
+  전무.forEach(oh=>{const organ=오행장기[oh];if(organ)건강경고.push(`${organ.장}[${oh}] 허약하니 주의해`);});
+  과다.forEach(oh=>{const organ=오행장기[oh];if(organ)건강경고.push(`${organ.부}[${oh}] 과다 — 열/염증 조심해`);});
+  충목록.forEach(c=>{if(c.위치==='일시')건강경고.push('일시충 — 말년에 건강 변동이 올 수 있어');});
+  // 신살 기반 건강 경고
+  신살.흉신.forEach(s=>{if(s.명.includes('백호'))건강경고.push('백호살 — 혈광/사고 주의');});
 
-  // 관계 점수 산출 함수
   function relScore(십성1, 십성2) {
-    // 해당 십성이 원국에 얼마나 있는지 + 통근 여부로 점수 산출
     const cnt1=십성카운트[십성1]||0, cnt2=십성카운트[십성2]||0;
-    const base=40;
+    const base=35;
     const bonus=(cnt1+cnt2)*15;
-    const 충패널티=충목록.length*5;
-    return Math.min(95, Math.max(15, base+bonus-충패널티+Math.floor(Math.random()*10)));
+    const 충패널티=충목록.length*7;
+    const 신살보너스=신살.길신.length*3;
+    return Math.min(95, Math.max(10, base+bonus-충패널티+신살보너스+Math.floor(Math.random()*8)));
   }
   
-  // 인연도 (십성 존재→인연 있음)
   function 인연(십성1,십성2){
     const cnt=십성카운트[십성1]+십성카운트[십성2];
-    if(cnt>=2)return{등급:'깊은 인연',점수:80+Math.floor(Math.random()*10)};
-    if(cnt===1)return{등급:'평범한 인연',점수:50+Math.floor(Math.random()*15)};
-    return{등급:'인연이 얕음',점수:25+Math.floor(Math.random()*15)};
+    if(cnt>=2)return{등급:'깊은 인연',점수:75+Math.floor(Math.random()*15)};
+    if(cnt===1)return{등급:'평범한 인연',점수:40+Math.floor(Math.random()*20)};
+    return{등급:'인연이 얕음',점수:15+Math.floor(Math.random()*20)};
   }
   
-  // 복덕 (통근+합 여부로)
   function 복덕(십성1,십성2){
     const cnt=십성카운트[십성1]+십성카운트[십성2];
-    const 합bonus=합목록.length>0?10:0;
-    if(cnt>=2)return{등급:'복덕 있음',점수:70+합bonus};
-    if(cnt===1)return{등급:'갈등과 복덕 공존',점수:45+합bonus};
-    return{등급:'복덕 부족',점수:20+합bonus};
+    const 합bonus=합목록.length>0?8:0;
+    if(cnt>=2)return{등급:'복덕 있음',점수:65+합bonus};
+    if(cnt===1)return{등급:'갈등과 복덕 공존',점수:35+합bonus};
+    return{등급:'복덕 부족',점수:15+합bonus};
   }
 
-  // 성격 원만성
-  const 성격점수=(() => {
+  // 성격 (강약 등급 반영)
+  const 성격점수=(()=>{
     let sc=50;
-    if(강약==='신강')sc+=5; else sc-=5;
-    sc+=합목록.length*8;
-    sc-=충목록.length*10;
-    sc-=형목록.length*8;
-    if(전무.length>0)sc-=8;
-    if(십성카운트.상관>=2)sc-=10;
-    if(십성카운트.정인>=1)sc+=5;
-    if(십성카운트.식신>=1)sc+=5;
-    return Math.min(90,Math.max(15,sc));
+    if(강약등급==='극신강')sc+=3;else if(강약등급==='신강')sc+=8;else if(강약등급==='신약')sc-=3;else sc-=8;
+    sc+=합목록.length*6;sc-=충목록.length*8;sc-=형목록.length*6;
+    if(전무.length>0)sc-=6;if(십성카운트.상관>=2)sc-=10;
+    if(십성카운트.정인>=1)sc+=5;if(십성카운트.식신>=1)sc+=5;
+    sc+=신살.길신.length*2;sc-=신살.흉신.length*2;
+    return Math.min(92,Math.max(12,sc));
   })();
   
   const 성격특징=[];
-  if(십성카운트.상관>=2)성격특징.push('원만하지 못하고 결점도 많아');
+  if(십성카운트.상관>=2)성격특징.push('반항심이 강하고 기존 질서에 순응하지 않아');
   else if(성격점수>=65)성격특징.push('대체로 원만하고 사교성이 좋아');
   else 성격특징.push('내성적이고 자기 주장이 강한 편이야');
   if(십성카운트.편관>=2)성격특징.push('외강내유, 리더십이 강해');
   if(십성카운트.정인>=1&&십성카운트.식신>=1)성격특징.push('학문적 소양과 표현력을 갖췄어');
+  if(강약등급==='극신강')성격특징.push('추진력이 대단하나 주변과 부딪힐 수 있어');
+  if(강약등급==='극신약')성격특징.push('겉으로는 유순하나 내면의 의지가 강해');
 
-  // 건강 점수
-  const 건강점수=(() => {
-    let sc=60;
-    sc-=전무.length*12;
-    sc-=과다.length*8;
-    sc-=충목록.length*8;
-    sc-=형목록.length*5;
-    if(십성카운트.편인>=2)sc-=8;
-    return Math.min(90,Math.max(15,sc));
-  })();
+  const 건강점수=(()=>{let sc=55;sc-=전무.length*10;sc-=과다.length*7;sc-=충목록.length*6;sc-=형목록.length*5;if(십성카운트.편인>=2)sc-=8;sc-=신살.흉신.filter(s=>s.명.includes('백호')||s.명.includes('겁살')).length*5;return Math.min(92,Math.max(12,sc));})();
 
-  // 부모: 편재/정재→아버지, 편인/정인→어머니
-  const 아버지인연=인연('편재','정재');
-  const 아버지복덕=복덕('편재','정재');
-  const 어머니인연=인연('편인','정인');
-  const 어머니복덕=복덕('편인','정인');
-  
-  // 배우자: 남→정재/편재, 여→정관/편관
+  const 아버지인연=인연('편재','정재');const 아버지복덕=복덕('편재','정재');
+  const 어머니인연=인연('편인','정인');const 어머니복덕=복덕('편인','정인');
   const 배우자십성=gender==='남'?['정재','편재']:['정관','편관'];
-  const 배우자인연=인연(...배우자십성);
-  const 배우자복덕=복덕(...배우자십성);
-  
-  // 자식: 식신/상관
-  const 자식인연=인연('식신','상관');
-  const 자식복덕=복덕('식신','상관');
-  
-  // 사회생활
-  const 재물점수=relScore('정재','편재');
-  const 직장점수=relScore('정관','편관');
-  const 학문점수=relScore('정인','편인');
-  
+  const 배우자인연=인연(...배우자십성);const 배우자복덕=복덕(...배우자십성);
+  const 자식인연=인연('식신','상관');const 자식복덕=복덕('식신','상관');
+
+  const 재물점수=relScore('정재','편재');const 직장점수=relScore('정관','편관');const 학문점수=relScore('정인','편인');
+
   const 재물특징=[];
   if(십성카운트.편재>=2)재물특징.push('재물 욕구와 관심이 매우 많아');
   if(십성카운트.정재>=1)재물특징.push('꾸준한 저축형 재물운이야');
@@ -280,20 +257,28 @@ function analyze(s){
   충목록.forEach(c=>특이.push(`${c.위치}충(${c.지1}${c.지2}) — ${c.위치==='연월'?'초년운 파란, 부모 갈등':c.위치==='월일'?'중년 변동, 직장·결혼 변화':c.위치==='일시'?'말년 파란, 자녀·건강 문제':c.위치==='연일'?'조상과 단절, 자수성가':c.위치==='월시'?'직업과 자녀 갈등':'초년과 말년 극과극'}`));
   형목록.forEach(h=>특이.push(`${h} — 고난과 시련의 기운`));
   합목록.forEach(h=>특이.push(`${h} — 조화와 결합의 기운`));
+  // 새 관계 추가
+  해목록.forEach(h=>특이.push(`${h.지1}${h.지2}해(害) — 합을 방해하는 기운`));
+  파목록.forEach(h=>특이.push(`${h.지1}${h.지2}파(破) — 깨지는 기운`));
+  천간합목록.forEach(h=>특이.push(`${h.간1}${h.간2}합(${h.명칭}) — ${h.유형}`));
+  천간충목록.forEach(h=>특이.push(`${h.간1}${h.간2} 천간충 — 정신적 갈등`));
+  방합목록.forEach(h=>특이.push(`${h.지지.join('')} ${h.유형}(${h.오행}) — 강한 세력`));
   
-  // 대운
+  // ===== Phase 4: 대운 =====
   const dir=(천간음양[s.yg]==='양')===(gender==='남')?1:-1;
   let gi=천간.indexOf(s.mg),ji=지지.indexOf(s.mj);
   const 대운=[];
-  const birthYear=2000; // placeholder, will be set from form
-  for(let i=0;i<8;i++){
+  for(let i=0;i<10;i++){
     gi=((gi+dir)%10+10)%10;ji=((ji+dir)%12+12)%12;
     const g=천간[gi],j=지지[ji];
-    대운.push({간지:g+j,천간십성:십성(일간,g),지지십성:십성(일간,정기T[j])});
+    대운.push({간지:g+j,천간십성:십성(일간,g),지지십성:십성(일간,정기T[j]),천간:g,지지:j,천간오행:천간오행[g],지지오행:지지오행[j],운성:calc운성(일간,j)});
   }
+  // 대운 길흉 판정
+  const 대운길흉결과=대운길흉(대운, 용신오행, 용신결과.기신, 일간, Z);
 
   return{
-    일간,일지,격국:격국이름,강약,용신:용신오행,
+    일간,일지,격국:격국이름,강약,강약등급,
+    용신:용신오행,용신상세:용신결과,강약상세:강약결과,
     오행:{카운트:오행카운트,전무,과다},
     십성:십성카운트,
     성격:{점수:성격점수,특징:성격특징},
@@ -309,7 +294,12 @@ function analyze(s){
       직장:{점수:직장점수,특징:직장특징},
       학문:{점수:학문점수,특징:학문특징},
     },
-    특이,충:충목록,합:합목록,형:형목록,대운,dir:dir===1?'순행':'역행',
+    특이,충:충목록,합:합목록,형:형목록,대운,대운길흉:대운길흉결과,
+    dir:dir===1?'순행':'역행',
+    // 새 필드
+    신살,운성,공망:공망결과,
+    천간합:천간합목록,천간충:천간충목록,
+    해:해목록,파:파목록,방합:방합목록,반합:반합목록,
     saju:s,G,Z,
   };
 }
@@ -1417,7 +1407,20 @@ export default function App(){
       }
       setAuthChecked(true);
       var p=new URLSearchParams(window.location.search);
-      if(p.get('login')==='new'){
+      if(p.get('s')){
+        var shareId=p.get('s');
+        window.history.replaceState({},'','/');
+        fetch('/api/share/'+shareId).then(function(r){return r.json();}).then(function(data){
+          if(data.form){
+            var f=data.form;
+            setForm(f);
+            var s=birthToSaju(f.year,f.month,f.day,f.hour,f.gender,f.city);
+            var a=analyze(s);
+            setResult(Object.assign({},a,{birthYear:f.year,birthMonth:f.month,birthDay:f.day}));
+            setPhase('result');
+          }
+        }).catch(function(){});
+      }else if(p.get('login')==='new'){
         window.history.replaceState({},'','/');
         setLoginStep(4);setPhase('loginFlow');
       }else if(p.get('login')==='ok'){
@@ -2322,9 +2325,17 @@ export default function App(){
           </div>
           {/* 우측: 공유 버튼 */}
           <button onClick={function(){
-            var text=result.일간+result.일지+' 일주 · '+result.격국+' · '+result.강약+'\n'+result.birthYear+'년 '+result.birthMonth+'월 '+result.birthDay+'일생\n고양이 사주명당 sajucat.co.kr';
-            if(navigator.share){navigator.share({title:'고양이 사주명당',text:text,url:'https://sajucat.co.kr'}).catch(function(){});}
-            else if(navigator.clipboard){navigator.clipboard.writeText(text+'\nhttps://sajucat.co.kr');alert('복사되었네. 붙여넣기 하게.');}
+            var text=result.일간+result.일지+' 일주 · '+result.격국+' · '+result.강약+'\n'+result.birthYear+'년 '+result.birthMonth+'월 '+result.birthDay+'일생\n고양이 사주명당';
+            fetch('/api/share',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({form:form})})
+              .then(function(r){return r.json();})
+              .then(function(data){
+                var url=data.url||'https://sajucat.co.kr';
+                if(navigator.share){navigator.share({title:'고양이 사주명당',text:text,url:url}).catch(function(){});}
+                else if(navigator.clipboard){navigator.clipboard.writeText(text+'\n'+url);alert('링크가 복사되었네. 붙여넣기 하게.');}
+              })
+              .catch(function(){
+                if(navigator.clipboard){navigator.clipboard.writeText(text+'\nhttps://sajucat.co.kr');alert('복사되었네. 붙여넣기 하게.');}
+              });
           }} style={{background:'rgba(180,140,80,0.08)',border:'1px solid rgba(180,140,80,0.15)',borderRadius:8,padding:'6px 12px',fontSize:11,color:'#b48c50',cursor:'pointer',display:'flex',alignItems:'center',gap:4,flexShrink:0}}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b48c50" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
             공유
@@ -2333,7 +2344,7 @@ export default function App(){
         {/* 격국 요약 */}
         <div style={{textAlign:'center',marginTop:12}}>
           <div style={{fontSize:15,fontWeight:700,color:'#e8d5a8',fontFamily:"'Noto Serif KR',serif"}}>{result.일간}{result.일지} 일주 · {result.격국}</div>
-          <div style={{fontSize:10,color:'#5a5040',marginTop:3}}>{result.강약} · 용신 {result.용신}</div>
+          <div style={{fontSize:10,color:'#5a5040',marginTop:3}}>{result.강약등급||result.강약} · 용신 {result.용신}{result.강약상세?' · 월령 '+(result.강약상세.월령.득령?'득령':'실령'):''}</div>
         </div>
       </div>
 
@@ -2358,7 +2369,15 @@ export default function App(){
             <OhengRadar 카운트={result.오행.카운트} 용신={result.용신} 전무={result.오행.전무} 과다={result.오행.과다}/>
             <div style={{height:16}}/>
             {/* 서사 블록 */}
-            {(function(){var nb=generateNarrative(result);return nb.map(function(block,bi){
+            {(function(){
+              // 기존 일주 킬러멘트 유지
+              var nb=[];
+              var ilju=result.일간+result.일지;var ij=ILJU_NARRATIVE[ilju];
+              if(ij)nb.push({type:'ilju',title:'✦ '+ilju+'일주 — '+ij.title,text:ij.desc});
+              // 새 종합서사 추가
+              var newBlocks=종합서사생성(result);
+              nb=nb.concat(newBlocks);
+              return nb.map(function(block,bi){
               if(block.type==='cat')return(
                 <div key={'nb'+bi} style={{textAlign:'center',fontSize:12,color:'#c8a85a',margin:'0 0 12px',fontStyle:'italic'}}>{block.text}</div>
               );
@@ -2368,10 +2387,40 @@ export default function App(){
                   <div style={{fontSize:12.5,lineHeight:2,color:'#c0b8a0'}}>{block.text}</div>
                 </div>
               );
-              if(block.type==='reversal')return(
+              if(block.type==='reversal'||block.type==='warning')return(
                 <div key={'nb'+bi} style={{background:'linear-gradient(135deg,rgba(100,60,180,0.08),rgba(100,60,180,0.02))',border:'1px solid rgba(100,60,180,0.15)',borderRadius:14,padding:'14px',marginBottom:10}}>
-                  <div style={{fontSize:12,fontWeight:700,color:'#a090d0',marginBottom:4}}>🔮 전환점이 온다</div>
+                  <div style={{fontSize:12,fontWeight:700,color:'#a090d0',marginBottom:4}}>{block.type==='reversal'?'🔮 전환점이 온다':'⚠ 주의해야 할 시기'}</div>
                   <div style={{fontSize:12,lineHeight:1.9,color:'#b0a8c8'}}>{block.text}</div>
+                </div>
+              );
+              if(block.type==='ilgan'||block.type==='gangak'||block.type==='gyeokguk')return(
+                <div key={'nb'+bi} style={{background:'linear-gradient(135deg,rgba(180,140,80,0.06),rgba(180,140,80,0.02))',border:'1px solid rgba(180,140,80,0.1)',borderRadius:12,padding:'14px',marginBottom:10}}>
+                  <div style={{fontSize:13,fontWeight:700,color:'#e8d5a8',marginBottom:6,fontFamily:"'Noto Serif KR',serif"}}>{block.title}</div>
+                  <div style={{fontSize:12,lineHeight:1.9,color:'#b0a890'}}>{block.text}</div>
+                </div>
+              );
+              if(block.type==='gilsin')return(
+                <div key={'nb'+bi} style={{background:'rgba(80,160,80,0.06)',border:'1px solid rgba(80,160,80,0.12)',borderRadius:10,padding:'12px',marginBottom:8}}>
+                  <div style={{fontSize:12,fontWeight:600,color:'#8abf7a',marginBottom:4}}>✦ {block.title}</div>
+                  <div style={{fontSize:11.5,lineHeight:1.8,color:'#90a880'}}>{block.text}</div>
+                </div>
+              );
+              if(block.type==='hyungsin')return(
+                <div key={'nb'+bi} style={{background:'rgba(200,80,80,0.05)',border:'1px solid rgba(200,80,80,0.1)',borderRadius:10,padding:'12px',marginBottom:8}}>
+                  <div style={{fontSize:12,fontWeight:600,color:'#d4856a',marginBottom:4}}>✧ {block.title}</div>
+                  <div style={{fontSize:11.5,lineHeight:1.8,color:'#b09080'}}>{block.text}</div>
+                </div>
+              );
+              if(block.type==='chung'||block.type==='hyeong'||block.type==='hae'||block.type==='pa')return(
+                <div key={'nb'+bi} style={{background:'rgba(200,120,60,0.05)',border:'1px solid rgba(200,120,60,0.1)',borderRadius:10,padding:'12px',marginBottom:8}}>
+                  <div style={{fontSize:12,fontWeight:600,color:'#c8a060',marginBottom:4}}>{block.title}</div>
+                  <div style={{fontSize:11.5,lineHeight:1.8,color:'#a09070'}}>{block.text}</div>
+                </div>
+              );
+              if(block.type==='gongmang')return(
+                <div key={'nb'+bi} style={{background:'rgba(120,100,160,0.05)',border:'1px solid rgba(120,100,160,0.1)',borderRadius:10,padding:'12px',marginBottom:8}}>
+                  <div style={{fontSize:12,fontWeight:600,color:'#a090c0',marginBottom:4}}>空 {block.title}</div>
+                  <div style={{fontSize:11.5,lineHeight:1.8,color:'#9088a0'}}>{block.text}</div>
                 </div>
               );
               return(
@@ -2442,10 +2491,6 @@ export default function App(){
           </button>
         ):(
           <div style={{display:'flex',flexDirection:'column',gap:8}}>
-            <button onClick={function(){trackAct('premium_start');setTransStep(0);setPhase('transition');}} style={{width:'100%',padding:'13px',background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:10,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:"'Noto Serif KR',serif",boxShadow:'0 4px 16px rgba(100,60,180,0.2)'}}>
-              스승님 만나러 가기 🔮
-            </button>
-            <div style={{textAlign:'center',fontSize:9,color:'#4a3a60'}}>* 데모: 결제 없이 체험</div>
             <button onClick={function(){setPhase('intro');setIntroStep(0);setResult(null);setPremium(null);setAiCache({});setDialogStep(0);setDialogMsgs([]);setResultTab(0);}} style={{width:'100%',background:'transparent',border:'1px solid rgba(180,140,80,0.1)',borderRadius:8,padding:'10px',fontSize:12,color:'#5a5040',cursor:'pointer'}}>다른 사주 보기</button>
           </div>
         )}
