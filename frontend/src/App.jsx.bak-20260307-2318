@@ -494,7 +494,7 @@ function FortuneBarNew({score,size}){
 }
 
 function CatBubbleResult({text}){
-  return React.createElement('div',{style:{display:'flex',gap:10,alignItems:'flex-start',margin:'14px 0',animation:'fadeUp 0.5s ease both'}},
+  return React.createElement('div',{style:{display:'flex',gap:10,alignItems:'flex-start',animation:'fadeUp 0.5s ease both'}},
     React.createElement('div',{style:{flexShrink:0,marginTop:2}},React.createElement(CatFace,{size:36})),
     React.createElement('div',{style:{padding:'10px 14px',borderRadius:'4px 14px 14px 14px',background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.12)',maxWidth:'85%'}},
       React.createElement('div',{style:{fontSize:13,lineHeight:1.9,color:'#c0b8a0',whiteSpace:'pre-line'}},text)
@@ -1093,7 +1093,7 @@ function OhengRadar({카운트,용신,전무,과다}){
 })();
 
 function RelCardNew({name,icon,인연,복덕,delay}){
-  return React.createElement('div',{style:{background:'rgba(180,140,80,0.03)',border:'1px solid rgba(180,140,80,0.08)',borderRadius:10,padding:'12px 14px',margin:'8px 0',animation:'fadeUp 0.4s '+(delay||0)+'s both ease-out'}},
+  return React.createElement('div',{style:{background:'rgba(180,140,80,0.03)',border:'1px solid rgba(180,140,80,0.08)',borderRadius:10,padding:'12px 14px',animation:'fadeUp 0.4s '+(delay||0)+'s both ease-out'}},
     React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:8}},
       React.createElement('span',{style:{fontSize:16}},icon),
       React.createElement('span',{style:{fontSize:13,fontWeight:700,color:'#e8d5a8',fontFamily:"'Noto Serif KR',serif"}},name),
@@ -1108,7 +1108,7 @@ function RelCardNew({name,icon,인연,복덕,delay}){
 }
 
 function SocialCardNew({name,icon,점수,특징,delay}){
-  return React.createElement('div',{style:{background:'rgba(180,140,80,0.03)',border:'1px solid rgba(180,140,80,0.08)',borderRadius:10,padding:'12px 14px',margin:'8px 0',animation:'fadeUp 0.4s '+(delay||0)+'s both ease-out'}},
+  return React.createElement('div',{style:{background:'rgba(180,140,80,0.03)',border:'1px solid rgba(180,140,80,0.08)',borderRadius:10,padding:'12px 14px',animation:'fadeUp 0.4s '+(delay||0)+'s both ease-out'}},
     React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:8}},
       React.createElement('span',{style:{fontSize:16}},icon),
       React.createElement('span',{style:{fontSize:13,fontWeight:700,color:'#e8d5a8',fontFamily:"'Noto Serif KR',serif"}},name)
