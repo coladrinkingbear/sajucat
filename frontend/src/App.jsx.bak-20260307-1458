@@ -2284,7 +2284,7 @@ export default function App(){
       {/* 수집된 정보 표시 */}
       {dialogStep>=1&&(
         <div style={{padding:'8px 16px',display:'flex',flexWrap:'wrap',gap:5,borderBottom:'1px solid rgba(180,140,80,0.06)'}}>
-          {form.gender&&dialogStep>=1&&<span style={{fontSize:10,padding:'3px 10px',background:'rgba(180,140,80,0.08)',border:'1px solid rgba(180,140,80,0.15)',borderRadius:12,color:'#b48c50'}}>{form.gender==='남'?'陽 남':'陰 여'}</span>}
+          {form.gender&&dialogStep>=1&&<span style={{fontSize:10,padding:'3px 10px',background:'rgba(180,140,80,0.08)',border:'1px solid rgba(180,140,80,0.15)',borderRadius:12,color:'#b48c50'}}>{form.gender==='남'?'👨 남':'👩 여'}</span>}
           {dialogStep>=2&&<span style={{fontSize:10,padding:'3px 10px',background:'rgba(180,140,80,0.08)',border:'1px solid rgba(180,140,80,0.15)',borderRadius:12,color:'#b48c50'}}>{form.year}년</span>}
           {dialogStep>=3&&<span style={{fontSize:10,padding:'3px 10px',background:'rgba(180,140,80,0.08)',border:'1px solid rgba(180,140,80,0.15)',borderRadius:12,color:'#b48c50'}}>{form.month}월</span>}
           {dialogStep>=4&&<span style={{fontSize:10,padding:'3px 10px',background:'rgba(180,140,80,0.08)',border:'1px solid rgba(180,140,80,0.15)',borderRadius:12,color:'#b48c50'}}>{form.day}일</span>}
@@ -2313,21 +2313,15 @@ export default function App(){
 
             {/* Step 0: 성별 선택 */}
             {dialogStep===0&&(
-              <div style={{display:'flex',gap:10,justifyContent:'center',padding:'8px 0'}}>
-                {[{g:'남',label:'陽',sub:'남성',icon:'sun'},{g:'여',label:'陰',sub:'여성',icon:'moon'}].map(function(item){return(
-                  <button key={item.g} onClick={function(){
-                    setForm(function(f){return Object.assign({},f,{gender:item.g});});
-                    dialogAnswer(item.g, item.sub, (item.g==='남'?'남자':'여자')+'로군.\n몇 년도에 태어났는가?');
-                  }} style={{flex:1,maxWidth:150,padding:'18px 12px',borderRadius:14,border:'1px solid rgba(180,140,80,0.15)',background:'rgba(180,140,80,0.03)',color:'#e8d5a8',cursor:'pointer',transition:'all 0.2s',display:'flex',flexDirection:'column',alignItems:'center',gap:8}}
-                  onMouseEnter={function(e){e.currentTarget.style.background='rgba(180,140,80,0.12)';e.currentTarget.style.borderColor='rgba(180,140,80,0.4)';e.currentTarget.style.transform='translateY(-2px)';}}
-                  onMouseLeave={function(e){e.currentTarget.style.background='rgba(180,140,80,0.03)';e.currentTarget.style.borderColor='rgba(180,140,80,0.15)';e.currentTarget.style.transform='none';}}
-                  >{item.icon==='sun'
-                    ?<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#c0b8a0" strokeWidth="1.5"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/></svg>
-                    :<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#c0b8a0" strokeWidth="1.5"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-                  }
-                  <div style={{fontSize:20,fontWeight:800,fontFamily:"'Noto Serif KR',serif",letterSpacing:2}}>{item.label}</div>
-                  <div style={{fontSize:11,color:'#8a7e6d'}}>{item.sub}</div>
-                  </button>
+              <div style={{display:'flex',gap:8,justifyContent:'center',padding:'8px 0'}}>
+                {['남','여'].map(function(g){return(
+                  <button key={g} onClick={function(){
+                    setForm(function(f){return Object.assign({},f,{gender:g});});
+                    dialogAnswer(g, g==='남'?'👨 남자':'👩 여자', (g==='남'?'남자':'여자')+'로군.\n몇 년도에 태어났는가?');
+                  }} style={{flex:1,maxWidth:140,padding:'14px 12px',borderRadius:12,border:'1px solid rgba(180,140,80,0.2)',background:'rgba(180,140,80,0.06)',color:'#e8d5a8',fontSize:16,fontWeight:700,cursor:'pointer',transition:'all 0.2s',display:'flex',alignItems:'center',justifyContent:'center',gap:6}}
+                  onMouseEnter={function(e){e.currentTarget.style.background='rgba(180,140,80,0.15)';e.currentTarget.style.borderColor='rgba(180,140,80,0.4)';e.currentTarget.style.transform='translateY(-2px)';}}
+                  onMouseLeave={function(e){e.currentTarget.style.background='rgba(180,140,80,0.06)';e.currentTarget.style.borderColor='rgba(180,140,80,0.2)';e.currentTarget.style.transform='none';}}
+                  >{g==='남'?'👨 남자':'👩 여자'}</button>
                 );})}
               </div>
             )}
@@ -2366,49 +2360,32 @@ export default function App(){
               </div>
             )}
 
-            {/* Step 4: 시간 — 스크롤 피커 */}
+            {/* Step 4: 시간 */}
             {dialogStep===4&&(
-              <div style={{background:'rgba(180,140,80,0.04)',border:'1px solid rgba(180,140,80,0.1)',borderRadius:12,padding:12}}>
-                <Picker items={HOURS.filter(function(h){return h.v>=0;})} value={form.hour>=0?form.hour:12} onChange={function(v){setForm(function(f){return Object.assign({},f,{hour:v});});}}/>
-                <div style={{display:'flex',gap:8,marginTop:12}}>
-                  <button onClick={function(){
-                    var disp=form.hour>=0?form.hour+'시('+시진명D(form.hour)+')':'12시(午)';
-                    var h=form.hour>=0?form.hour:12;
-                    setForm(function(f){return Object.assign({},f,{hour:h});});
-                    dialogAnswer(h, h+'시('+시진명D(h)+')', h+'시에 태어났군.\n마지막으로 태어난 지역을 일러주게.');
-                  }} style={{flex:1,background:'linear-gradient(135deg,#b48c50,#8a6830)',border:'none',borderRadius:8,padding:'11px',fontSize:14,fontWeight:700,color:'#14110c',cursor:'pointer'}}>선택</button>
-                  <button onClick={function(){
-                    setForm(function(f){return Object.assign({},f,{hour:-1});});
-                    dialogAnswer(-1, '시간 모름', '시간을 모르는군, 괜찮네.\n마지막으로 태어난 지역을 일러주게.');
-                  }} style={{flex:0,padding:'11px 16px',background:'transparent',border:'1px solid rgba(180,140,80,0.15)',borderRadius:8,fontSize:12,color:'#8a7e6d',cursor:'pointer',whiteSpace:'nowrap'}}>모름</button>
+              <div>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:4,padding:'4px 0'}}>
+                  {HOURS.map(function(h){return(
+                    <button key={h.v} onClick={function(){
+                      setForm(function(f){return Object.assign({},f,{hour:h.v});});
+                      var disp=h.v>=0?h.v+'시('+시진명D(h.v)+')':'시간 모름';
+                      var resp=h.v>=0?h.v+'시에 태어났군.\n마지막으로 태어난 지역을 일러주게.\n\n🐱 참고로 고양이 사주명당은 진태양시를 적용하네. 서울 기준으로 약 32분이 보정되기 때문에 네이버 만세력과 시주가 다를 수 있네. 전문 사주 사이트들도 같은 방식이네.\n다른 사이트와 똑같이 보고 싶으면 \"보정없음\"을 선택하면 되네.':'시간을 모르는군, 괜찮네.\n마지막으로 태어난 지역을 일러주게.';
+                      dialogAnswer(h.v, disp, resp);
+                    }} style={{padding:'8px 2px',borderRadius:6,border:'1px solid rgba(180,140,80,0.08)',background:'rgba(180,140,80,0.03)',color:'#8a7e6d',fontSize:11,cursor:'pointer',transition:'all 0.15s',textAlign:'center'}}
+                    onMouseEnter={function(e){e.currentTarget.style.background='rgba(180,140,80,0.12)';e.currentTarget.style.color='#e8d5a8';}}
+                    onMouseLeave={function(e){e.currentTarget.style.background='rgba(180,140,80,0.03)';e.currentTarget.style.color='#8a7e6d';}}
+                    ><div style={{fontSize:13,fontWeight:600}}>{h.v>=0?h.v+'시':'모름'}</div>{h.v>=0&&<div style={{fontSize:8,marginTop:1}}>{시진명D(h.v)}시</div>}</button>
+                  );})}
                 </div>
               </div>
             )}
 
-            {/* Step 5: 지역 — 보정 도구 */}
+            {/* Step 5: 지역 */}
             {dialogStep===5&&(
-              <div style={{background:'rgba(180,140,80,0.03)',border:'1px solid rgba(180,140,80,0.08)',borderRadius:12,padding:'12px'}}>
-                <div style={{fontSize:10,color:'#6a6050',textAlign:'center',marginBottom:10}}>진태양시 보정을 위한 출생 지역</div>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:5}}>
-                  {CITIES.filter(function(c){return c.v!==135;}).map(function(c){
+              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:5,padding:'4px 0'}}>
+                {CITIES.map(function(c){return(
+                  <button key={c.v} onClick={function(){
+                    setForm(function(f){return Object.assign({},f,{city:c.v});});
                     var cityName=c.l.split(' ')[0];
-                    var correction=c.l.match(/\(([^)]+)\)/);
-                    var corr=correction?correction[1]:'';
-                    var sel=form.city===c.v;
-                    return(
-                      <button key={c.v} onClick={function(){setForm(function(f){return Object.assign({},f,{city:c.v});});}} style={{padding:'10px 4px',borderRadius:8,border:sel?'1px solid rgba(180,140,80,0.5)':'1px solid rgba(180,140,80,0.06)',background:sel?'rgba(180,140,80,0.12)':'transparent',cursor:'pointer',transition:'all 0.15s',textAlign:'center'}}
-                      onMouseEnter={function(e){if(!sel){e.currentTarget.style.background='rgba(180,140,80,0.08)';e.currentTarget.style.borderColor='rgba(180,140,80,0.2)';}}}
-                      onMouseLeave={function(e){if(!sel){e.currentTarget.style.background='transparent';e.currentTarget.style.borderColor='rgba(180,140,80,0.06)';}}}
-                      >
-                        <div style={{fontSize:13,fontWeight:sel?700:500,color:sel?'#e8d5a8':'#a09080'}}>{cityName}</div>
-                        <div style={{fontSize:9,color:sel?'#b48c50':'#5a5040',marginTop:2}}>{corr}</div>
-                      </button>
-                    );
-                  })}
-                </div>
-                <div style={{display:'flex',gap:8,marginTop:10}}>
-                  <button onClick={function(){
-                    var cityName=(CITIES.find(function(c){return c.v===form.city;})||{l:'서울'}).l.split(' ')[0];
                     var finalMsgs=dialogMsgs.concat([
                       {who:'user',text:cityName},
                       {who:'cat',text:cityName+'.\n좋네, 다 모았네. 사주를 풀어보겠네...'}
@@ -2416,18 +2393,11 @@ export default function App(){
                     setDialogMsgs(finalMsgs);
                     setDialogReady(false);
                     setDialogStep(6);
-                  }} style={{flex:1,background:'linear-gradient(135deg,#b48c50,#8a6830)',border:'none',borderRadius:8,padding:'11px',fontSize:14,fontWeight:700,color:'#14110c',cursor:'pointer'}}>선택</button>
-                  <button onClick={function(){
-                    setForm(function(f){return Object.assign({},f,{city:135});});
-                    var finalMsgs=dialogMsgs.concat([
-                      {who:'user',text:'보정없음'},
-                      {who:'cat',text:'보정 없이 진행하겠네.\n좋네, 다 모았네. 사주를 풀어보겠네...'}
-                    ]);
-                    setDialogMsgs(finalMsgs);
-                    setDialogReady(false);
-                    setDialogStep(6);
-                  }} style={{flex:0,padding:'11px 14px',background:'transparent',border:'1px solid rgba(180,140,80,0.12)',borderRadius:8,fontSize:11,color:'#6a6050',cursor:'pointer',whiteSpace:'nowrap'}}>보정없음</button>
-                </div>
+                  }} style={{padding:'8px 4px',borderRadius:8,border:'1px solid rgba(180,140,80,0.1)',background:'rgba(180,140,80,0.04)',color:'#a09080',fontSize:11,cursor:'pointer',transition:'all 0.15s',textAlign:'center'}}
+                  onMouseEnter={function(e){e.currentTarget.style.background='rgba(180,140,80,0.14)';e.currentTarget.style.color='#e8d5a8';e.currentTarget.style.borderColor='rgba(180,140,80,0.3)';}}
+                  onMouseLeave={function(e){e.currentTarget.style.background='rgba(180,140,80,0.04)';e.currentTarget.style.color='#a09080';e.currentTarget.style.borderColor='rgba(180,140,80,0.1)';}}
+                  >{c.l.split(' ')[0]}</button>
+                );})}
               </div>
             )}
 
