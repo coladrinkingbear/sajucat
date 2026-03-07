@@ -840,6 +840,7 @@ function CalligraphyManseryeok({saju,일간,name,격국,강약,skipAnim}){
   });
   useEffect(()=>{
     if(!containerRef.current)return;
+    if(skipAnim){setRevealed(true);return;}
     let alive=true;
     const writers=[];
     animSeq.forEach(item=>{
@@ -853,14 +854,13 @@ function CalligraphyManseryeok({saju,일간,name,격국,강약,skipAnim}){
           width:58,height:58,padding:2,
           strokeColor:c?c.fg:'#c8a85a',
           radicalColor:c?c.fg:'#b48c50',
-          strokeAnimationSpeed:skipAnim?0:2,
-          delayBetweenStrokes:skipAnim?0:50,
+          strokeAnimationSpeed:2,
+          delayBetweenStrokes:50,
           showOutline:false,
-          showCharacter:skipAnim?true:false
+          showCharacter:false
         }));
       }catch(e){console.warn('HanziWriter error:',item.ch,e);}
     });
-    if(skipAnim){setRevealed(true);return;}
     function run(i){
       if(!alive||i>=writers.length){if(alive)setRevealed(true);return;}
       writers[i].animateCharacter({onComplete:()=>run(i+1)});
@@ -988,8 +988,6 @@ function OhengRadar({카운트,용신,전무,과다}){
   // 데이터 폴리곤 — 최대값 기준 정규화
   var maxCnt=Math.max.apply(null,Object.values(카운트));
   if(maxCnt===0)maxCnt=1;
-  var nonZeroVals=Object.values(카운트).filter(function(v){return v>=0.05;});
-  var minCnt=nonZeroVals.length>0?Math.min.apply(null,nonZeroVals):1;
   var dataPts=els.map(function(oh,i){
     var val=카운트[oh]||0;
     var ratio=val===0?0:Math.max(0.15,val/maxCnt); // 전무는 중심, 나머지는 최소15%
@@ -1041,24 +1039,23 @@ function OhengRadar({카운트,용신,전무,과다}){
     React.createElement('div',{style:{marginTop:16,padding:'0 8px'}},
       els.map(function(oh,i){
         var cnt=카운트[oh]||0;
+        var pct=total>0?Math.round(cnt/total*100):0;
         var c=OH_COLOR_MAP[oh];if(!c)return null;
         var isYongsin=용신===oh;
-        var isZero=cnt<0.05;
-        // 최소값=1 기준 상대값
-        var relVal=minCnt>0&&!isZero?Math.round(cnt/minCnt*10)/10:0;
-        var barPct=maxCnt>0?Math.round(cnt/maxCnt*100):0;
+        var isZero=cnt===0;
         return React.createElement('div',{key:'bar'+oh,style:{display:'flex',alignItems:'center',gap:8,marginBottom:6,animation:'fadeUp 0.3s '+(0.1*i)+'s both ease-out'}},
           // 한자 라벨
           React.createElement('div',{style:{width:22,fontSize:14,fontWeight:700,color:isZero?'#3a3530':c.fg,fontFamily:'serif',textAlign:'center',opacity:isZero?0.4:1}},c.label),
-          // 한글
+          // 한글+과다/전무 태그
           React.createElement('div',{style:{width:24,fontSize:9,color:isZero?'#3a3530':'#5a5040'}},oh),
           // 프로그레스 바
           React.createElement('div',{style:{flex:1,height:8,background:'rgba(180,140,80,0.06)',borderRadius:4,overflow:'hidden',position:'relative'}},
-            React.createElement('div',{style:{width:barPct+'%',height:'100%',background:isZero?'transparent':'linear-gradient(90deg,'+c.fg+'88,'+c.fg+')',borderRadius:4,transition:'width 0.8s ease',minWidth:isZero?0:2}}),
+            React.createElement('div',{style:{width:pct+'%',height:'100%',background:isZero?'transparent':'linear-gradient(90deg,'+c.fg+'88,'+c.fg+')',borderRadius:4,transition:'width 0.8s ease',minWidth:isZero?0:2}}),
             isYongsin&&React.createElement('div',{style:{position:'absolute',top:-1,left:0,right:0,bottom:-1,border:'1px solid #ffd70044',borderRadius:4}})
           ),
-          // 상대값 (최소=1)
-          React.createElement('div',{style:{width:28,textAlign:'right',fontSize:11,fontWeight:700,color:isZero?'#3a3530':c.fg,opacity:isZero?0.4:1}},isZero?'-':relVal)
+          // 수치
+          React.createElement('div',{style:{width:32,textAlign:'right',fontSize:10,fontWeight:600,color:isZero?'#3a3530':c.fg,opacity:isZero?0.4:1}},pct+'%'),
+          React.createElement('div',{style:{width:14,textAlign:'right',fontSize:8,color:'#4a4030'}},Math.round(cnt*10)/10)
         );
       })
     ),
