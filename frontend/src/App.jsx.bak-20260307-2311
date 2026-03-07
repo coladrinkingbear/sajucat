@@ -502,15 +502,6 @@ function CatBubbleResult({text}){
   );
 }
 
-// ── 섹션 구분선 ──
-function SectionDivider(){
-  return React.createElement('div',{style:{display:'flex',alignItems:'center',gap:12,margin:'16px 0'}},
-    React.createElement('div',{style:{flex:1,height:1,background:'linear-gradient(90deg,transparent,rgba(180,140,80,0.12),transparent)'}}),
-    React.createElement('div',{style:{width:3,height:3,borderRadius:2,background:'rgba(180,140,80,0.2)'}}),
-    React.createElement('div',{style:{flex:1,height:1,background:'linear-gradient(90deg,transparent,rgba(180,140,80,0.12),transparent)'}})
-  );
-}
-
 function EduBlock({title,children,defaultOpen}){
   var s=useState(defaultOpen||false);var open=s[0];var setOpen=s[1];
   return React.createElement('div',{style:{margin:'12px 0',background:'rgba(180,140,80,0.03)',border:'1px solid rgba(180,140,80,0.08)',borderRadius:10,overflow:'hidden',animation:'fadeUp 0.4s ease both'}},
@@ -2745,12 +2736,11 @@ export default function App(){
               <EduText text={EDU.오행차이}/>
               {form.city!==135&&(<div style={{marginTop:8}}><EduText text={EDU.진태양시}/></div>)}
             </EduBlock>
-            <SectionDivider/>
+            <div style={{height:16}}/>
             {/* 핵심 뱃지: 강약/격국/용신 */}
             <CoreBadges 강약={result.강약등급||result.강약} 격국={result.격국} 용신={result.용신}/>
             {/* 강약·격국·용신 설명 */}
             <EduBlock title="강약·격국·용신이란?"><EduText text={EDU.강약격국}/></EduBlock>
-            <SectionDivider/>
             {/* 일주 킬러멘트 카드 1장만 */}
             {(function(){
               var ilju=result.일간+result.일지;var ij=ILJU_NARRATIVE[ilju];
@@ -2764,11 +2754,9 @@ export default function App(){
               );
             })()}
             {/* 신살 뱃지 */}
-            <SectionDivider/>
             <SinsalBadges 신살={result.신살}/>
             {/* 신살 설명 */}
             <EduBlock title="신살(神殺)이란?"><EduText text={EDU.신살설명}/></EduBlock>
-            <SectionDivider/>
             {/* 대운 타임라인 */}
             <DaeunTimelineSimple 대운={result.대운} birthYear={result.birthYear}/>
             {/* 특이 사항 (간략하게) */}
@@ -2818,12 +2806,10 @@ export default function App(){
               );
             })()}
             <CatBubbleResult text={generateCatComment(result,'성격')}/>
-            <SectionDivider/>
             <SocialCardNew name="성격 원만성" icon="🧠" 점수={result.성격.점수} 특징={result.성격.특징} delay={0.1}/>
-            <SectionDivider/>
+            <div style={{height:4}}/>
             <SocialCardNew name="체력과 건강" icon="💪" 점수={result.건강.점수} 특징={result.건강.경고.length>0?result.건강.경고:['전반적으로 양호한 건강운이야']} delay={0.2}/>
             <CatBubbleResult text={generateCatComment(result,'건강')}/>
-            <SectionDivider/>
             {/* 행운 가이드 */}
             {(function(){
               var yInfo={木:{색:'녹색·청색',방위:'동쪽',숫자:'3, 8',계절:'봄',음식:'신맛 (식초, 귤, 매실)'},火:{색:'빨간색·보라색',방위:'남쪽',숫자:'2, 7',계절:'여름',음식:'쓴맛 (커피, 녹차)'},土:{색:'노란색·갈색',방위:'중앙',숫자:'5, 10',계절:'환절기',음식:'단맛 (꿀, 고구마)'},金:{색:'흰색·은색',방위:'서쪽',숫자:'4, 9',계절:'가을',음식:'매운맛 (고추, 생강)'},水:{색:'검은색·남색',방위:'북쪽',숫자:'1, 6',계절:'겨울',음식:'짠맛 (해산물, 간장)'}};
@@ -2893,21 +2879,16 @@ export default function App(){
                 </div>
               </div>
             )}
-            <SectionDivider/>
             <CatBubbleResult text="이제 가족 인연을 한 명씩 보겠네."/>
             <RelCardNew name="아버지" icon="👨‍👦" 인연={result.가족.아버지.인연} 복덕={result.가족.아버지.복덕} delay={0.1}/>
             <CatBubbleResult text={generateCatComment(result,'아버지')}/>
-            <SectionDivider/>
             <RelCardNew name="어머니" icon="👩‍👦" 인연={result.가족.어머니.인연} 복덕={result.가족.어머니.복덕} delay={0.2}/>
             <CatBubbleResult text={generateCatComment(result,'어머니')}/>
-            <SectionDivider/>
             <CatBubbleResult text="다음은 배우자 인연이네. 일지의 상태가 핵심이네."/>
             <RelCardNew name="배우자" icon="💑" 인연={result.가족.배우자.인연} 복덕={result.가족.배우자.복덕} delay={0.3}/>
             <CatBubbleResult text={generateCatComment(result,'배우자')}/>
-            <SectionDivider/>
             <RelCardNew name="자식" icon="👶" 인연={result.가족.자식.인연} 복덕={result.가족.자식.복덕} delay={0.4}/>
             <CatBubbleResult text={generateCatComment(result,'자식')}/>
-            <SectionDivider/>
             <EduBlock title="가족 인연의 판단 기준"><EduText text={EDU.가족}/></EduBlock>
           </div>
         )}
@@ -2918,16 +2899,14 @@ export default function App(){
             <SocialCardNew name="재물과 사업" icon="💰" 점수={result.사회.재물.점수} 특징={result.사회.재물.특징} delay={0.1}/>
             <CatBubbleResult text={generateCatComment(result,'재물')}/>
             <EduBlock title="재물운의 판단 기준"><EduText text={EDU.재물}/></EduBlock>
-            <SectionDivider/>
             <SocialCardNew name="직장과 명예" icon="🏢" 점수={result.사회.직장.점수} 특징={result.사회.직장.특징} delay={0.2}/>
             <CatBubbleResult text={generateCatComment(result,'직장')}/>
             <EduBlock title="직장·명예운의 판단 기준"><EduText text={EDU.직장}/></EduBlock>
-            <SectionDivider/>
             <SocialCardNew name="인격과 학문" icon="📚" 점수={result.사회.학문.점수} 특징={result.사회.학문.특징} delay={0.3}/>
             <CatBubbleResult text={generateCatComment(result,'학문')}/>
             <EduBlock title="학문운의 판단 기준"><EduText text={EDU.학문}/></EduBlock>
             {/* 운세 영역 */}
-            <SectionDivider/>
+            <div style={{height:8}}/>
             <CatBubbleResult text="자, 이제 시간의 흐름을 보겠네. 이게 핵심이네."/>
             {/* 오늘의 운세 */}
             {(function(){
