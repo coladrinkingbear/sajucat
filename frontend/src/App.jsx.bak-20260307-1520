@@ -462,7 +462,7 @@ var EDU={
 학문:'학문운은 **인성**(정인·편인)으로 보네. **정인**은 정통 학문·자격증·전문직에 유리하고, **편인**은 독특한 사고방식으로 특수 분야에 깊이 파고드는 기운이네. 인성이 사주에 있으면 배움에 대한 욕구가 강하고, 너무 많으면 **도식(倒食)**이라 해서 생각만 많고 행동이 느려질 수 있으니 균형이 중요하네.',
 진태양시:'고양이 사주명당은 **진태양시(眞太陽時)** 보정을 적용하네. 한국 표준시는 동경 135도(일본 아카시) 기준인데, 서울은 동경 127도라서 실제 태양 위치가 약 32분 느리지. **시주(時柱)**는 태양의 실제 위치가 기준이라 이 보정이 중요하네. 출생지에서 \"보정없음\"을 선택하면 보정 없는 결과가 나오네.',
 오행차이:'오행 비율이 다른 사이트와 다를 수 있는 이유가 있네. 첫째, **진태양시 보정**으로 시주가 달라질 수 있네. 둘째, **지장간(支藏干)** 반영이네 — 각 지지 안에 숨은 천간이 2~3개 들어있어서 그 기운까지 비율에 포함하네. 셋째, **왕상휴수사(旺相休囚死)** 보정이네. 같은 오행이라도 태어난 계절에 따라 세기가 다른데, 예를 들어 가을에 태어나면 금(金)은 \"왕\"하여 세고 목(木)은 \"사\"하여 약하네. 넷째, **목생화(木生火)·화생토(火生土)** 같은 상생 관계가 반영되어 사주에 없는 오행도 미약하나마 기운이 존재할 수 있네. 이런 전문적 계산법을 적용하기에 단순 글자 세기와는 차이가 있을 수 있네.',
-강약격국:'사주를 볼 때 알아야 할 세 가지 핵심이네.\n**강약(强弱)**은 일간(나 자신)의 에너지가 강한지 약한지이네. 태어난 계절에 힘을 얻었으면 신강, 못 얻었으면 신약이지. 타고난 체력과 추진력의 크기라고 보면 되네.\n**격국(格局)**은 사주의 구조, 즉 어떤 타입의 인생인가를 보여주네. **비견격**은 독립·경쟁형, **겁재격**은 승부사·도전형, **식신격**은 재능·표현형, **상관격**은 창의·반골형, **정재격**은 안정·저축형, **편재격**은 사업·투자형, **정관격**은 조직·출세형, **편관격**은 개혁·돌파형, **정인격**은 학문·전문형, **편인격**은 독창·탐구형이네.\n**용신(用神)**은 사주의 불균형을 보완해주는 오행이네. 일간의 비타민 같은 존재라서 이 오행의 기운이 오는 시기에 운이 좋아지네.',
+강약격국:'사주를 볼 때 알아야 할 세 가지 핵심이네.\n**강약(强弱)**은 일간(나 자신)의 에너지가 강한지 약한지를 뜻하네. 태어난 계절에 힘을 얻었으면 신강, 못 얻었으면 신약이라 하지. 쉽게 말해 타고난 체력과 추진력의 크기이네.\n**격국(格局)**은 사주의 구조, 즉 어떤 타입의 인생인가를 보여주네. 식신격이면 재능형, 정관격이면 조직형, 편재격이면 사업형 같은 식이지.\n**용신(用神)**은 사주의 불균형을 보완해주는 오행이네. 일간의 비타민 같은 존재라서 이 오행의 기운이 오는 시기에 운이 좋아지네.',
 신살설명:'**신살(神殺)**은 사주에 나타나는 특수한 기운이네. **✦ 길신**은 좋은 기운으로, 천을귀인이면 위기 때 도움이 오고 문창귀인이면 시험·학문에 유리하네. **✧ 흉신**은 주의할 기운으로, 양인이면 성격이 강렬해서 화를 부를 수 있고 겁살이면 뜻밖의 손실을 뜻하네. **○ 중립** 신살은 쓰기에 따라 달라지는데, 역마면 이동·변화가 많고 화개면 학문·종교·예술에 끌리는 기운이네.\n위치도 중요한데, **연지**는 조상·유년기, **월지**는 부모·청년기, **일지**는 나 자신·배우자, **시지**는 자녀·노년기에 해당하네.'
 };
 
@@ -589,105 +589,6 @@ function DaeunTimelineSimple({대운,birthYear}){
       })
     )
   );
-}
-
-// ── 십성 분포 차트 ──
-function SipseongChart({십성}){
-  if(!십성)return null;
-  var pairs=[
-    {name:'비견',short:'비',color:'#8a8a6a'},{name:'겁재',short:'겁',color:'#8a8a6a'},
-    {name:'식신',short:'식',color:'#6a9a6a'},{name:'상관',short:'상',color:'#6a9a6a'},
-    {name:'정재',short:'정재',color:'#c8a050'},{name:'편재',short:'편재',color:'#c8a050'},
-    {name:'정관',short:'정관',color:'#6a7ab0'},{name:'편관',short:'편관',color:'#6a7ab0'},
-    {name:'정인',short:'정인',color:'#a06a9a'},{name:'편인',short:'편인',color:'#a06a9a'}
-  ];
-  var max=Math.max.apply(null,pairs.map(function(p){return 십성[p.name]||0;}))||1;
-  return React.createElement('div',{style:{background:'rgba(180,140,80,0.03)',border:'1px solid rgba(180,140,80,0.08)',borderRadius:12,padding:'14px',marginBottom:12}},
-    React.createElement('div',{style:{fontSize:11,fontWeight:700,color:'#8a7e6d',marginBottom:10,letterSpacing:1,textAlign:'center'}},'십성(十星) 분포'),
-    React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:4}},
-      pairs.map(function(p){
-        var cnt=십성[p.name]||0;
-        var pct=cnt>0?Math.max(12,(cnt/max)*100):0;
-        return React.createElement('div',{key:p.name,style:{display:'flex',alignItems:'center',gap:6}},
-          React.createElement('div',{style:{width:32,fontSize:10,color:cnt>0?p.color:'#3a3530',fontWeight:cnt>0?600:400,textAlign:'right'}},p.short),
-          React.createElement('div',{style:{flex:1,height:6,background:'rgba(180,140,80,0.06)',borderRadius:3,overflow:'hidden'}},
-            React.createElement('div',{style:{width:pct+'%',height:'100%',background:cnt>0?p.color:'transparent',borderRadius:3,transition:'width 0.6s ease'}})
-          ),
-          React.createElement('div',{style:{width:14,fontSize:10,color:cnt>0?p.color:'#3a3530',fontWeight:600,textAlign:'right'}},cnt)
-        );
-      })
-    ),
-    React.createElement('div',{style:{marginTop:8,display:'flex',gap:8,justifyContent:'center',flexWrap:'wrap'}},
-      [{label:'비겁(나)',color:'#8a8a6a'},{label:'식상(재능)',color:'#6a9a6a'},{label:'재성(돈)',color:'#c8a050'},{label:'관성(직장)',color:'#6a7ab0'},{label:'인성(학문)',color:'#a06a9a'}].map(function(l){
-        return React.createElement('div',{key:l.label,style:{fontSize:8,color:l.color,display:'flex',alignItems:'center',gap:2}},
-          React.createElement('div',{style:{width:6,height:6,borderRadius:3,background:l.color}}),
-          l.label
-        );
-      })
-    )
-  );
-}
-
-// ── 고양이 한줄 코멘트 생성 ──
-function generateCatComment(result,category){
-  var ss=result.십성,강약=result.강약,용신=result.용신;
-  if(category==='성격'){
-    if(ss.비견>=2&&ss.겁재>=1)return '자네는 비견·겁재가 강하니 자기 주장이 확실하고 경쟁심이 넘치네. 다만 남의 말을 듣는 귀도 키워야 하네.';
-    if(ss.편인>=2)return '편인이 강해서 독특한 사고방식을 가졌네. 남들이 가지 않는 길에서 빛을 발할 타입이네.';
-    if(ss.정관>=1&&ss.정인>=1)return '관인상생(官印相生)의 구조라 체계적이고 논리적인 성격이네. 조직 생활에 강하네.';
-    if(ss.상관>=2)return '상관이 강해서 자유로운 영혼이네. 규율보다 창의성으로 승부하는 타입이지.';
-    if(ss.식신>=1&&ss.정재>=1)return '식신생재(食神生財)의 구조라 재능을 돈으로 연결하는 능력이 있네. 실리적인 성격이네.';
-    return 강약==='신강'?'기운이 넘치는 사주라 자신감이 강하네. 이 에너지를 잘 쓰면 큰 성취가 가능하네.':'기운이 약한 편이라 환경에 민감하지만, 그만큼 눈치와 공감 능력이 뛰어나네.';
-  }
-  if(category==='건강'){
-    var 오행=result.오행;
-    if(오행.전무&&오행.전무.length>0)return 오행.전무.join('·')+' 오행이 부족하니 해당 장기를 특히 살펴야 하네. 용신 '+용신+'을 보강하면 건강에도 도움이 되네.';
-    return 강약==='신강'?'넘치는 기운 탓에 과로하기 쉬우니, 일부러 쉬는 시간을 만들어야 하네.':'기운이 약하니 무리하지 말고 규칙적인 생활로 에너지를 관리하게.';
-  }
-  if(category==='아버지'){
-    var 재=ss.편재+ss.정재;
-    if(재===0)return '재성이 사주에 없어서 아버지와 일찍 떨어지거나 교류가 적을 수 있네.';
-    if(재>=2)return '재성이 풍부해서 아버지의 도움을 받을 복이 있네.';
-    return '아버지 인연이 보통 정도이네.';
-  }
-  if(category==='어머니'){
-    var 인=ss.편인+ss.정인;
-    if(인===0)return '인성이 없어서 어머니의 돌봄이 부족했을 수 있네. 자수성가형이네.';
-    if(인>=2)return '인성이 풍부해서 어머니의 사랑을 많이 받은 명식이네.';
-    return '어머니 인연이 보통 정도이네.';
-  }
-  if(category==='배우자'){
-    var 배=result.saju.gender==='남'?(ss.정재+ss.편재):(ss.정관+ss.편관);
-    if(배===0)return '배우자 해당 십성이 없으니 만혼이거나 인연이 늦을 수 있네. 대운에서 올 때를 기다리게.';
-    if(배>=2)return '배우자 십성이 강하니 이성 인연이 풍부하네. 다만 선택의 갈등이 있을 수 있네.';
-    return '배우자 인연이 적당하네. 일지의 상태가 핵심이네.';
-  }
-  if(category==='자식'){
-    var 식=ss.식신+ss.상관;
-    if(식===0)return '식상이 없으니 자녀 인연이 약하거나 늦을 수 있네.';
-    if(ss.편인>=2&&식>=1)return '편인이 식신을 극하는 도식(倒食) 구조가 있으니 자녀 양육에 각별한 주의가 필요하네.';
-    return '식상이 있으니 자녀 인연은 있네.';
-  }
-  if(category==='재물'){
-    if(ss.정재+ss.편재===0)return '재성이 사주에 없으니 돈보다 명예나 학문을 추구하는 성정이네. 대운에서 재성이 올 때 기회를 잡아야 하네.';
-    if(ss.겁재>=2&&ss.편재>=1)return '편재가 있으나 겁재가 극하니 투자 손실이나 보증 사고를 특히 조심해야 하네.';
-    if(강약==='신강'&&ss.편재>=1)return '일간이 강하고 편재가 있으니 큰 재물을 다룰 그릇이 되네. 사업이나 투자에서 성과를 낼 수 있네.';
-    if(강약==='신약'&&(ss.정재+ss.편재)>=2)return '재다신약(財多身弱)의 기운이 있네. 돈은 보이는데 잡기 어려우니, 용신이 오는 대운에서 승부해야 하네.';
-    return '재물운이 보통이네. 용신 '+용신+'의 시기에 재물운이 올라가네.';
-  }
-  if(category==='직장'){
-    if(ss.상관>=1&&ss.정관>=1)return '상관견관(傷官見官)의 구조라 상사와 충돌하기 쉽네. 자유업이나 전문직이 맞을 수 있네.';
-    if(ss.정관>=1)return '정관이 있으니 조직 안에서 인정받고 승진하는 흐름이 있네.';
-    if(ss.편관>=2)return '편관이 강해 외부 압박이 세지만, 이를 극복하면 큰 권력을 얻을 수 있네.';
-    return '관성이 약하니 조직보다 자율적인 환경이 잘 맞을 수 있네.';
-  }
-  if(category==='학문'){
-    if(ss.정인>=1&&ss.편인>=1)return '정인과 편인이 모두 있으니 정통 학문과 비정통 분야 모두 소화할 수 있는 넓은 지식의 소유자이네.';
-    if(ss.편인>=2)return '편인이 강해 독창적인 연구나 특수 분야에서 두각을 나타낼 명식이네.';
-    if(ss.정인>=1)return '정인이 있으니 시험이나 자격증에 강하고, 학문적 성취가 있을 명식이네.';
-    return '인성이 약하니 독학이나 현장 경험으로 실력을 쌓는 타입이네.';
-  }
-  return '';
 }
 
 // ── 바리만신 서사 아코디언 카드 ──
@@ -2762,14 +2663,8 @@ export default function App(){
         {/* Part 1: 개인성향 */}
         {resultTab===1&&(
           <div style={{display:'flex',flexDirection:'column',gap:12,animation:'fadeUp 0.5s ease'}}>
-            {/* 십성 분포 차트 */}
-            <SipseongChart 십성={result.십성}/>
-            {/* 성격 */}
             <SocialCardNew name="성격 원만성" icon="🧠" 점수={result.성격.점수} 특징={result.성격.특징} delay={0.1}/>
-            <CatBubbleResult text={generateCatComment(result,'성격')}/>
-            {/* 건강 */}
             <SocialCardNew name="체력과 건강" icon="💪" 점수={result.건강.점수} 특징={result.건강.경고.length>0?result.건강.경고:['전반적으로 양호한 건강운이야']} delay={0.2}/>
-            <CatBubbleResult text={generateCatComment(result,'건강')}/>
             <EduBlock title="신강·신약과 용신이란?"><EduText text={EDU.강약}/></EduBlock>
           </div>
         )}
@@ -2778,13 +2673,9 @@ export default function App(){
         {resultTab===2&&(
           <div style={{display:'flex',flexDirection:'column',gap:10,animation:'fadeUp 0.5s ease'}}>
             <RelCardNew name="아버지" icon="👨‍👦" 인연={result.가족.아버지.인연} 복덕={result.가족.아버지.복덕} delay={0.1}/>
-            <CatBubbleResult text={generateCatComment(result,'아버지')}/>
             <RelCardNew name="어머니" icon="👩‍👦" 인연={result.가족.어머니.인연} 복덕={result.가족.어머니.복덕} delay={0.2}/>
-            <CatBubbleResult text={generateCatComment(result,'어머니')}/>
             <RelCardNew name="배우자" icon="💑" 인연={result.가족.배우자.인연} 복덕={result.가족.배우자.복덕} delay={0.3}/>
-            <CatBubbleResult text={generateCatComment(result,'배우자')}/>
             <RelCardNew name="자식" icon="👶" 인연={result.가족.자식.인연} 복덕={result.가족.자식.복덕} delay={0.4}/>
-            <CatBubbleResult text={generateCatComment(result,'자식')}/>
             <EduBlock title="가족 인연의 판단 기준"><EduText text={EDU.가족}/></EduBlock>
           </div>
         )}
@@ -2793,13 +2684,10 @@ export default function App(){
         {resultTab===3&&(
           <div style={{display:'flex',flexDirection:'column',gap:12,animation:'fadeUp 0.5s ease'}}>
             <SocialCardNew name="재물과 사업" icon="💰" 점수={result.사회.재물.점수} 특징={result.사회.재물.특징} delay={0.1}/>
-            <CatBubbleResult text={generateCatComment(result,'재물')}/>
             <EduBlock title="재물운의 판단 기준"><EduText text={EDU.재물}/></EduBlock>
             <SocialCardNew name="직장과 명예" icon="🏢" 점수={result.사회.직장.점수} 특징={result.사회.직장.특징} delay={0.2}/>
-            <CatBubbleResult text={generateCatComment(result,'직장')}/>
             <EduBlock title="직장·명예운의 판단 기준"><EduText text={EDU.직장}/></EduBlock>
             <SocialCardNew name="인격과 학문" icon="📚" 점수={result.사회.학문.점수} 특징={result.사회.학문.특징} delay={0.3}/>
-            <CatBubbleResult text={generateCatComment(result,'학문')}/>
             <EduBlock title="학문운의 판단 기준"><EduText text={EDU.학문}/></EduBlock>
           </div>
         )}
@@ -3472,7 +3360,7 @@ export default function App(){
             <div style={{position:'absolute',top:-7,left:'50%',marginLeft:-7,width:0,height:0,borderLeft:'7px solid transparent',borderRight:'7px solid transparent',borderBottom:'7px solid rgba(180,140,80,0.12)'}}/>
             <p style={{fontSize:14,color:'#c0b8a0',lineHeight:1.9,margin:0}}>{catNavLoading==='mansin'?'스승님한테 안내해주겠네.':catNavLoading==='yeonin'?'좋은 인연을 찾아보겠네.':catNavLoading==='result'?'무료 결과로 돌아가겠네.':'새로운 사주를 봐주겠네.'}</p>
           </div>
-<div style={{marginTop:16,animation:'shimmer 1s infinite'}}><CatFace size={36}/></div>
+<div style={{marginTop:16}}><span style={{fontSize:24,animation:'shimmer 1s infinite'}}>🐱 ✨</span></div>
         </div>
       )}
 
