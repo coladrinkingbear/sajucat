@@ -139,14 +139,13 @@ function analyze(s){
   const 오행퍼센트={};
   Object.keys(오행카운트).forEach(function(k){오행퍼센트[k]=total>0?Math.round(오행카운트[k]/total*100):0;});
   
-  // 십성 계산 (일간 자신은 제외)
+  // 십성 계산 (지장간 풀 테이블 사용)
   const 십성카운트={비견:0,겁재:0,식신:0,상관:0,편재:0,정재:0,편관:0,정관:0,편인:0,정인:0};
-  var 십성대상=[s.yg,s.mg,s.hg]; // 천간 3개 (일간 제외)
-  Z.forEach(function(z){var jk=정기T[z];if(jk)십성대상.push(jk);}); // 지지 정기 4개
-  십성대상.forEach(function(ch){
-    if(!ch||ch==='?')return;
-    var target=천간오행[ch]?ch:정기T[ch];
-    if(target){var ss=십성(일간,target);if(ss)십성카운트[ss]++;}
+  [...G,...Z].forEach(ch=>{
+    if(ch==='?')return;
+    const oh=천간오행[ch]||천간오행[정기T[ch]];
+    const target=천간오행[ch]?ch:정기T[ch];
+    if(target){const ss=십성(일간,target);if(ss){십성카운트[ss]++;}}
   });
   
   // ===== Phase 2: 새 강약/용신 판정 =====
