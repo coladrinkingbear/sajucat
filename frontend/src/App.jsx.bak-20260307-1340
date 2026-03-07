@@ -90,36 +90,13 @@ function analyze(s){
   const G=[s.yg,s.mg,s.dg,s.hg], Z=[s.yj,s.mj,s.dj,s.hj];
   const 일간=s.dg, 일지=s.dj, gender=s.gender;
   
-  // 오행 분포 — 지장간 가중치 반영 (정기60%+중기30%+여기10%)
+  // 오행 분포 (지장간 풀 반영)
   const 오행카운트={목:0,화:0,토:0,금:0,수:0};
-  // 천간: 각 1.0
-  G.forEach(function(g){if(천간오행[g])오행카운트[천간오행[g]]+=1;});
-  // 지지: 지장간 가중치
-  Z.forEach(function(z){
-    var jj=지장간T[z];
-    if(!jj)return;
-    if(jj.length===3){
-      // [여기, 중기, 정기] → 10%, 30%, 60%
-      if(천간오행[jj[0]])오행카운트[천간오행[jj[0]]]+=0.1;
-      if(천간오행[jj[1]])오행카운트[천간오행[jj[1]]]+=0.3;
-      if(천간오행[jj[2]])오행카운트[천간오행[jj[2]]]+=0.6;
-    }else if(jj.length===2){
-      // [여기, 정기] → 30%, 70%
-      if(천간오행[jj[0]])오행카운트[천간오행[jj[0]]]+=0.3;
-      if(천간오행[jj[1]])오행카운트[천간오행[jj[1]]]+=0.7;
-    }else if(jj.length===1){
-      if(천간오행[jj[0]])오행카운트[천간오행[jj[0]]]+=1;
-    }
-  });
-  // 소수점 정리
-  Object.keys(오행카운트).forEach(function(k){오행카운트[k]=Math.round(오행카운트[k]*100)/100;});
-  const total=Object.values(오행카운트).reduce(function(a,b){return a+b;},0);
-  // 전무/과다 판정 — 가중치 기준 (0.1 이하면 사실상 전무)
-  const 전무=Object.keys(오행카운트).filter(function(k){return 오행카운트[k]<0.1;});
-  const 과다=Object.keys(오행카운트).filter(function(k){return total>0&&(오행카운트[k]/total)>=0.35;});
-  // 백분율 계산
-  const 오행퍼센트={};
-  Object.keys(오행카운트).forEach(function(k){오행퍼센트[k]=total>0?Math.round(오행카운트[k]/total*100):0;});
+  G.forEach(g=>{if(천간오행[g])오행카운트[천간오행[g]]++;});
+  Z.forEach(z=>{if(지지오행[z])오행카운트[지지오행[z]]++;});
+  const 전무=Object.keys(오행카운트).filter(k=>오행카운트[k]===0);
+  const 과다=Object.keys(오행카운트).filter(k=>오행카운트[k]>=3);
+  const total=Object.values(오행카운트).reduce((a,b)=>a+b,0);
   
   // 십성 계산 (지장간 풀 테이블 사용)
   const 십성카운트={비견:0,겁재:0,식신:0,상관:0,편재:0,정재:0,편관:0,정관:0,편인:0,정인:0};
@@ -302,7 +279,7 @@ function analyze(s){
   return{
     일간,일지,격국:격국이름,강약,강약등급,
     용신:용신오행,용신상세:용신결과,강약상세:강약결과,
-    오행:{카운트:오행카운트,전무,과다,퍼센트:오행퍼센트},
+    오행:{카운트:오행카운트,전무,과다},
     십성:십성카운트,
     성격:{점수:성격점수,특징:성격특징},
     건강:{점수:건강점수,경고:건강경고},
@@ -522,8 +499,8 @@ function SinsalBadges({신살}){
     React.createElement('div',{style:{fontSize:10,fontWeight:600,color:'#6a6050',marginBottom:8,letterSpacing:1}},'신살(神殺)'),
     React.createElement('div',{style:{display:'flex',flexWrap:'wrap',gap:6}},
       all.map(function(s,i){var c=cm[s.type];return React.createElement('div',{key:i,style:{background:c.bg,border:'1px solid '+c.border,borderRadius:20,padding:'5px 10px',fontSize:11,color:c.text,fontWeight:500}},
-        (s.type==='길'?'✦ ':s.type==='흉'?'✧ ':'○ ')+(s.명||s.이름||''),
-        React.createElement('span',{style:{fontSize:9,opacity:0.6,marginLeft:3}},s.위치||'')
+        (s.type==='길'?'✦ ':s.type==='흉'?'✧ ':'○ ')+s.이름,
+        React.createElement('span',{style:{fontSize:9,opacity:0.6,marginLeft:3}},s.위치)
       );})
     )
   );
@@ -2686,124 +2663,11 @@ export default function App(){
             <div style={{fontSize:12.5,lineHeight:1.9,color:'#b0a8c0'}}>{premCatDescs[paidTab]||''}</div>
           </div>
         </div>
-
         {/* 서사 카드 아코디언 */}
         {curBlocks.map(function(block,i){
           return React.createElement(MansinAccordion,{key:paidTab+'_'+i,title:block.title||'해설',tag:block.tag||null,text:block.text||'',defaultOpen:i===0,index:i});
         })}
-
-        {/* ═══ genPremium 카드 — 카테고리별 배치 ═══ */}
-        {(function(){
-          if(!premium)return null;
-          // 카드 렌더 헬퍼
-          var renderPL=function(lines){
-            if(!lines||!lines.length)return null;
-            return lines.map(function(l,j){
-              if(l.type==='h3')return React.createElement('div',{key:j,style:{fontSize:13,fontWeight:700,color:'#e8d5ff',margin:'10px 0 4px',borderBottom:'1px solid rgba(160,120,200,0.1)',paddingBottom:4}},l.text);
-              if(l.type==='h4')return React.createElement('div',{key:j,style:{fontSize:11,fontWeight:600,color:'#a090c0',margin:'8px 0 3px'}},'★ '+l.text);
-              if(l.tag)return React.createElement(PurpleTagP,{key:j,text:l.tag,color:l.c});
-              return React.createElement('div',{key:j,style:{fontSize:11,lineHeight:1.8,color:l.w?'#e0a060':'#b0a8c0',margin:'2px 0',paddingLeft:8}},toMansin(l.t||l.text||''));
-            });
-          };
-          var renderCd=function(cat,i){
-            return React.createElement('div',{key:'pc'+i,style:{marginBottom:10,background:'rgba(160,120,200,0.04)',border:'1px solid rgba(160,120,200,0.08)',borderRadius:10,padding:'14px 12px',animation:'fadeUp 0.4s '+(i*0.12)+'s both ease-out'}},
-              React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:8}},
-                React.createElement('span',{style:{fontSize:16}},cat.icon),
-                React.createElement('span',{style:{fontSize:13,fontWeight:700,color:'#d0b0ff',fontFamily:"'Noto Serif KR',serif"}},cat.title)
-              ),
-              React.createElement(PurpleBarP,{score:cat.score,label:cat.title+' 점수'}),
-              React.createElement('div',{style:{marginTop:8}},renderPL(cat.lines)),
-              aiCache[cat.title]?React.createElement('div',{style:{fontSize:10,color:'#8060c0',marginTop:6,fontStyle:'italic'}},'✓ 해설 완료'):null,
-              React.createElement('button',{onClick:function(){openAiDetail(cat.title,cat.title,linesToText(cat.lines));},style:{marginTop:8,background:'rgba(130,100,200,0.08)',border:'1px solid rgba(160,120,200,0.2)',borderRadius:8,padding:'10px 14px',fontSize:11,fontWeight:600,color:'#a090d0',cursor:'pointer',display:'block',width:'100%'}},aiCache[cat.title]?'해설 다시 보기':'바리만신 심층 해설')
-            );
-          };
-
-          // ═══ 타고난 나: 개인특성 카드 ═══
-          if(paidTab==='타고난 나'&&premium.개인특성){
-            return React.createElement('div',{style:{marginTop:16}},
-              React.createElement('div',{style:{fontSize:10,letterSpacing:3,color:'#6050a0',marginBottom:10,textAlign:'center'}},'─── 상세 분석 ───'),
-              premium.개인특성.map(function(cat,i){return renderCd(cat,i);})
-            );
-          }
-          // ═══ 돈과 직업: 재물 상세 + 사회생활 카드 ═══
-          if(paidTab==='돈과 직업'){
-            return React.createElement('div',{style:{marginTop:16}},
-              React.createElement('div',{style:{fontSize:10,letterSpacing:3,color:'#6050a0',marginBottom:10,textAlign:'center'}},'─── 상세 분석 ───'),
-              premium.재물?React.createElement('div',{style:{marginBottom:14,background:'rgba(160,120,200,0.04)',border:'1px solid rgba(160,120,200,0.08)',borderRadius:10,padding:'14px 12px'}},
-                React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:10}},
-                  React.createElement('span',{style:{fontSize:16}},'💰'),
-                  React.createElement('span',{style:{fontSize:13,fontWeight:700,color:'#d0b0ff',fontFamily:"'Noto Serif KR',serif"}},'재물·사업운 종합')
-                ),
-                ['정재','편재','선천'].map(function(key){var d2=premium.재물[key];if(!d2)return null;return(
-                  React.createElement('div',{key:key,style:{marginBottom:10,background:'rgba(160,120,200,0.04)',borderRadius:8,padding:'10px'}},
-                    React.createElement('div',{style:{fontWeight:700,fontSize:12,color:'#c0a0e0',marginBottom:4}},key==='정재'?'정재 (안정 소득)':key==='편재'?'편재 (투자·사업)':'선천 재물복 종합'),
-                    React.createElement(PurpleBarP,{score:d2.score,label:key+' 점수'}),
-                    renderPL(d2.lines)
-                  )
-                );}),
-                premium.재물.대운?React.createElement('div',{style:{marginTop:8}},
-                  React.createElement('div',{style:{fontWeight:700,fontSize:12,color:'#c0a0e0',marginBottom:8}},'대운별 재물 흐름'),
-                  premium.재물.대운.map(function(dw,i){return(
-                    React.createElement('div',{key:i,style:{marginBottom:8,background:'rgba(160,120,200,0.04)',borderRadius:6,padding:'8px'}},
-                      React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}},
-                        React.createElement('span',{style:{fontSize:11,fontWeight:700,color:'#d0b0ff'}},dw.간지+'운 ('+dw.시작+'~'+dw.끝+'세)'),
-                        React.createElement('span',{style:{fontSize:10,color:'#8a7e9d'}},dw.yr+'년~')
-                      ),
-                      React.createElement(PurpleBarP,{score:dw.sc,size:'sm'}),
-                      dw.tags?dw.tags.map(function(t,j){return React.createElement(PurpleTagP,{key:j,text:t.t,color:t.c});}):null,
-                      dw.ev?dw.ev.map(function(e,j){return React.createElement('div',{key:'e'+j,style:{fontSize:10,lineHeight:1.6,color:'#a098b0'}},e);}):null
-                    )
-                  );})
-                ):null,
-                aiCache['재물']?React.createElement('div',{style:{fontSize:10,color:'#8060c0',marginTop:6,fontStyle:'italic'}},'✓ 해설 완료'):null,
-                React.createElement('button',{onClick:function(){openAiDetail('재물','재물·사업운',linesToText(premium.재물.정재?premium.재물.정재.lines:[])+'\n'+linesToText(premium.재물.편재?premium.재물.편재.lines:[]));},style:{marginTop:8,background:'rgba(130,100,200,0.08)',border:'1px solid rgba(160,120,200,0.2)',borderRadius:8,padding:'10px 14px',fontSize:11,fontWeight:600,color:'#a090d0',cursor:'pointer',display:'block',width:'100%'}},aiCache['재물']?'재물운 해설 다시 보기':'바리만신 재물운 심층 해설')
-              ):null,
-              premium.사회생활?premium.사회생활.map(function(cat,i){return renderCd(cat,i);}):null
-            );
-          }
-          // ═══ 인연과 사람: 가족관계 카드 ═══
-          if(paidTab==='인연과 사람'&&premium.가족관계){
-            return React.createElement('div',{style:{marginTop:16}},
-              React.createElement('div',{style:{fontSize:10,letterSpacing:3,color:'#6050a0',marginBottom:10,textAlign:'center'}},'─── 상세 분석 ───'),
-              premium.가족관계.map(function(cat,i){return renderCd(cat,i);})
-            );
-          }
-          // ═══ 인생의 흐름: 년운 + 월운 ═══
-          if(paidTab==='인생의 흐름'){
-            return React.createElement('div',{style:{marginTop:16}},
-              React.createElement('div',{style:{fontSize:10,letterSpacing:3,color:'#6050a0',marginBottom:10,textAlign:'center'}},'─── 향후 년운 ───'),
-              premium.년운?React.createElement('button',{onClick:function(){var ys=premium.년운.map(function(y){return y.연도+'년('+y.나이+'세) '+y.간지+' '+y.gSS+'/'+y.jSS+' '+y.해석.join(', ');}).join('\n');openAiDetail('년운','10년 운세 총평','향후 10년 년운:\n'+ys);},style:{width:'100%',marginBottom:12,background:'rgba(130,100,200,0.08)',border:'1px solid rgba(160,120,200,0.2)',borderRadius:8,padding:'10px',fontSize:12,fontWeight:600,color:'#a090d0',cursor:'pointer'}},aiCache['년운']?'10년 총평 다시 보기':'바리만신의 10년 총평'):null,
-              aiCache['년운']?React.createElement('div',{style:{fontSize:10,color:'#8060c0',marginBottom:8,fontStyle:'italic'}},'✓ 10년 총평 해설 완료'):null,
-              premium.년운?premium.년운.map(function(y,i){return(
-                React.createElement('div',{key:i,style:{marginBottom:6,background:'rgba(160,120,200,0.04)',border:'1px solid rgba(160,120,200,0.06)',borderRadius:8,padding:'10px',animation:'fadeUp 0.3s '+(i*0.05)+'s both ease-out'}},
-                  React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}},
-                    React.createElement('span',{style:{fontSize:12,fontWeight:700,color:'#d0b0ff'}},y.연도+'년 ('+y.나이+'세)'),
-                    React.createElement('span',{style:{fontSize:10,color:'#8a7e9d'}},y.간지+' ('+y.gSS+'/'+y.jSS+')')
-                  ),
-                  React.createElement(PurpleBarP,{score:y.sc,size:'sm',label:'년운'}),
-                  React.createElement('div',{style:{marginTop:4,display:'flex',flexWrap:'wrap',gap:3}},y.tags?y.tags.map(function(t,j){return React.createElement(PurpleTagP,{key:j,text:t.t,color:t.c});}):null),
-                  y.해석?y.해석.map(function(h,j){return React.createElement('div',{key:'h'+j,style:{fontSize:10,lineHeight:1.6,color:'#a098b0',marginTop:2}},h);}):null
-                )
-              );}):null,
-              premium.월운?React.createElement('div',null,
-                React.createElement('div',{style:{fontSize:13,fontWeight:700,color:'#d0b0ff',fontFamily:"'Noto Serif KR',serif",margin:'20px 0 10px'}},'2026년 월운'),
-                React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}},
-                  premium.월운.map(function(m,i){return(
-                    React.createElement('div',{key:i,style:{background:'rgba(160,120,200,0.05)',border:'1px solid rgba(160,120,200,0.06)',borderRadius:8,padding:'10px',textAlign:'center',animation:'fadeUp 0.3s '+(i*0.04)+'s both ease-out'}},
-                      React.createElement('div',{style:{fontSize:10,fontWeight:700,color:'#c0a0e0'}},m.월),
-                      React.createElement('div',{style:{fontSize:12,color:'#d0b0ff',fontWeight:600}},m.간지),
-                      React.createElement('div',{style:{fontSize:10,color:'#a098b0'}},m.ss),
-                      React.createElement('div',{style:{fontSize:10,color:'#e8d5a8',fontWeight:600,marginTop:2}},m.한줄)
-                    )
-                  );})
-                )
-              ):null
-            );
-          }
-          return null;
-        })()}
-
-        {curBlocks.length===0&&!premium&&(
+        {curBlocks.length===0&&(
           <div style={{textAlign:'center',padding:'40px 0',color:'#4a3a60',fontSize:12}}>해당 항목이 사주에 없느니라.</div>
         )}
         <div style={{height:20}}/>
