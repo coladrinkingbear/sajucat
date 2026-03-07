@@ -460,11 +460,7 @@ var EDU={
 재물:'재물운은 재성(정재·편재)으로 판단하네.\n\n정재 — 꾸준한 급여·저축형 재물. 성실하게 모으는 스타일이네.\n편재 — 투자·사업·큰돈의 기운. 들어오는 것도 크지만 나가는 것도 크네.\n\n재성이 사주에 있으면 돈에 관심이 많고, 일간이 신강해야 재물을 잘 다룰 수 있네.\n신약한데 재성만 많으면 \"재다신약\"이라 해서 돈에 끌려다니는 형국이 될 수 있지.\n\n겁재가 많으면 재물이 분산되니 보증이나 동업은 조심해야 하네.',
 직장:'직장·명예운은 관성(정관·편관)으로 보네.\n\n정관 — 안정적인 직장, 승진, 규율을 따르는 조직인이네.\n편관 — 외부 압박과 경쟁 속에서 성장하는 기운. 군인·검찰·경찰에 유리하지.\n\n관성이 없으면 조직보다 자유업이 맞을 수 있네.\n\n\"상관견관(傷官見官)\"이라는 게 있는데 — 상관이 정관을 극하면 상사와 충돌하거나 이직이 잦을 수 있다는 뜻이네. 직장 변동을 조심해야 하는 구조이지.',
 학문:'학문·자아실현은 인성(정인·편인)으로 보네.\n\n정인 — 정통 학문, 자격증, 전문직에 유리한 기운. 배움을 정리하는 능력이 탁월하네.\n편인 — 독특한 사고방식, 특수 분야에 깊이 파고드는 성질. 의학·문학·역학 등에 강하지.\n\n인성이 사주에 있으면 배움에 대한 욕구가 강하고, 없으면 독학으로 실력을 쌓는 타입이네.\n\n인성이 너무 많으면 \"도식(倒食)\"이라 해서 오히려 생각만 많고 행동이 느려질 수 있으니 균형이 중요하네.',
-진태양시:'고양이 사주명당은 \"진태양시(眞太陽時)\" 보정을 적용하네.\n\n한국 표준시는 동경 135도(일본 아카시) 기준인데, 서울은 127도라서 실제 태양 위치가 약 32분 느리지. 시주(時柱)는 태양의 실제 위치가 기준이라 이 보정이 중요하네.\n\n출생지에서 \"보정없음\"을 선택하면 보정 없는 결과가 나오네.',
-오행차이:'오행 비율이 다른 사이트와 다를 수 있는 이유를 설명하겠네.\n\n첫째, 진태양시(眞太陽時) 보정이네. 서울 기준 약 32분의 시간 보정을 적용해서 시주(時柱)가 달라질 수 있네.\n\n둘째, 지장간(支藏干) 반영이네. 각 지지(地支) 안에는 숨은 천간이 2~3개 들어있어서, 그 기운까지 비율에 반영하네.\n\n셋째, 왕상휴수사(旺相休囚死) 보정이네. 같은 오행이라도 태어난 계절에 따라 기운의 세기가 다르네. 예를 들어 가을에 태어나면 금(金)은 \"왕(旺)\"하여 세고, 목(木)은 \"사(死)\"하여 약하네.\n\n넷째, 상생(相生) 관계도 반영되네. 목생화(木生火), 화생토(火生土)처럼 오행끼리 기운을 나눠주기 때문에, 사주에 없는 오행도 미약하나마 존재할 수 있네.\n\n이런 전문적 계산법을 적용하기에 단순 글자 수 세기와는 차이가 있을 수 있네.',
-강약격국:'사주를 볼 때 꼭 알아야 할 세 가지 핵심이 있네.\n\n▸ 강약(强弱): 일간(나 자신)의 에너지가 강한지 약한지를 뜻하네. 태어난 계절에 힘을 얻었으면 \"신강\", 못 얻었으면 \"신약\"이네. 쉽게 말해 타고난 체력과 추진력의 크기라고 보면 되네.\n\n▸ 격국(格局): 사주의 구조, 즉 \"어떤 타입의 인생인가\"를 보여주네. 식신격이면 재능형, 정관격이면 조직형, 편재격이면 사업형 같은 식이네.\n\n▸ 용신(用神): 사주의 불균형을 보완해주는 오행이네. 일간의 비타민 같은 존재라서, 이 오행의 기운이 오는 시기에 운이 좋아지네.',
-신살설명:'신살(神殺)은 사주에 나타나는 특수한 기운이네.\n\n✦ 길신(吉神)은 좋은 기운이네. 천을귀인이면 위기 때 도움이 오고, 문창귀인이면 시험·학문에 유리하지.\n\n✧ 흉신(凶神)은 주의할 기운이네. 양인이면 성격이 강렬해서 화를 부를 수 있고, 겁살이면 뜻밖의 손실을 뜻하네.\n\n○ 중립 신살은 쓰기에 따라 달라지네. 역마면 이동·변화가 많고, 화개면 학문·종교·예술에 끌리는 기운이네.\n\n위치도 중요하네 — 연지는 조상·유년기, 월지는 부모·청년기, 일지는 나 자신·배우자, 시지는 자녀·노년기에 해당하네.'
-
+진태양시:'고양이 사주명당은 \"진태양시(眞太陽時)\" 보정을 적용하네.\n\n한국 표준시는 동경 135도(일본 아카시) 기준인데, 서울은 127도라서 실제 태양 위치가 약 32분 느리지.\n\n즉 시계가 오후 1시여도 서울의 진짜 태양 시각은 12시 28분이네. 시주(時柱)는 태양의 실제 위치가 기준이라 이 차이가 중요하네.\n\n전문 역술인과 사주수첩·척척만세력 등 전문 사이트도 이 보정을 적용하지. 네이버 만세력은 적용하지 않아서 시주가 다를 수 있네.\n\n출생지에서 보정없음을 선택하면 네이버와 동일한 결과가 나오네.'
 };
 
 function FortuneBarNew({score,size}){
@@ -519,7 +515,7 @@ function CoreBadges({강약,격국,용신}){
   );
 }
 
-// ── 신살 뱃지 (위치별 그룹, 직관적) ──
+// ── 신살 뱃지 ──
 function SinsalBadges({신살}){
   if(!신살)return null;
   var all=[].concat(
@@ -528,36 +524,15 @@ function SinsalBadges({신살}){
     (신살.중립||[]).map(function(s){return Object.assign({},s,{type:'중'});})
   );
   if(!all.length)return null;
-  var cm={길:{bg:'rgba(80,160,80,0.08)',border:'rgba(80,160,80,0.2)',text:'#7abf6a',icon:'✦'},흉:{bg:'rgba(200,80,80,0.06)',border:'rgba(200,80,80,0.15)',text:'#d4856a',icon:'✧'},중:{bg:'rgba(160,140,100,0.06)',border:'rgba(160,140,100,0.15)',text:'#a09870',icon:'○'}};
-  // 위치별 그룹
-  var 위치순=['일지','월지','연지','시지'];
-  var 위치명={'일지':'일지(나·배우자)','월지':'월지(부모·청년)','연지':'연지(조상·유년)','시지':'시지(자녀·노년)'};
-  var grouped={};
-  all.forEach(function(s){
-    var pos=s.위치||'기타';
-    if(!grouped[pos])grouped[pos]=[];
-    grouped[pos].push(s);
-  });
-  var positions=위치순.filter(function(p){return grouped[p]&&grouped[p].length>0;});
-  // 기타 위치 추가
-  Object.keys(grouped).forEach(function(p){if(positions.indexOf(p)<0)positions.push(p);});
-  
+  var cm={길:{bg:'rgba(80,160,80,0.08)',border:'rgba(80,160,80,0.2)',text:'#7abf6a'},흉:{bg:'rgba(200,80,80,0.06)',border:'rgba(200,80,80,0.15)',text:'#d4856a'},중:{bg:'rgba(160,140,100,0.06)',border:'rgba(160,140,100,0.15)',text:'#a09870'}};
   return React.createElement('div',{style:{marginBottom:14}},
-    React.createElement('div',{style:{fontSize:11,fontWeight:700,color:'#8a7e6d',marginBottom:10,letterSpacing:1}},'신살(神殺)'),
-    positions.map(function(pos){
-      return React.createElement('div',{key:pos,style:{marginBottom:8}},
-        React.createElement('div',{style:{fontSize:9,color:'#5a5040',marginBottom:4,fontWeight:600}},위치명[pos]||pos),
-        React.createElement('div',{style:{display:'flex',flexWrap:'wrap',gap:5}},
-          grouped[pos].map(function(s,i){
-            var c=cm[s.type]||cm['중'];
-            return React.createElement('div',{key:i,style:{background:c.bg,border:'1px solid '+c.border,borderRadius:8,padding:'6px 10px',fontSize:11.5,color:c.text,fontWeight:600,display:'flex',alignItems:'center',gap:4}},
-              React.createElement('span',{style:{fontSize:10}},c.icon),
-              (s.명||s.이름||'')
-            );
-          })
-        )
-      );
-    })
+    React.createElement('div',{style:{fontSize:10,fontWeight:600,color:'#6a6050',marginBottom:8,letterSpacing:1}},'신살(神殺)'),
+    React.createElement('div',{style:{display:'flex',flexWrap:'wrap',gap:6}},
+      all.map(function(s,i){var c=cm[s.type];return React.createElement('div',{key:i,style:{background:c.bg,border:'1px solid '+c.border,borderRadius:20,padding:'5px 10px',fontSize:11,color:c.text,fontWeight:500}},
+        (s.type==='길'?'✦ ':s.type==='흉'?'✧ ':'○ ')+(s.명||s.이름||''),
+        React.createElement('span',{style:{fontSize:9,opacity:0.6,marginLeft:3}},s.위치||'')
+      );})
+    )
   );
 }
 
@@ -2568,31 +2543,12 @@ export default function App(){
         {/* Part 0: 사주표 */}
         {resultTab===0&&(
           <div style={{animation:'fadeUp 0.5s ease'}}>
-            {/* 사주 원국이란? — 사주표 위 */}
-            <EduBlock title="사주 원국이란?"><EduText text={EDU.사주원국}/></EduBlock>
-            {/* 서예 만세력 */}
+            {/* 서예 만세력 — 제일 위 */}
             <CalligraphyManseryeok saju={result.saju} 일간={result.일간} name={authUser?authUser.nickname:''} 격국={result.격국} 강약={result.강약}/>
-            {/* 오행 레이더 + 막대그래프 */}
             <OhengRadar 카운트={result.오행.카운트} 용신={result.용신} 전무={result.오행.전무} 과다={result.오행.과다}/>
-            {/* 오행이란? — 오행 그래프 바로 밑 */}
-            <EduBlock title="오행(木火土金水)이란?">
-              {EDU.오행.map(function(oh,i){return(
-                <div key={i} style={{padding:'8px 10px',marginBottom:6,background:'rgba(180,140,80,0.02)',borderLeft:'3px solid '+oh.color,borderRadius:'0 8px 8px 0'}}>
-                  <div style={{fontSize:12,fontWeight:700,color:oh.color,marginBottom:2,fontFamily:"'Noto Serif KR',serif"}}>{oh.title}</div>
-                  <div style={{fontSize:11.5,lineHeight:1.8,color:'#a09880'}}>{oh.text}</div>
-                </div>
-              );})}
-            </EduBlock>
-            {/* 다른 사이트와 오행이 다른 이유 */}
-            <EduBlock title="다른 사이트와 오행 비율이 다른 이유">
-              <EduText text={EDU.오행차이}/>
-              {form.city!==135&&(<div style={{marginTop:8}}><EduText text={EDU.진태양시}/></div>)}
-            </EduBlock>
             <div style={{height:16}}/>
             {/* 핵심 뱃지: 강약/격국/용신 */}
             <CoreBadges 강약={result.강약등급||result.강약} 격국={result.격국} 용신={result.용신}/>
-            {/* 강약·격국·용신 설명 */}
-            <EduBlock title="강약·격국·용신이란?"><EduText text={EDU.강약격국}/></EduBlock>
             {/* 일주 킬러멘트 카드 1장만 */}
             {(function(){
               var ilju=result.일간+result.일지;var ij=ILJU_NARRATIVE[ilju];
@@ -2607,8 +2563,6 @@ export default function App(){
             })()}
             {/* 신살 뱃지 */}
             <SinsalBadges 신살={result.신살}/>
-            {/* 신살 설명 */}
-            <EduBlock title="신살(神殺)이란?"><EduText text={EDU.신살설명}/></EduBlock>
             {/* 대운 타임라인 */}
             <DaeunTimelineSimple 대운={result.대운} birthYear={result.birthYear}/>
             {/* 특이 사항 (간략하게) */}
@@ -2619,6 +2573,16 @@ export default function App(){
                 );})}
               </div>
             )}
+            <EduBlock title="사주 원국이란?"><EduText text={EDU.사주원국}/></EduBlock>
+            <EduBlock title="오행(木火土金水)이란?">
+              {EDU.오행.map(function(oh,i){return(
+                <div key={i} style={{padding:'8px 10px',marginBottom:6,background:'rgba(180,140,80,0.02)',borderLeft:'3px solid '+oh.color,borderRadius:'0 8px 8px 0'}}>
+                  <div style={{fontSize:12,fontWeight:700,color:oh.color,marginBottom:2,fontFamily:"'Noto Serif KR',serif"}}>{oh.title}</div>
+                  <div style={{fontSize:11.5,lineHeight:1.8,color:'#a09880'}}>{oh.text}</div>
+                </div>
+              );})}
+            </EduBlock>
+            {form.city!==135&&<EduBlock title="다른 사이트와 시주가 다른 이유"><EduText text={EDU.진태양시}/></EduBlock>}
           </div>
         )}
 
