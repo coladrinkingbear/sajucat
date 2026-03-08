@@ -4,6 +4,7 @@ import HanziWriter from 'hanzi-writer';
 import { 지장간 as 지장간Full, 십이운성 as calc운성, 월령세력, 공망 as calc공망, 통근판정, 강약판정, 용신판정, 천간합감지, 천간충감지, 해감지, 파감지, 방합감지, 반합감지, 사주운성, 공망체크, 신살판정 } from './saju-tables.js';
 import { 대운생성, 대운길흉, 세운분석, 월운생성, 오늘운세, 일진계산 } from './saju-advanced.js';
 import { 종합서사생성, 일간성정, 강약서사 as 강약서사Data, 격국서사 as 격국서사Data, 운성서사, 궁성서사 } from './saju-narratives.js';
+import { 격국상세, 십성조합감지, 용신삼각생성, 오행역할해설, 지장간해설, 십이운성해설, 공망해설, 오행결핍해설, 천간합해설 } from './saju-deep.js';
 
 // ============================================================
 // 기초 데이터
@@ -735,12 +736,15 @@ function MansinAccordion({title,tag,text,defaultOpen,index}){
   );
 }
 
-// ── 바리만신 대사 (자적색 테마) ──
+// ── 바리만신 대사 (자적색 테마, 볼드 지원) ──
 function MansinChat({text}){
+  var parts=(text||'').split(/(\*\*[^*]+\*\*)/g);
   return React.createElement('div',{style:{display:'flex',gap:10,alignItems:'flex-start',margin:'4px 0 14px'}},
     React.createElement('div',{style:{flexShrink:0,marginTop:2}},React.createElement(BariMansin,{size:30})),
     React.createElement('div',{style:{padding:'10px 14px',borderRadius:'4px 12px 12px 12px',background:'rgba(190,120,150,0.04)',border:'1px solid rgba(190,120,150,0.1)',flex:1}},
-      React.createElement('div',{style:{fontSize:13,lineHeight:2.2,color:'rgba(225,210,220,0.65)',fontFamily:"'Noto Serif KR',serif",whiteSpace:'pre-line'}},text)
+      React.createElement('div',{style:{fontSize:13,lineHeight:1.9,color:'rgba(225,210,220,0.65)',fontFamily:"'Noto Serif KR',serif",whiteSpace:'pre-line'}},
+        parts.map(function(p,i){return p.startsWith('**')&&p.endsWith('**')?React.createElement('span',{key:i,style:{color:'rgba(225,210,220,0.9)',fontWeight:700}},p.slice(2,-2)):p;})
+      )
     )
   );
 }
@@ -1719,6 +1723,7 @@ export default function App(){
   const[premium,setPremium]=useState(null);
   const[paidTab,setPaidTab]=useState('심층 사주원국');
   const[expandedDW,setExpandedDW]=useState(null);
+  const[coins,setCoins]=useState(function(){try{var c=localStorage.getItem('mansin_coins');return c!==null?parseInt(c):100;}catch(e){return 100;}});
   const[aiCache,setAiCache]=useState({});
   const[aiLoading,setAiLoading]=useState('');
   const[aiError,setAiError]=useState('');
@@ -1748,6 +1753,7 @@ export default function App(){
   const[visitedTabs,setVisitedTabs]=useState({});
   useEffect(function(){if(phase!=='premium')return;if(visitedTabs[paidTab]){setPremiumReveal(4);setPremiumCards(true);return;}setPremiumReveal(0);setPremiumCards(false);var t1=setTimeout(function(){setPremiumReveal(1);},500);var t2=setTimeout(function(){setPremiumReveal(2);},1800);var t3=setTimeout(function(){setPremiumReveal(3);},2800);var t4=setTimeout(function(){setPremiumReveal(4);setPremiumCards(true);setVisitedTabs(function(prev){var n=Object.assign({},prev);n[paidTab]=true;return n;});},3800);return function(){clearTimeout(t1);clearTimeout(t2);clearTimeout(t3);clearTimeout(t4);};},[phase,paidTab]);
   useEffect(function(){if(premiumScrollRef.current)premiumScrollRef.current.scrollTop=0;},[paidTab]);
+  useEffect(function(){try{localStorage.setItem('mansin_coins',String(coins));}catch(e){}},[coins]);
   const[chatTarget,setChatTarget]=useState(null);
   const[chatMsgs,setChatMsgs]=useState({});
   const[chatInput,setChatInput]=useState('');
@@ -3128,10 +3134,16 @@ export default function App(){
   return(
     <div style={{minHeight:'100vh',background:'radial-gradient(ellipse at 50% 15%,#140810 0%,#0a0408 65%)',color:mcc,fontFamily:"'Noto Sans KR',sans-serif",display:'flex',flexDirection:'column',maxWidth:440,margin:'0 auto'}}>
       {/* 헤더 */}
-      <div style={{padding:'12px 16px',borderBottom:'1px solid '+ac+'0.08)',textAlign:'center',flexShrink:0}}>
-        <div style={{fontSize:10,letterSpacing:4,color:ac+'0.3)'}}>바리만신의 심층 해석</div>
-        <div style={{fontSize:15,fontWeight:700,fontFamily:"'Noto Serif KR',serif",color:mcc,marginTop:4}}>
-          {한글음M[result.일간]+한글음M[result.일지]+'('+result.일간+result.일지+')일주 · '+result.격국+' · '+result.강약}
+      <div style={{padding:'12px 16px',borderBottom:'1px solid '+ac+'0.08)',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+        <div style={{textAlign:'center',flex:1}}>
+          <div style={{fontSize:10,letterSpacing:4,color:ac+'0.3)'}}>바리만신의 심층 해석</div>
+          <div style={{fontSize:15,fontWeight:700,fontFamily:"'Noto Serif KR',serif",color:mcc,marginTop:4}}>
+            {한글음M[result.일간]+한글음M[result.일지]+'('+result.일간+result.일지+')일주 · '+result.격국+' · '+result.강약}
+          </div>
+        </div>
+        <div style={{flexShrink:0,display:'flex',alignItems:'center',gap:4,padding:'4px 10px',background:ac+'0.06)',borderRadius:8,border:'1px solid '+ac+'0.1)'}}>
+          <span style={{fontSize:14}}>🪙</span>
+          <span style={{fontSize:13,fontWeight:700,color:mcc,fontFamily:"'Noto Serif KR',serif"}}>{coins}</span>
         </div>
       </div>
       {/* 탭 */}
@@ -3281,9 +3293,105 @@ export default function App(){
               return t;
             })()}/>
 
-            <MansinDiv/>
+            {/* 격국 상세 카드 (saju-deep.js) */}
+            {(function(){
+              var gk=격국상세[result.격국];if(!gk)return null;
+              var isWeak=result.강약.indexOf('신약')>=0||result.강약.indexOf('극신약')>=0;
+              return React.createElement('div',{style:{background:ac+'0.03)',border:'1px solid '+ac+'0.08)',borderRadius:10,padding:'12px 14px',marginBottom:8}},
+                React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}},
+                  React.createElement('div',{style:{fontSize:12,fontWeight:700,color:mcc,fontFamily:"'Noto Serif KR',serif"}},result.격국+' 상세'),
+                  React.createElement('div',{style:{fontSize:14,fontWeight:900,color:gk.등급==='A+'?'#6abf5a':gk.등급==='A'?'#8abf7a':'#c8a050'}},gk.등급)
+                ),
+                React.createElement('div',{style:{fontSize:11,lineHeight:1.8,color:'rgba(225,210,220,0.5)',marginBottom:8}},gk.한줄),
+                React.createElement('div',{style:{fontSize:11,lineHeight:1.8,color:'rgba(225,210,220,0.45)'}},isWeak?gk.신약:gk.신강),
+                gk.적합직업&&React.createElement('div',{style:{marginTop:8,padding:'6px 10px',background:'rgba(80,160,120,0.04)',borderRadius:6,border:'1px solid rgba(80,160,120,0.08)'}},
+                  React.createElement('div',{style:{fontSize:9,color:'#70b090',fontWeight:600,marginBottom:2}},'적합 직업'),
+                  React.createElement('div',{style:{fontSize:10,color:'rgba(225,210,220,0.5)'}},gk.적합직업)
+                )
+              );
+            })()}
 
-            {/* 신살 */}
+            {/* 용신 삼각 해설 */}
+            {result.용신상세&&(function(){
+              var tri=용신삼각생성(result.용신상세,result.오행);if(!tri)return null;
+              return React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:6,marginBottom:8}},
+                React.createElement('div',{style:{background:'rgba(80,160,80,0.04)',border:'1px solid rgba(80,160,80,0.1)',borderRadius:8,padding:'8px',textAlign:'center'}},
+                  React.createElement('div',{style:{fontSize:9,color:'#70b090',marginBottom:2}},'용신(用神)'),
+                  React.createElement('div',{style:{fontSize:16,fontWeight:800,color:'#8abf7a'}},result.용신상세.용신),
+                  React.createElement('div',{style:{fontSize:8,color:'rgba(225,210,220,0.35)',marginTop:2}},'일간을 살려줄 기운')
+                ),
+                result.용신상세.희신?React.createElement('div',{style:{background:'rgba(80,120,200,0.04)',border:'1px solid rgba(80,120,200,0.1)',borderRadius:8,padding:'8px',textAlign:'center'}},
+                  React.createElement('div',{style:{fontSize:9,color:'#7090d0',marginBottom:2}},'희신(喜神)'),
+                  React.createElement('div',{style:{fontSize:16,fontWeight:800,color:'#7090d0'}},result.용신상세.희신),
+                  React.createElement('div',{style:{fontSize:8,color:'rgba(225,210,220,0.35)',marginTop:2}},'용신을 돕는 기운')
+                ):null,
+                result.용신상세.기신?React.createElement('div',{style:{background:'rgba(200,80,80,0.04)',border:'1px solid rgba(200,80,80,0.1)',borderRadius:8,padding:'8px',textAlign:'center'}},
+                  React.createElement('div',{style:{fontSize:9,color:'#d07070',marginBottom:2}},'기신(忌神)'),
+                  React.createElement('div',{style:{fontSize:16,fontWeight:800,color:'#d07070'}},result.용신상세.기신),
+                  React.createElement('div',{style:{fontSize:8,color:'rgba(225,210,220,0.35)',marginTop:2}},'일간을 해치는 기운')
+                ):null
+              );
+            })()}
+
+            {/* 왕상휴수사 차트 */}
+            {(function(){
+              var 계절oh={'인':'목','묘':'목','진':'토','사':'화','오':'화','미':'토','신':'금','유':'금','술':'토','해':'수','자':'수','축':'토'};
+              var 한글지지={'子':'자','丑':'축','寅':'인','卯':'묘','辰':'진','巳':'사','午':'오','未':'미','申':'신','酉':'유','戌':'술','亥':'해'};
+              var mj=result.saju.mj;var mjh=한글지지[mj]||'';
+              var wss계={목:{왕:'목',상:'화',휴:'수',수:'금',사:'토'},화:{왕:'화',상:'토',휴:'목',수:'수',사:'금'},토:{왕:'토',상:'금',휴:'화',수:'목',사:'수'},금:{왕:'금',상:'수',휴:'토',수:'화',사:'목'},수:{왕:'수',상:'목',휴:'금',수:'토',사:'화'}};
+              var 토왕={왕:'토',상:'금',휴:'화',수:'목',사:'수'};
+              var isTowang=['진','축','미','술'].indexOf(mjh)>=0;
+              var wss=isTowang?토왕:(wss계[계절oh[mjh]]||토왕);
+              return React.createElement('div',{style:{background:ac+'0.02)',border:'1px solid '+ac+'0.06)',borderRadius:10,padding:14,marginBottom:8}},
+                React.createElement('div',{style:{fontSize:11,fontWeight:700,color:ac+'0.5)',marginBottom:10,fontFamily:"'Noto Serif KR',serif"}},'왕상휴수사(旺相休囚死) — '+mjh+'월 기준'),
+                React.createElement('div',{style:{display:'flex',gap:4}},
+                  ['왕','상','휴','수','사'].map(function(stage){
+                    var oh=wss[stage];var h={'왕':90,'상':70,'휴':50,'수':30,'사':10}[stage];
+                    return React.createElement('div',{key:stage,style:{flex:1,textAlign:'center'}},
+                      React.createElement('div',{style:{fontSize:8,color:ac+'0.3)'}},stage),
+                      React.createElement('div',{style:{height:70,display:'flex',alignItems:'flex-end',justifyContent:'center',margin:'4px 0'}},
+                        React.createElement('div',{style:{width:'65%',height:h+'%',background:'linear-gradient(180deg,'+ohCM[oh]+'88,'+ohCM[oh]+'33)',borderRadius:'3px 3px 0 0'}})
+                      ),
+                      React.createElement('div',{style:{fontSize:11,fontWeight:700,color:ohCM[oh]}},oh)
+                    );
+                  })
+                )
+              );
+            })()}
+
+            {/* 오행 전무/과다 해설 */}
+            {result.오행&&result.오행.전무&&result.오행.전무.map(function(oh,i){
+              var key=oh+'전무';var desc=오행결핍해설[key];if(!desc)return null;
+              return React.createElement('div',{key:'jm'+i,style:{background:'rgba(200,80,80,0.03)',border:'1px solid rgba(200,80,80,0.08)',borderRadius:8,padding:'10px 12px',marginBottom:6}},
+                React.createElement('div',{style:{fontSize:10,color:'#d07070',fontWeight:700,marginBottom:4}},oh+'('+{'목':'木','화':'火','토':'土','금':'金','수':'水'}[oh]+') 전무 — 상세 해설'),
+                React.createElement('div',{style:{fontSize:11,lineHeight:1.8,color:'rgba(225,210,220,0.5)',whiteSpace:'pre-line'}},desc)
+              );
+            })}
+
+            {/* 십성 조합 감지 */}
+            {(function(){
+              var combos=십성조합감지(result.십성,result.강약);if(!combos||combos.length===0)return null;
+              return React.createElement('div',{style:{marginBottom:8}},
+                React.createElement('div',{style:{fontSize:11,fontWeight:700,color:ac+'0.5)',marginBottom:6,fontFamily:"'Noto Serif KR',serif"}},'십성 특수 조합'),
+                combos.map(function(c,i){
+                  return React.createElement('div',{key:'combo'+i,style:{background:ac+'0.03)',border:'1px solid '+ac+'0.08)',borderRadius:8,padding:'10px 12px',marginBottom:4}},
+                    React.createElement('div',{style:{fontSize:11,fontWeight:700,color:mcc,marginBottom:4,fontFamily:"'Noto Serif KR',serif"}},c.제목),
+                    React.createElement('div',{style:{fontSize:11,lineHeight:1.8,color:'rgba(225,210,220,0.5)'}},c.해설),
+                    c.추가&&React.createElement('div',{style:{fontSize:11,lineHeight:1.8,color:'rgba(225,210,220,0.5)',marginTop:4}},c.추가)
+                  );
+                })
+              );
+            })()}
+
+            {/* 🪙 더 묻기 버튼 */}
+            <div style={{background:ac+'0.03)',border:'1px solid '+ac+'0.12)',borderRadius:10,padding:'12px',textAlign:'center',marginTop:8,marginBottom:8}}>
+              <button onClick={function(){if(coins<10){alert('엽전이 부족합니다');return;}setCoins(function(c){return c-10;});/* TODO: API 호출 */}} style={{background:'linear-gradient(135deg,'+ac+'0.15),'+ac+'0.06))',border:'1px solid '+ac+'0.25)',borderRadius:8,padding:'10px 24px',fontSize:12,fontWeight:700,color:mcc,cursor:'pointer',fontFamily:"'Noto Serif KR',serif",display:'flex',alignItems:'center',gap:6,margin:'0 auto'}}>
+                <span style={{fontSize:14}}>🪙</span> 바리만신에게 더 묻기 <span style={{fontSize:10,opacity:0.6}}>(-10)</span>
+              </button>
+              <div style={{fontSize:9,color:ac+'0.3)',marginTop:6}}>AI가 자네의 사주를 더 깊이 분석하느니라</div>
+            </div>
+
+            <MansinDiv/>
             {result.신살&&(result.신살.길신&&result.신살.길신.length>0||result.신살.흉신&&result.신살.흉신.length>0)&&(
               <div style={{marginBottom:4}}>
                 <div style={{fontSize:11,fontWeight:700,color:ac+'0.5)',marginBottom:8,fontFamily:"'Noto Serif KR',serif"}}>신살(神殺)</div>
