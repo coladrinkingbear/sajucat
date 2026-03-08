@@ -1717,7 +1717,7 @@ export default function App(){
   const[lastYeoninProfile,setLastYeoninProfile]=useState(null);
 
   const[premium,setPremium]=useState(null);
-  const[paidTab,setPaidTab]=useState('심층 사주원국');
+  const[paidTab,setPaidTab]=useState('타고난 나');
   const[expandedDW,setExpandedDW]=useState(null);
   const[aiCache,setAiCache]=useState({});
   const[aiLoading,setAiLoading]=useState('');
@@ -3080,7 +3080,7 @@ export default function App(){
           </button>
         ):(
           <div style={{display:'flex',flexDirection:'column',gap:8}}>
-            <button onClick={function(){unlockPremium();setPaidTab('심층 사주원국');setPhase('premium');trackAct('mansin_click');}} style={{width:'100%',padding:'14px',background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:10,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:"'Noto Serif KR',serif",boxShadow:'0 4px 20px rgba(100,60,180,0.3)',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+            <button onClick={function(){setTransStep(0);setPhase('transition');trackAct('mansin_click');}} style={{width:'100%',padding:'14px',background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:10,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:"'Noto Serif KR',serif",boxShadow:'0 4px 20px rgba(100,60,180,0.3)',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
               스승님의 심층 해석 받기
             </button>
             <button onClick={function(){setPhase('intro');setIntroStep(0);setResult(null);setPremium(null);setAiCache({});setDialogStep(0);setDialogMsgs([]);setResultTab(0);}} style={{width:'100%',background:'transparent',border:'1px solid rgba(180,140,80,0.1)',borderRadius:8,padding:'10px',fontSize:12,color:'#5a5040',cursor:'pointer'}}>다른 사주 보기</button>
@@ -3100,7 +3100,7 @@ export default function App(){
   if(phase==='premium'&&result){
 
   var premTabs=['심층 사주원국','심층 개인성향','심층 인간관계','심층 사회/운세'];
-  if(premTabs.indexOf(paidTab)<0){setPaidTab('심층 사주원국');return null;}
+  if(premTabs.indexOf(paidTab)<0)paidTab='심층 사주원국';
   var ac='rgba(190,120,150,';var mcc='rgba(225,210,220,0.85)';
   var ohCM={목:'#8abf7a',화:'#d4856a',토:'#c8a85a',금:'#a0a8c0',수:'#6a9ac4'};
   var 한글음M={甲:'갑',乙:'을',丙:'병',丁:'정',戊:'무',己:'기',庚:'경',辛:'신',壬:'임',癸:'계',子:'자',丑:'축',寅:'인',卯:'묘',辰:'진',巳:'사',午:'오',未:'미',申:'신',酉:'유',戌:'술',亥:'해'};
@@ -3122,8 +3122,8 @@ export default function App(){
   var curDaeunIdx=daeunData.findIndex(function(d){return curAge>=d.start&&curAge<d.start+10;});
   if(curDaeunIdx<0)curDaeunIdx=0;
 
-  // genPremium 데이터 (년운/월운용) — null이면 빈 객체
-  var pm=premium||{};
+  // genPremium 데이터 (년운/월운용)
+  var pm=premium;
 
   return(
     <div style={{minHeight:'100vh',background:'radial-gradient(ellipse at 50% 15%,#140810 0%,#0a0408 65%)',color:mcc,fontFamily:"'Noto Sans KR',sans-serif",display:'flex',flexDirection:'column',maxWidth:440,margin:'0 auto'}}>
