@@ -3100,7 +3100,7 @@ export default function App(){
         )}
       </div>
 
-      <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}div::-webkit-scrollbar{width:0;height:0;display:none;}`}</style>
+      <style>{'@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}'}</style>
     </div>
   );
   }
@@ -3422,7 +3422,7 @@ export default function App(){
           </div>
         )}
 
-        <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}`}</style>
+        <style>{'@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}'}</style>
       </div>
     );
   }
@@ -3495,11 +3495,7 @@ export default function App(){
           >전송</button>
         </div>
 
-        <style>{`
-          @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-          @keyframes dotPulse{0%,100%{opacity:0.3;transform:scale(0.8)}50%{opacity:1;transform:scale(1.1)}}
-          div::-webkit-scrollbar{width:0;height:0;display:none;}
-        `}</style>
+        <style>{'@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}} @keyframes dotPulse{0%,100%{opacity:0.3;transform:scale(0.8)}50%{opacity:1;transform:scale(1.1)}} div::-webkit-scrollbar{width:0;height:0;display:none;}'}</style>
       </div>
     );
   }
