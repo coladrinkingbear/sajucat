@@ -735,33 +735,6 @@ function MansinAccordion({title,tag,text,defaultOpen,index}){
   );
 }
 
-// ── 바리만신 대사 (자적색 테마) ──
-function MansinChat({text}){
-  return React.createElement('div',{style:{display:'flex',gap:10,alignItems:'flex-start',margin:'4px 0 14px'}},
-    React.createElement('div',{style:{flexShrink:0,marginTop:2}},React.createElement(BariMansin,{size:30})),
-    React.createElement('div',{style:{padding:'10px 14px',borderRadius:'4px 12px 12px 12px',background:'rgba(190,120,150,0.04)',border:'1px solid rgba(190,120,150,0.1)',flex:1}},
-      React.createElement('div',{style:{fontSize:13,lineHeight:2.2,color:'rgba(225,210,220,0.65)',fontFamily:"'Noto Serif KR',serif",whiteSpace:'pre-line'}},text)
-    )
-  );
-}
-// ── 고양이 질문 (이탤릭) ──
-function CatAsk({text}){
-  return React.createElement('div',{style:{display:'flex',gap:10,alignItems:'flex-start',margin:'12px 0 4px'}},
-    React.createElement('div',{style:{flexShrink:0,marginTop:2}},React.createElement(CatFace,{size:28})),
-    React.createElement('div',{style:{padding:'8px 12px',borderRadius:'4px 12px 12px 12px',background:'rgba(180,140,80,0.04)',border:'1px solid rgba(180,140,80,0.08)',maxWidth:'85%'}},
-      React.createElement('div',{style:{fontSize:12,lineHeight:1.8,color:'#c0b8a0',fontStyle:'italic'}},text)
-    )
-  );
-}
-// ── 자적 구분선 ──
-function MansinDiv(){
-  return React.createElement('div',{style:{display:'flex',alignItems:'center',gap:10,margin:'18px 0'}},
-    React.createElement('div',{style:{flex:1,height:1,background:'linear-gradient(90deg,transparent,rgba(190,120,150,0.1),transparent)'}}),
-    React.createElement('div',{style:{width:3,height:3,borderRadius:2,background:'rgba(190,120,150,0.15)'}}),
-    React.createElement('div',{style:{flex:1,height:1,background:'linear-gradient(90deg,transparent,rgba(190,120,150,0.1),transparent)'}})
-  );
-}
-
 // ── 서사블록 → 사용자 친화 카테고리 분류 ──
 function classifyNarrativeBlocks(blocks,result){
   var cats={
@@ -1718,7 +1691,6 @@ export default function App(){
 
   const[premium,setPremium]=useState(null);
   const[paidTab,setPaidTab]=useState('타고난 나');
-  const[expandedDW,setExpandedDW]=useState(null);
   const[aiCache,setAiCache]=useState({});
   const[aiLoading,setAiLoading]=useState('');
   const[aiError,setAiError]=useState('');
@@ -3095,529 +3067,406 @@ export default function App(){
 
 
   // ============================================================
-  // 바리만신 심층 해석 — 개편 (phase='premium')
+  // 바리만신 심층 해석 — 사용자 친화 카테고리 (phase='premium')
   // ============================================================
   if(phase==='premium'&&result){
 
-  var premTabs=['심층 사주원국','심층 개인성향','심층 인간관계','심층 사회/운세'];
-  if(premTabs.indexOf(paidTab)<0)paidTab='심층 사주원국';
-  var ac='rgba(190,120,150,';var mcc='rgba(225,210,220,0.85)';
-  var ohCM={목:'#8abf7a',화:'#d4856a',토:'#c8a85a',금:'#a0a8c0',수:'#6a9ac4'};
-  var 한글음M={甲:'갑',乙:'을',丙:'병',丁:'정',戊:'무',己:'기',庚:'경',辛:'신',壬:'임',癸:'계',子:'자',丑:'축',寅:'인',卯:'묘',辰:'진',巳:'사',午:'오',未:'미',申:'신',酉:'유',戌:'술',亥:'해'};
-  var 천간oh={甲:'목',乙:'목',丙:'화',丁:'화',戊:'토',己:'토',庚:'금',辛:'금',壬:'수',癸:'수'};
-  var 지지oh={子:'수',丑:'토',寅:'목',卯:'목',辰:'토',巳:'화',午:'화',未:'토',申:'금',酉:'금',戌:'토',亥:'수'};
-
-  // 서사블록
-  var allNarrBlocks=(function(){ var nb=[]; var ilju=result.일간+result.일지;var ij=ILJU_NARRATIVE[ilju]; if(ij)nb.push({type:'ilju',title:ilju+'일주 — '+ij.title,text:ij.desc}); var newBlocks=종합서사생성(result); nb=nb.concat(newBlocks); return nb; })();
+  // 서사블록 생성 + 분류
+  var allNarrBlocks=(function(){
+    var nb=[];
+    var ilju=result.일간+result.일지;var ij=ILJU_NARRATIVE[ilju];
+    if(ij)nb.push({type:'ilju',title:ilju+'일주 — '+ij.title,text:ij.desc});
+    var newBlocks=종합서사생성(result);
+    nb=nb.concat(newBlocks);
+    return nb;
+  })();
   var premCats=classifyNarrativeBlocks(allNarrBlocks,result);
-
-  // 대운 데이터
-  var daeunData=(result.대운||[]).map(function(d,i){
-    var gl=result.대운길흉&&result.대운길흉[i]?result.대운길흉[i]:{점수:50,등급:'보통',요소:[]};
-    return{간지:d.간지||d.천간+d.지지,start:d.start||d.시작,점수:gl.점수,등급:gl.등급,요소:gl.요소||[]};
-  });
-
-  // 현재 나이 계산
-  var curAge=(new Date()).getFullYear()-result.birthYear;
-  var curDaeunIdx=daeunData.findIndex(function(d){return curAge>=d.start&&curAge<d.start+10;});
-  if(curDaeunIdx<0)curDaeunIdx=0;
-
-  // genPremium 데이터 (년운/월운용)
-  var pm=premium;
+  var premCatKeys=['타고난 나','돈과 직업','인연과 사람','조심할 것들','인생의 흐름'];
+  var premCatDescs={
+    '타고난 나':'자네가 타고난 기질과 본성의 뿌리를 밝혀주마.',
+    '돈과 직업':'재물의 그릇과 직업의 방향을 짚어주마.',
+    '인연과 사람':'인연의 깊고 얕음과 사람의 인연을 풀어주마.',
+    '조심할 것들':'액(厄)을 미리 알면 피하거나 줄일 수 있느니라.',
+    '인생의 흐름':'시간의 파도를 읽어 언제 나아가고 멈출지 알려주마.'
+  };
+  if(premCatKeys.indexOf(paidTab)<0)paidTab='타고난 나';
+  var pidx=premCatKeys.indexOf(paidTab);
+  var curBlocks=premCats[paidTab]||[];
 
   return(
-    <div style={{minHeight:'100vh',background:'radial-gradient(ellipse at 50% 15%,#140810 0%,#0a0408 65%)',color:mcc,fontFamily:"'Noto Sans KR',sans-serif",display:'flex',flexDirection:'column',maxWidth:440,margin:'0 auto'}}>
+    <div style={{minHeight:'100vh',background:'radial-gradient(ellipse at 50% 10%,#1a1028 0%,#0a0610 65%)',color:'#e8d5ff',fontFamily:"'Noto Sans KR',sans-serif",display:'flex',flexDirection:'column',maxWidth:440,margin:'0 auto'}}>
       {/* 헤더 */}
-      <div style={{padding:'12px 16px',borderBottom:'1px solid '+ac+'0.08)',textAlign:'center',flexShrink:0}}>
-        <div style={{fontSize:10,letterSpacing:4,color:ac+'0.3)'}}>바리만신의 심층 해석</div>
-        <div style={{fontSize:15,fontWeight:700,fontFamily:"'Noto Serif KR',serif",color:mcc,marginTop:4}}>
-          {한글음M[result.일간]+한글음M[result.일지]+'('+result.일간+result.일지+')일주 · '+result.격국+' · '+result.강약}
-        </div>
+      <div style={{padding:'14px 16px',borderBottom:'1px solid rgba(160,120,200,0.08)',flexShrink:0,textAlign:'center'}}>
+        <div style={{fontSize:10,letterSpacing:4,color:'#6050a0',marginBottom:4}}>바리만신의 심층 해석</div>
+        <div style={{fontSize:16,fontWeight:700,fontFamily:"'Noto Serif KR',serif",background:'linear-gradient(135deg,#d0b0ff,#8060c0)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>{result.일간}{result.일지} 일주 · {result.격국}</div>
+        <div style={{fontSize:11,color:'#6050a0',marginTop:2}}>{result.강약} · {result.saju.gender}</div>
       </div>
-      {/* 탭 */}
-      <div style={{display:'flex',gap:2,padding:'6px 8px',borderBottom:'1px solid '+ac+'0.06)',flexShrink:0,overflowX:'auto'}}>
-        {premTabs.map(function(t){return(
-          <button key={t} onClick={function(){setPaidTab(t);if(premiumScrollRef.current)premiumScrollRef.current.scrollTop=0;}} style={{flex:'0 0 auto',padding:'8px 10px',borderRadius:6,whiteSpace:'nowrap',fontSize:paidTab===t?12:11,fontWeight:paidTab===t?700:400,fontFamily:"'Noto Serif KR',serif",color:paidTab===t?mcc:ac+'0.4)',background:paidTab===t?ac+'0.08)':'transparent',border:paidTab===t?'1px solid '+ac+'0.2)':'1px solid transparent',cursor:'pointer'}}>{t}</button>
+      {/* 카테고리 탭 */}
+      <div style={{display:'flex',gap:2,padding:'6px 10px',borderBottom:'1px solid rgba(160,120,200,0.06)',flexShrink:0,overflowX:'auto'}}>
+        {premCatKeys.map(function(key){return(
+          <button key={key} onClick={function(){setPaidTab(key);if(premiumScrollRef.current)premiumScrollRef.current.scrollTop=0;}} style={{flex:'0 0 auto',padding:'10px 12px',borderRadius:6,whiteSpace:'nowrap',fontSize:paidTab===key?13:12,fontWeight:paidTab===key?800:500,fontFamily:"'Noto Serif KR',serif",letterSpacing:paidTab===key?0.5:0,color:paidTab===key?'#e8d5ff':'#6050a0',background:paidTab===key?'rgba(160,120,200,0.1)':'transparent',border:paidTab===key?'1px solid rgba(160,120,200,0.3)':'1px solid transparent',cursor:'pointer',transition:'all 0.3s'}}>{key}</button>
         );})}
       </div>
-
       {/* 콘텐츠 */}
       <div ref={premiumScrollRef} style={{flex:1,overflowY:'auto',padding:'16px'}}>
-
-        {/* ━━━ 심층 사주원국 ━━━ */}
-        {paidTab==='심층 사주원국'&&(
-          <div style={{animation:'fadeUp 0.4s ease'}}>
-
-            {/* 사주표 */}
-            <div style={{background:ac+'0.02)',border:'1px solid '+ac+'0.06)',borderRadius:14,padding:'14px 10px',marginBottom:4}}>
-              <div style={{display:'flex',marginBottom:4}}>
-                {['시주','일주(나)','월주','연주'].map(function(l,i){return(
-                  <div key={i} style={{flex:1,textAlign:'center',fontSize:10,color:i===1?ac+'0.7)':ac+'0.3)',fontWeight:i===1?700:400,fontFamily:"'Noto Serif KR',serif"}}>{l}</div>
-                );})}
-              </div>
-              <div style={{display:'flex',gap:4,marginBottom:4}}>
-                {[result.saju.hg||'?',result.saju.dg,result.saju.mg,result.saju.yg].map(function(g,i){var oh=천간oh[g]||'토';return(
-                  <div key={'mg'+i} style={{flex:1,textAlign:'center',padding:'8px 0',background:i===1?ac+'0.06)':ac+'0.02)',border:i===1?'1px solid '+ac+'0.15)':'1px solid '+ac+'0.05)',borderRadius:8}}>
-                    <div style={{fontSize:26,fontWeight:900,color:ohCM[oh],fontFamily:"'Noto Serif KR',serif"}}>{g}</div>
-                    <div style={{fontSize:8,color:ac+'0.3)'}}>{한글음M[g]||'?'} · {oh}</div>
-                  </div>
-                );})}
-              </div>
-              <div style={{display:'flex',gap:4}}>
-                {[result.saju.hj||'?',result.saju.dj,result.saju.mj,result.saju.yj].map(function(j,i){var oh=지지oh[j]||'토';return(
-                  <div key={'mj'+i} style={{flex:1,textAlign:'center',padding:'8px 0',background:ac+'0.02)',border:'1px solid '+ac+'0.05)',borderRadius:8}}>
-                    <div style={{fontSize:26,fontWeight:900,color:ohCM[oh],fontFamily:"'Noto Serif KR',serif"}}>{j}</div>
-                    <div style={{fontSize:8,color:ac+'0.3)'}}>{한글음M[j]||'?'} · {oh}</div>
-                  </div>
-                );})}
-              </div>
-            </div>
-
-            <MansinChat text="자네의 사주 여덟 글자를 하나하나 읽어주마. 고양이가 보여준 기본 위에 왜 이런 구조가 되었는지 뿌리를 밝혀주겠느니라."/>
-
-            {/* 일주 서사 — ILJU_NARRATIVE에서 */}
-            {(function(){
-              var ilju=result.일간+result.일지;var ij=ILJU_NARRATIVE[ilju];
-              if(!ij)return null;
-              return React.createElement('div',{style:{background:'linear-gradient(135deg,'+ac+'0.06),'+ac+'0.02))',border:'1px solid '+ac+'0.12)',borderRadius:14,padding:'16px',marginBottom:10}},
-                React.createElement('div',{style:{display:'flex',alignItems:'center',gap:12,marginBottom:12}},
-                  React.createElement('div',{style:{width:46,height:46,borderRadius:12,background:ohCM[천간oh[result.일간]]+'15',border:'1px solid '+ohCM[천간oh[result.일간]]+'30',display:'flex',alignItems:'center',justifyContent:'center'}},
-                    React.createElement('span',{style:{fontSize:22,fontWeight:900,color:ohCM[천간oh[result.일간]],fontFamily:"'Noto Serif KR',serif"}},result.일간)
-                  ),
-                  React.createElement('div',null,
-                    React.createElement('div',{style:{fontSize:15,fontWeight:800,color:mcc,fontFamily:"'Noto Serif KR',serif"}},한글음M[result.일간]+한글음M[result.일지]+'('+ilju+')일주'),
-                    React.createElement('div',{style:{fontSize:11,color:ac+'0.5)',marginTop:2}},ij.title)
-                  )
-                ),
-                React.createElement('div',{style:{fontSize:13,lineHeight:2.2,color:'rgba(225,210,220,0.6)',fontFamily:"'Noto Serif KR',serif"}},ij.desc)
-              );
-            })()}
-
-            <CatAsk text={'스승님, 일간이 '+한글음M[result.일간]+'화('+result.일간+')인데 왜 '+result.강약+'이 되는 거예요?'}/>
-
-            <MansinChat text={(function(){
-              var ss=result.십성;var oh=result.오행;
-              var t='좋은 질문이니라. 사주의 강약은 단순히 글자 수가 아니라 구조로 보는 것이니라.\n\n';
-              var 아군=(ss.비견||0)+(ss.겁재||0)+(ss.정인||0)+(ss.편인||0);
-              var 적군=(ss.식신||0)+(ss.상관||0)+(ss.정재||0)+(ss.편재||0)+(ss.정관||0)+(ss.편관||0);
-              t+='자네 사주의 아군(비겁+인성)은 '+아군+'개, 적군(식상+재성+관성)은 '+적군+'개이니라.\n';
-              if(oh.전무&&oh.전무.length>0){
-                t+='\n결정적으로 — '+oh.전무.join(', ')+'이(가) 전무하니라. ';
-                if(oh.전무.indexOf('목')>=0)t+='불에 땔감을 넣어줄 인성(목)이 전혀 없으니 타오르고 싶어도 탈 것이 없느니라.';
-                else if(oh.전무.indexOf('화')>=0)t+='화가 없으니 일간이 고립되느니라.';
-                else t+='이 결핍이 사주의 균형을 크게 무너뜨리느니라.';
-              }
-              if(result.충&&result.충.length>0)t+='\n\n게다가 충이 '+result.충.length+'개나 있어 기둥끼리 부딪히니 더욱 불안정하느니라.';
-              return t;
-            })()}/>
-
-            {result.오행&&result.오행.전무&&result.오행.전무.length>0&&(
-              <div>
-                <CatAsk text={result.오행.전무[0]+'('+({'목':'木','화':'火','토':'土','금':'金','수':'水'}[result.오행.전무[0]]||'')+')이 아예 없는 건 얼마나 안 좋은 건가요?'}/>
-                <MansinChat text={(function(){
-                  var oh=result.오행.전무[0];
-                  var t='오행이 전무(全無)한 것은 약한 것과 차원이 다르니라. 있되 약한 것은 대운에서 보충하면 되지만, 아예 없는 것은 그 기운을 끌어올 뿌리 자체가 없다는 뜻이니라.\n\n';
-                  if(oh==='목')t+='목(木)은 인성(印星)에 해당하느니라. 어머니, 학문, 보호, 정신적 안정을 뜻하느니라. 이것이 전무하니 —\n① 독학형 — 누가 가르쳐주지 않아도 스스로 깨우쳐야 하느니라.\n② 보호막 부재 — 관살의 스트레스를 고스란히 받느니라.\n③ 정신적 고독 — 나를 진정으로 이해해주는 사람이 없다는 느낌을 자주 받느니라.';
-                  else if(oh==='화')t+='화(火)가 없으니 일간의 기운 자체가 허약하느니라.';
-                  else if(oh==='토')t+='토(土)는 식상에 해당하느니라. 표현력과 먹는 복이 약할 수 있느니라.';
-                  else if(oh==='금')t+='금(金)은 재성에 해당하느니라. 재물 인연이 약하니 특별한 노력이 필요하느니라.';
-                  else if(oh==='수')t+='수(水)는 관성에 해당하느니라. 사회적 지위나 직장운이 약할 수 있느니라.';
-                  t+='\n\n다만 대운에서 '+oh+'이 오는 시기에는 이 결핍이 채워지느니라.';
-                  return t;
-                })()}/>
-              </div>
-            )}
-
-            <MansinDiv/>
-
-            {/* 오행 분포 막대 */}
-            <div style={{background:ac+'0.02)',border:'1px solid '+ac+'0.06)',borderRadius:12,padding:14,marginBottom:4}}>
-              <div style={{fontSize:11,fontWeight:700,color:ac+'0.5)',marginBottom:10,fontFamily:"'Noto Serif KR',serif"}}>오행(五行) 분포</div>
-              {['목','화','토','금','수'].map(function(oh){
-                var v=result.오행&&result.오행.카운트?result.오행.카운트[oh]||0:0;
-                var maxV=Math.max.apply(null,Object.values(result.오행&&result.오행.카운트||{목:1,화:1,토:1,금:1,수:1}));
-                var isZero=v===0;
-                return React.createElement('div',{key:oh,style:{display:'flex',alignItems:'center',gap:8,marginBottom:6}},
-                  React.createElement('div',{style:{width:42,fontSize:10,color:ohCM[oh],fontWeight:600}},oh+'('+{목:'木',화:'火',토:'土',금:'金',수:'水'}[oh]+')'),
-                  React.createElement('div',{style:{flex:1,height:6,background:ac+'0.06)',borderRadius:3}},
-                    React.createElement('div',{style:{width:maxV>0?Math.max(2,(v/maxV)*100)+'%':'2%',height:'100%',background:ohCM[oh],borderRadius:3,opacity:isZero?0.15:0.7}})
-                  ),
-                  React.createElement('div',{style:{width:32,fontSize:10,color:isZero?'#d45050':ohCM[oh],fontWeight:700,textAlign:'right'}},isZero?'없음':v.toFixed?v.toFixed(1):v)
-                );
-              })}
-            </div>
-
-            <CatAsk text="스승님, 오행 분포에서 가장 높은 기운이 많으면 좋은 건가요?"/>
-            <MansinChat text={'많다고 좋은 게 아니니라. 균형이 핵심이니라.\n\n자네 사주에서 가장 왕한 기운은 '+(function(){var c=result.오행&&result.오행.카운트||{};var mx='';var mv=0;for(var k in c){if(c[k]>mv){mv=c[k];mx=k;}}return mx;})()+'이니라. 이것이 과하면 일간의 기운을 빼앗거나 억누르니 오히려 해가 되느니라.\n\n비유하자면 — 재능은 넘치는데 체력이 따라가지 못하는 형국이니라.'}/>
-
-            <MansinDiv/>
-
-            {/* 핵심 뱃지 */}
-            <div style={{display:'flex',gap:8,marginBottom:4}}>
-              {[
-                {label:'강약',value:result.강약등급||result.강약,color:result.강약.indexOf('신강')>=0?'#4a9e4a':'#d45050'},
-                {label:'격국',value:result.격국,color:'#c8a85a'},
-                {label:'용신',value:result.용신,color:'#8abf7a'}
-              ].map(function(b){return React.createElement('div',{key:b.label,style:{flex:1,textAlign:'center',padding:'10px 6px',background:b.color+'10',border:'1px solid '+b.color+'30',borderRadius:10}},
-                React.createElement('div',{style:{fontSize:9,color:ac+'0.4)',marginBottom:3}},b.label),
-                React.createElement('div',{style:{fontSize:13,fontWeight:700,color:b.color,fontFamily:"'Noto Serif KR',serif"}},b.value)
-              );})}
-            </div>
-
-            <CatAsk text={'스승님, '+result.격국+'이면 좋은 격국인 건가요? '+result.강약+'인데 격국이 좋으면 어떻게 되는 거예요?'}/>
-            <MansinChat text={(function(){
-              var t=result.격국+'은 ';
-              if(result.격국.indexOf('식신')>=0)t+='명리학에서 가장 복(福)이 있는 격국 중 하나이니라. 식신은 복록의 별이니 먹을 복, 재능의 복이 있느니라.';
-              else if(result.격국.indexOf('정관')>=0)t+='바른 권위와 명예의 격이니라. 공직이나 대기업에서 빛나느니라.';
-              else if(result.격국.indexOf('편관')>=0)t+='거친 권력의 격이니라. 역경을 뚫고 성취하는 힘이 있느니라.';
-              else if(result.격국.indexOf('정재')>=0)t+='안정적 재물의 격이니라. 꾸준히 쌓아가는 복이 있느니라.';
-              else if(result.격국.indexOf('편재')>=0)t+='큰 재물의 격이니라. 사업과 투자에 재능이 있느니라.';
-              else if(result.격국.indexOf('정인')>=0)t+='학문과 귀인의 격이니라. 배움의 복이 두텁느니라.';
-              else if(result.격국.indexOf('편인')>=0)t+='특수 기술과 영감의 격이니라. 남과 다른 길에서 빛나느니라.';
-              else if(result.격국.indexOf('상관')>=0)t+='반항과 창의의 격이니라. 기존을 깨부수고 새것을 만드느니라.';
-              else t+='나름의 특색이 있는 격이니라.';
-              t+='\n\n다만 — 격국이 좋아도 일간이 약하면 그 복을 받아낼 그릇이 작다는 뜻이니라. 비유하자면 좋은 식당 사장인데 사장의 체력이 따라가지 못하는 형국이니라.';
-              t+='\n\n용신 '+result.용신+'이 오는 대운에서 그릇이 커지고, 비로소 격국의 복을 온전히 누릴 수 있느니라.';
-              return t;
-            })()}/>
-
-            <MansinDiv/>
-
-            {/* 신살 */}
-            {result.신살&&(result.신살.길신&&result.신살.길신.length>0||result.신살.흉신&&result.신살.흉신.length>0)&&(
-              <div style={{marginBottom:4}}>
-                <div style={{fontSize:11,fontWeight:700,color:ac+'0.5)',marginBottom:8,fontFamily:"'Noto Serif KR',serif"}}>신살(神殺)</div>
-                {result.신살.길신&&result.신살.길신.length>0&&(
-                  <div style={{display:'flex',flexWrap:'wrap',gap:4,marginBottom:6}}>
-                    {result.신살.길신.map(function(s,i){return React.createElement('span',{key:'gs'+i,style:{fontSize:10,padding:'3px 8px',background:'rgba(80,160,80,0.08)',border:'1px solid rgba(80,160,80,0.15)',borderRadius:6,color:'#70b090'}},s.명);})}
-                  </div>
-                )}
-                {result.신살.흉신&&result.신살.흉신.length>0&&(
-                  <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
-                    {result.신살.흉신.map(function(s,i){return React.createElement('span',{key:'hs'+i,style:{fontSize:10,padding:'3px 8px',background:'rgba(200,80,80,0.08)',border:'1px solid rgba(200,80,80,0.15)',borderRadius:6,color:'#d07070'}},s.명);})}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {result.신살&&result.신살.길신&&result.신살.길신.length>0&&(
-              <div>
-                <CatAsk text={'스승님, '+result.신살.길신[0].명+'이 뭐예요? 길신이 많으면 좋은 건가요?'}/>
-                <MansinChat text={result.신살.길신[0].명+'은 하늘이 내린 귀한 별이니라. 이 별이 사주에 있으면 재난을 피하고 흉함이 길함으로 바뀌는 힘이 있느니라.\n\n자네에겐 길신이 '+result.신살.길신.length+'개 있으니 귀인운이 좋은 편이니라. 위기가 와도 누군가 도와주는 명식이니라.\n\n다만 귀인은 노력하는 자에게 오느니라. 실력을 갈고닦아야 귀인이 알아보고 손을 내미느니라.'}/>
-              </div>
-            )}
-
-            <MansinDiv/>
-
-            {/* 대운 타임라인 */}
-            <div style={{marginBottom:4}}>
-              <div style={{fontSize:11,fontWeight:700,color:ac+'0.5)',marginBottom:8,fontFamily:"'Noto Serif KR',serif"}}>대운(大運) 흐름</div>
-              <div style={{display:'flex',gap:4,overflowX:'auto',paddingBottom:6}}>
-                {daeunData.map(function(d,i){
-                  var c=d.점수>=70?'#6abf5a':d.점수>=45?'#c8a050':'#d46050';
-                  var isCur=i===curDaeunIdx;
-                  return React.createElement('div',{key:'dw'+i,style:{minWidth:50,textAlign:'center',padding:'6px 4px',background:isCur?ac+'0.1)':ac+'0.02)',border:isCur?'1px solid '+ac+'0.25)':'1px solid '+ac+'0.05)',borderRadius:8,flexShrink:0,position:'relative'}},
-                    isCur&&React.createElement('div',{style:{position:'absolute',top:-6,left:'50%',transform:'translateX(-50%)',fontSize:7,background:ac+'0.6)',color:'#140810',borderRadius:4,padding:'1px 5px',fontWeight:800}},'현재'),
-                    React.createElement('div',{style:{fontSize:12,fontWeight:700,color:isCur?mcc:ac+'0.5)',fontFamily:"'Noto Serif KR',serif"}},d.간지),
-                    React.createElement('div',{style:{fontSize:8,color:ac+'0.3)'}},d.start+'~'+(d.start+9)+'세'),
-                    React.createElement('div',{style:{width:8,height:8,borderRadius:4,background:c,margin:'3px auto 0'}}),
-                    React.createElement('div',{style:{fontSize:7,color:c,marginTop:1}},d.등급)
-                  );
-                })}
-              </div>
-            </div>
-
-            {curDaeunIdx>=0&&daeunData[curDaeunIdx]&&(
-              <div>
-                <CatAsk text={'스승님, 지금 '+daeunData[curDaeunIdx].간지+' 대운('+daeunData[curDaeunIdx].start+'~'+(daeunData[curDaeunIdx].start+9)+'세)이 '+(daeunData[curDaeunIdx].점수<50?'흉':'보통')+'인데, 언제부터 좋아지나요?'}/>
-                <MansinChat text={(function(){
-                  var cur=daeunData[curDaeunIdx];
-                  var t='지금 '+cur.간지+' 대운은 ';
-                  if(cur.요소.length>0)t+=cur.요소.join(', ')+' 등의 영향으로 ';
-                  t+=cur.점수<40?'힘든 시기이니라.':cur.점수<60?'보통의 시기이니라.':'괜찮은 시기이니라.';
-                  // 다음 좋은 대운 찾기
-                  var nextGood=null;
-                  for(var k=curDaeunIdx+1;k<daeunData.length;k++){
-                    if(daeunData[k].점수>=65){nextGood=daeunData[k];break;}
-                  }
-                  if(nextGood){
-                    t+='\n\n'+nextGood.start+'세부터 '+nextGood.간지+' 대운이 오느니라. 이 대운은 '+nextGood.등급+'이니 ';
-                    t+='용신의 기운이 실리는 시기이니라. 지금 쌓는 실력이 그때 빛을 보느니라.';
-                  }
-                  t+='\n\n명심하라 — 대운은 바꿀 수 없으나, 대운을 맞이하는 준비는 바꿀 수 있느니라.';
-                  return t;
-                })()}/>
-              </div>
-            )}
-
-            {/* 서사블록 아코디언 (기존 종합서사) */}
-            {premCats['타고난 나']&&premCats['타고난 나'].length>0&&(
-              <div style={{marginTop:14}}>
-                <MansinDiv/>
-                <div style={{fontSize:11,fontWeight:700,color:ac+'0.5)',marginBottom:8,fontFamily:"'Noto Serif KR',serif"}}>심층 서사 해설</div>
-                {premCats['타고난 나'].map(function(block,i){
-                  return React.createElement(MansinAccordion,{key:'tn'+i,title:block.title||'해설',tag:block.tag||null,text:block.text||'',defaultOpen:i===0,index:i});
-                })}
-              </div>
-            )}
+        {/* 바리만신 인트로 */}
+        <div style={{display:'flex',gap:10,alignItems:'flex-start',marginBottom:14}}>
+          <div style={{flexShrink:0,marginTop:2}}><BariMansin size={36}/></div>
+          <div style={{background:'rgba(160,120,200,0.06)',border:'1px solid rgba(160,120,200,0.12)',borderRadius:'4px 14px 14px 14px',padding:'10px 14px',flex:1}}>
+            <div style={{fontSize:12.5,lineHeight:1.9,color:'#b0a8c0'}}>{premCatDescs[paidTab]||''}</div>
           </div>
-        )}
+        </div>
 
-        {/* ━━━ 심층 개인성향 ━━━ */}
-        {paidTab==='심층 개인성향'&&(
-          <div style={{animation:'fadeUp 0.4s ease'}}>
-            <MansinChat text="자네의 성격과 건강을 십성과 오행으로 깊이 풀어주마."/>
+        {/* 서사 카드 아코디언 */}
+        {curBlocks.map(function(block,i){
+          return React.createElement(MansinAccordion,{key:paidTab+'_'+i,title:block.title||'해설',tag:block.tag||null,text:block.text||'',defaultOpen:i===0,index:i});
+        })}
 
-            {/* 십성 카드 (고양이 파트 형식) */}
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,marginBottom:8}}>
-              {[
-                {name:'나의 힘',sub:'비견·겁재',cnt:(result.십성.비견||0)+(result.십성.겁재||0),c:'#a0a8c0'},
-                {name:'재능·표현',sub:'식신·상관',cnt:(result.십성.식신||0)+(result.십성.상관||0),c:'#8abf7a'},
-                {name:'재물·현실',sub:'정재·편재',cnt:(result.십성.정재||0)+(result.십성.편재||0),c:'#c8a85a'},
-                {name:'명예·직장',sub:'정관·편관',cnt:(result.십성.정관||0)+(result.십성.편관||0),c:'#d4856a'},
-              ].map(function(s,i){return React.createElement('div',{key:'ss'+i,style:{background:ac+'0.03)',borderRadius:8,padding:'10px'}},
-                React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}},
-                  React.createElement('div',null,
-                    React.createElement('div',{style:{fontSize:11,fontWeight:700,color:s.c}},s.name),
-                    React.createElement('div',{style:{fontSize:8,color:ac+'0.3)'}},s.sub)
-                  ),
-                  React.createElement('div',{style:{fontSize:20,fontWeight:900,color:s.cnt===0?ac+'0.15)':s.c}},s.cnt)
+        {/* ═══ genPremium 카드 — 카테고리별 배치 ═══ */}
+        {(function(){
+          if(!premium)return null;
+          // 카드 렌더 헬퍼
+          var renderPL=function(lines){
+            if(!lines||!lines.length)return null;
+            return lines.map(function(l,j){
+              if(l.type==='h3')return React.createElement('div',{key:j,style:{fontSize:13,fontWeight:700,color:'#e8d5ff',margin:'10px 0 4px',borderBottom:'1px solid rgba(160,120,200,0.1)',paddingBottom:4}},l.text);
+              if(l.type==='h4')return React.createElement('div',{key:j,style:{fontSize:11,fontWeight:600,color:'#a090c0',margin:'8px 0 3px'}},'★ '+l.text);
+              if(l.tag)return React.createElement(PurpleTagP,{key:j,text:l.tag,color:l.c});
+              return React.createElement('div',{key:j,style:{fontSize:11,lineHeight:1.8,color:l.w?'#e0a060':'#b0a8c0',margin:'2px 0',paddingLeft:8}},toMansin(l.t||l.text||''));
+            });
+          };
+          var renderCd=function(cat,i){
+            return React.createElement('div',{key:'pc'+i,style:{marginBottom:10,background:'rgba(160,120,200,0.04)',border:'1px solid rgba(160,120,200,0.08)',borderRadius:10,padding:'14px 12px',animation:'fadeUp 0.4s '+(i*0.12)+'s both ease-out'}},
+              React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:8}},
+                React.createElement('span',{style:{fontSize:16}},cat.icon),
+                React.createElement('span',{style:{fontSize:13,fontWeight:700,color:'#d0b0ff',fontFamily:"'Noto Serif KR',serif"}},cat.title)
+              ),
+              React.createElement(PurpleBarP,{score:cat.score,label:cat.title+' 점수'}),
+              React.createElement('div',{style:{marginTop:8}},renderPL(cat.lines)),
+              aiCache[cat.title]?React.createElement('div',{style:{fontSize:10,color:'#8060c0',marginTop:6,fontStyle:'italic'}},'✓ 해설 완료'):null,
+              React.createElement('button',{onClick:function(){openAiDetail(cat.title,cat.title,linesToText(cat.lines));},style:{marginTop:8,background:'rgba(130,100,200,0.08)',border:'1px solid rgba(160,120,200,0.2)',borderRadius:8,padding:'10px 14px',fontSize:11,fontWeight:600,color:'#a090d0',cursor:'pointer',display:'block',width:'100%'}},aiCache[cat.title]?'해설 다시 보기':'바리만신 심층 해설')
+            );
+          };
+
+          // ═══ 타고난 나: 개인특성 카드 ═══
+          if(paidTab==='타고난 나'&&premium.개인특성){
+            return React.createElement('div',{style:{marginTop:16}},
+              React.createElement('div',{style:{fontSize:10,letterSpacing:3,color:'#6050a0',marginBottom:10,textAlign:'center'}},'─── 상세 분석 ───'),
+              premium.개인특성.map(function(cat,i){return renderCd(cat,i);})
+            );
+          }
+          // ═══ 돈과 직업: 재물 상세 + 사회생활 카드 ═══
+          if(paidTab==='돈과 직업'){
+            return React.createElement('div',{style:{marginTop:16}},
+              React.createElement('div',{style:{fontSize:10,letterSpacing:3,color:'#6050a0',marginBottom:10,textAlign:'center'}},'─── 상세 분석 ───'),
+              premium.재물?React.createElement('div',{style:{marginBottom:14,background:'rgba(160,120,200,0.04)',border:'1px solid rgba(160,120,200,0.08)',borderRadius:10,padding:'14px 12px'}},
+                React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:10}},
+                  React.createElement('span',{style:{fontSize:16}},'💰'),
+                  React.createElement('span',{style:{fontSize:13,fontWeight:700,color:'#d0b0ff',fontFamily:"'Noto Serif KR',serif"}},'재물·사업운 종합')
                 ),
-                React.createElement('div',{style:{display:'flex',gap:3}},
-                  [0,1,2,3].map(function(j){return React.createElement('div',{key:j,style:{flex:1,height:5,borderRadius:3,background:j<s.cnt?s.c:ac+'0.06)',opacity:j<s.cnt?0.7:1}});})
+                ['정재','편재','선천'].map(function(key){var d2=premium.재물[key];if(!d2)return null;return(
+                  React.createElement('div',{key:key,style:{marginBottom:10,background:'rgba(160,120,200,0.04)',borderRadius:8,padding:'10px'}},
+                    React.createElement('div',{style:{fontWeight:700,fontSize:12,color:'#c0a0e0',marginBottom:4}},key==='정재'?'정재 (안정 소득)':key==='편재'?'편재 (투자·사업)':'선천 재물복 종합'),
+                    React.createElement(PurpleBarP,{score:d2.score,label:key+' 점수'}),
+                    renderPL(d2.lines)
+                  )
+                );}),
+                premium.재물.대운?React.createElement('div',{style:{marginTop:8}},
+                  React.createElement('div',{style:{fontWeight:700,fontSize:12,color:'#c0a0e0',marginBottom:8}},'대운별 재물 흐름'),
+                  premium.재물.대운.map(function(dw,i){return(
+                    React.createElement('div',{key:i,style:{marginBottom:8,background:'rgba(160,120,200,0.04)',borderRadius:6,padding:'8px'}},
+                      React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}},
+                        React.createElement('span',{style:{fontSize:11,fontWeight:700,color:'#d0b0ff'}},dw.간지+'운 ('+dw.시작+'~'+dw.끝+'세)'),
+                        React.createElement('span',{style:{fontSize:10,color:'#8a7e9d'}},dw.yr+'년~')
+                      ),
+                      React.createElement(PurpleBarP,{score:dw.sc,size:'sm'}),
+                      dw.tags?dw.tags.map(function(t,j){return React.createElement(PurpleTagP,{key:j,text:t.t,color:t.c});}):null,
+                      dw.ev?dw.ev.map(function(e,j){return React.createElement('div',{key:'e'+j,style:{fontSize:10,lineHeight:1.6,color:'#a098b0'}},e);}):null
+                    )
+                  );})
+                ):null,
+                aiCache['재물']?React.createElement('div',{style:{fontSize:10,color:'#8060c0',marginTop:6,fontStyle:'italic'}},'✓ 해설 완료'):null,
+                React.createElement('button',{onClick:function(){openAiDetail('재물','재물·사업운',linesToText(premium.재물.정재?premium.재물.정재.lines:[])+'\n'+linesToText(premium.재물.편재?premium.재물.편재.lines:[]));},style:{marginTop:8,background:'rgba(130,100,200,0.08)',border:'1px solid rgba(160,120,200,0.2)',borderRadius:8,padding:'10px 14px',fontSize:11,fontWeight:600,color:'#a090d0',cursor:'pointer',display:'block',width:'100%'}},aiCache['재물']?'재물운 해설 다시 보기':'바리만신 재물운 심층 해설')
+              ):null,
+              premium.사회생활?premium.사회생활.map(function(cat,i){return renderCd(cat,i);}):null
+            );
+          }
+          // ═══ 인연과 사람: 가족관계 카드 ═══
+          if(paidTab==='인연과 사람'&&premium.가족관계){
+            return React.createElement('div',{style:{marginTop:16}},
+              React.createElement('div',{style:{fontSize:10,letterSpacing:3,color:'#6050a0',marginBottom:10,textAlign:'center'}},'─── 상세 분석 ───'),
+              premium.가족관계.map(function(cat,i){return renderCd(cat,i);})
+            );
+          }
+          // ═══ 인생의 흐름: 년운 + 월운 ═══
+          if(paidTab==='인생의 흐름'){
+            return React.createElement('div',{style:{marginTop:16}},
+              React.createElement('div',{style:{fontSize:10,letterSpacing:3,color:'#6050a0',marginBottom:10,textAlign:'center'}},'─── 향후 년운 ───'),
+              premium.년운?React.createElement('button',{onClick:function(){var ys=premium.년운.map(function(y){return y.연도+'년('+y.나이+'세) '+y.간지+' '+y.gSS+'/'+y.jSS+' '+y.해석.join(', ');}).join('\n');openAiDetail('년운','10년 운세 총평','향후 10년 년운:\n'+ys);},style:{width:'100%',marginBottom:12,background:'rgba(130,100,200,0.08)',border:'1px solid rgba(160,120,200,0.2)',borderRadius:8,padding:'10px',fontSize:12,fontWeight:600,color:'#a090d0',cursor:'pointer'}},aiCache['년운']?'10년 총평 다시 보기':'바리만신의 10년 총평'):null,
+              aiCache['년운']?React.createElement('div',{style:{fontSize:10,color:'#8060c0',marginBottom:8,fontStyle:'italic'}},'✓ 10년 총평 해설 완료'):null,
+              premium.년운?premium.년운.map(function(y,i){return(
+                React.createElement('div',{key:i,style:{marginBottom:6,background:'rgba(160,120,200,0.04)',border:'1px solid rgba(160,120,200,0.06)',borderRadius:8,padding:'10px',animation:'fadeUp 0.3s '+(i*0.05)+'s both ease-out'}},
+                  React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}},
+                    React.createElement('span',{style:{fontSize:12,fontWeight:700,color:'#d0b0ff'}},y.연도+'년 ('+y.나이+'세)'),
+                    React.createElement('span',{style:{fontSize:10,color:'#8a7e9d'}},y.간지+' ('+y.gSS+'/'+y.jSS+')')
+                  ),
+                  React.createElement(PurpleBarP,{score:y.sc,size:'sm',label:'년운'}),
+                  React.createElement('div',{style:{marginTop:4,display:'flex',flexWrap:'wrap',gap:3}},y.tags?y.tags.map(function(t,j){return React.createElement(PurpleTagP,{key:j,text:t.t,color:t.c});}):null),
+                  y.해석?y.해석.map(function(h,j){return React.createElement('div',{key:'h'+j,style:{fontSize:10,lineHeight:1.6,color:'#a098b0',marginTop:2}},h);}):null
                 )
-              );})}
-              <div style={{gridColumn:'1 / -1',background:ac+'0.03)',borderRadius:8,padding:'10px'}}>
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
-                  <div><div style={{fontSize:11,fontWeight:700,color:'#6a9ac4'}}>학문·도움</div><div style={{fontSize:8,color:ac+'0.3)'}}>정인·편인</div></div>
-                  <div style={{fontSize:20,fontWeight:900,color:(result.십성.정인||0)+(result.십성.편인||0)===0?ac+'0.15)':'#6a9ac4'}}>{(result.십성.정인||0)+(result.십성.편인||0)}</div>
-                </div>
-                <div style={{display:'flex',gap:3}}>{[0,1,2,3].map(function(j){var cnt=(result.십성.정인||0)+(result.십성.편인||0);return React.createElement('div',{key:j,style:{flex:1,height:5,borderRadius:3,background:j<cnt?'#6a9ac4':ac+'0.06)',opacity:j<cnt?0.7:1}});})}</div>
-              </div>
-            </div>
+              );}):null,
+              premium.월운?React.createElement('div',null,
+                React.createElement('div',{style:{fontSize:13,fontWeight:700,color:'#d0b0ff',fontFamily:"'Noto Serif KR',serif",margin:'20px 0 10px'}},'2026년 월운'),
+                React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}},
+                  premium.월운.map(function(m,i){return(
+                    React.createElement('div',{key:i,style:{background:'rgba(160,120,200,0.05)',border:'1px solid rgba(160,120,200,0.06)',borderRadius:8,padding:'10px',textAlign:'center',animation:'fadeUp 0.3s '+(i*0.04)+'s both ease-out'}},
+                      React.createElement('div',{style:{fontSize:10,fontWeight:700,color:'#c0a0e0'}},m.월),
+                      React.createElement('div',{style:{fontSize:12,color:'#d0b0ff',fontWeight:600}},m.간지),
+                      React.createElement('div',{style:{fontSize:10,color:'#a098b0'}},m.ss),
+                      React.createElement('div',{style:{fontSize:10,color:'#e8d5a8',fontWeight:600,marginTop:2}},m.한줄)
+                    )
+                  );})
+                )
+              ):null
+            );
+          }
+          return null;
+        })()}
 
-            <CatAsk text="스승님, 이 십성 배분이 성격에 어떤 영향을 주는 거예요?"/>
-            <MansinChat text={(function(){
-              var ss=result.십성;var t='';
-              if((ss.비견||0)+(ss.겁재||0)>=3)t+='비겁이 왕하니 자기 주장이 강하고 독립심이 넘치느니라. 다만 타인과 부딪히기 쉬우니 협력하는 법을 배워야 하느니라.\n\n';
-              else if((ss.비견||0)+(ss.겁재||0)===0)t+='비겁이 전무하니 외로운 싸움을 하는 팔자이니라. 좋은 동료를 곁에 두는 것이 관건이니라.\n\n';
-              else t+='비겁이 '+(ss.비견||0)+(ss.겁재||0)+'개라 자기 주장은 있으나 독단적이진 않느니라.\n\n';
-              if((ss.식신||0)+(ss.상관||0)>=2)t+='식상이 왕하니 표현력과 창의력이 넘치느니라. 예술적 감각이 뛰어나고, 말과 글에 재능이 있느니라.\n\n';
-              if((ss.정인||0)+(ss.편인||0)===0)t+='인성이 전무하니 독학으로 깨우쳐야 하느니라. 학위보다 현장 경험이 자네의 무기이니라.\n\n';
-              if((ss.정관||0)+(ss.편관||0)<=1)t+='관성이 약하니 조직 안에서 출세하기보다 자유로운 환경에서 빛나느니라.';
-              else t+='관성이 있으니 조직에서의 사회생활도 가능하나, 강약에 따라 그 압박을 감당할 수 있는지가 관건이니라.';
-              return t;
-            })()}/>
-
-            <MansinDiv/>
-
-            {/* 성격 카드 (고양이 파트 형식) */}
-            <div style={{background:ac+'0.03)',border:'1px solid '+ac+'0.08)',borderRadius:10,padding:'12px 14px',marginBottom:8}}>
-              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
-                <span style={{fontSize:16}}>🧠</span>
-                <span style={{fontSize:13,fontWeight:700,color:mcc,fontFamily:"'Noto Serif KR',serif"}}>성격 원만성</span>
-                <span style={{marginLeft:'auto',fontSize:16,fontWeight:800,color:result.성격.점수>=70?'#6abf5a':result.성격.점수>=40?'#c8a050':'#d46050'}}>{result.성격.점수}</span>
-              </div>
-              {result.성격.특징.map(function(t,i){return React.createElement('div',{key:i,style:{fontSize:11.5,lineHeight:1.8,color:'rgba(225,210,220,0.5)',paddingLeft:8,borderLeft:'2px solid '+ac+'0.1)',marginBottom:3}},t);})}
-            </div>
-
-            <CatAsk text="스승님, 성격 점수가 낮으면 성격이 나쁘다는 뜻인가요?"/>
-            <MansinChat text="아니니라. 이 점수는 '원만한 정도'를 나타내느니라. 점수가 낮다는 것은 개성이 강하고 독특하다는 뜻이니라. 세상을 바꾸는 사람들 중에 이 점수가 낮은 자가 많느니라.\n\n중요한 것은 자네의 기질을 알고 그에 맞는 삶을 사는 것이니라. 물고기에게 나무를 오르라 하면 안 되듯, 자네의 십성 구조에 맞는 환경을 찾는 것이 지혜이니라."/>
-
-            <MansinDiv/>
-
-            {/* 건강 카드 */}
-            <div style={{background:ac+'0.03)',border:'1px solid '+ac+'0.08)',borderRadius:10,padding:'12px 14px',marginBottom:8}}>
-              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
-                <span style={{fontSize:16}}>💪</span>
-                <span style={{fontSize:13,fontWeight:700,color:mcc,fontFamily:"'Noto Serif KR',serif"}}>체력과 건강</span>
-                <span style={{marginLeft:'auto',fontSize:16,fontWeight:800,color:result.건강.점수>=70?'#6abf5a':result.건강.점수>=40?'#c8a050':'#d46050'}}>{result.건강.점수}</span>
-              </div>
-              {(result.건강.경고&&result.건강.경고.length>0?result.건강.경고:['전반적으로 양호']).map(function(t,i){return React.createElement('div',{key:i,style:{fontSize:11.5,lineHeight:1.8,color:'rgba(225,210,220,0.5)',paddingLeft:8,borderLeft:'2px solid '+ac+'0.1)',marginBottom:3}},t);})}
-            </div>
-
-            <CatAsk text="스승님, 건강에서 특히 조심해야 할 부분이 있나요?"/>
-            <MansinChat text={(function(){
-              var t='';var oh=result.오행;
-              if(oh.전무)oh.전무.forEach(function(o){
-                if(o==='목')t+='목(木) 전무 — 간(肝)·담(膽)·근육이 약하니라. 채소와 신맛 음식을 가까이하고 술을 조심하라.\n\n';
-                if(o==='화')t+='화(火) 부족 — 심장·소장·혈액 순환에 주의하라.\n\n';
-                if(o==='수')t+='수(水) 부족 — 신장·방광·귀에 주의하라.\n\n';
-              });
-              if(result.강약.indexOf('극신약')>=0)t+='극신약이니 기력이 항상 부족하느니라. 과로는 절대 금물이고, 규칙적인 생활과 충분한 수면이 가장 좋은 보약이니라.\n\n';
-              if(result.충&&result.충.length>0)t+='충이 있으니 관련 장부의 충돌에 주의하라. ';
-              t+='용신 '+result.용신+'의 기운을 보충하면 건강에도 도움이 되느니라.';
-              return t;
-            })()}/>
-
-            {premCats['타고난 나']&&premCats['타고난 나'].length>0&&(
-              <div style={{marginTop:14}}>
-                <MansinDiv/>
-                <div style={{fontSize:11,fontWeight:700,color:ac+'0.5)',marginBottom:8,fontFamily:"'Noto Serif KR',serif"}}>추가 서사 해설</div>
-                {premCats['타고난 나'].filter(function(b){return b.type!=='ilju';}).slice(0,3).map(function(block,i){
-                  return React.createElement(MansinAccordion,{key:'ps'+i,title:block.title||'해설',tag:block.tag||null,text:block.text||'',defaultOpen:false,index:i});
-                })}
-              </div>
-            )}
-          </div>
+        {curBlocks.length===0&&!premium&&(
+          <div style={{textAlign:'center',padding:'40px 0',color:'#4a3a60',fontSize:12}}>해당 항목이 사주에 없느니라.</div>
         )}
-
-        {/* ━━━ 심층 인간관계 ━━━ */}
-        {paidTab==='심층 인간관계'&&(
-          <div style={{animation:'fadeUp 0.4s ease'}}>
-            <MansinChat text="인연의 깊고 얕음을 사주의 궁성(宮星)으로 풀어주마.\n네 기둥이 각각 다른 인연을 말하느니라."/>
-
-            {/* 가족 카드 (고양이 파트 형식) */}
-            {['아버지','어머니','배우자','자식'].map(function(name,i){
-              var fam=result.가족[name];if(!fam)return null;
-              var icon=['👨‍👦','👩‍👦','💑','👶'][i];
-              return React.createElement('div',{key:'fam'+i},
-                React.createElement('div',{style:{background:ac+'0.03)',border:'1px solid '+ac+'0.08)',borderRadius:10,padding:'12px 14px',marginBottom:4}},
-                  React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:8}},
-                    React.createElement('span',{style:{fontSize:16}},icon),
-                    React.createElement('span',{style:{fontSize:13,fontWeight:700,color:mcc,fontFamily:"'Noto Serif KR',serif"}},name),
-                    React.createElement('span',{style:{marginLeft:'auto',fontSize:11,color:ac+'0.5)'}},fam.인연.등급)
-                  ),
-                  React.createElement('div',{style:{height:4,background:ac+'0.06)',borderRadius:2,marginBottom:6}},
-                    React.createElement('div',{style:{width:fam.인연.점수+'%',height:'100%',background:fam.인연.점수>=60?'#6abf5a':'#c8a050',borderRadius:2}})
-                  ),
-                  React.createElement('div',{style:{fontSize:10,color:ac+'0.4)',display:'flex',gap:12}},
-                    React.createElement('span',null,'인연 '+fam.인연.등급),
-                    React.createElement('span',null,'복덕 '+fam.복덕.등급)
-                  )
-                ),
-                i===0&&React.createElement(CatAsk,{key:'cq_fam',text:'스승님, '+name+' 인연이 '+fam.인연.등급+'이라는 건 어떤 뜻인가요?'}),
-                i===0&&React.createElement(MansinChat,{key:'ma_fam',text:(function(){
-                  var t=name+' 인연이 '+fam.인연.등급+'이니라. ';
-                  if(result.오행.전무&&result.오행.전무.indexOf('목')>=0)t+='인성(목)이 전무하니 어머니의 돌봄이 부족했거나 일찍 독립했을 수 있느니라. ';
-                  if(result.충&&result.충.some(function(c){return c.위치==='연월';}))t+='연월충이 있으니 부모 사이에 갈등이 있었을 수 있느니라. ';
-                  t+='복덕은 '+fam.복덕.등급+'이니, ';
-                  if(fam.복덕.등급==='복이 많음'||fam.복덕.등급==='보통 이상')t+='물질적으로는 부족함이 없었을 수 있느니라.';
-                  else t+='물질적 도움보다 정신적 유대가 중요하느니라.';
-                  return t;
-                })()}),
-                i===2&&React.createElement(CatAsk,{key:'cq_sp',text:'스승님, 배우자는 어떤 사람을 만나게 되나요?'}),
-                i===2&&React.createElement(MansinChat,{key:'ma_sp',text:(function(){
-                  var dj=result.일지;var djoh=지지oh[dj]||'토';
-                  var t='일지 '+한글음M[dj]+'('+dj+')가 배우자 자리이니라. '+djoh+'의 기운이니 ';
-                  if(djoh==='화')t+='열정적이고 카리스마 있는 배우자를 만나느니라. ';
-                  else if(djoh==='목')t+='인자하고 성장을 돕는 배우자를 만나느니라. ';
-                  else if(djoh==='토')t+='안정적이고 신뢰감 있는 배우자를 만나느니라. ';
-                  else if(djoh==='금')t+='원칙적이고 깔끔한 배우자를 만나느니라. ';
-                  else if(djoh==='수')t+='지적이고 유연한 배우자를 만나느니라. ';
-                  if(result.충&&result.충.some(function(c){return c.위치==='일시';}))t+='\n\n다만 일시충이 있어 결혼생활에 변동이 있을 수 있으니 양보가 필요하느니라.';
-                  return t;
-                })()})
-              );
-            })}
-
-            {premCats['인연과 사람']&&premCats['인연과 사람'].length>0&&(
-              <div style={{marginTop:14}}>
-                <MansinDiv/>
-                <div style={{fontSize:11,fontWeight:700,color:ac+'0.5)',marginBottom:8,fontFamily:"'Noto Serif KR',serif"}}>인연 서사 해설</div>
-                {premCats['인연과 사람'].map(function(block,i){
-                  return React.createElement(MansinAccordion,{key:'ir'+i,title:block.title||'해설',tag:block.tag||null,text:block.text||'',defaultOpen:i===0,index:i});
-                })}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ━━━ 심층 사회/운세 ━━━ */}
-        {paidTab==='심층 사회/운세'&&(
-          <div style={{animation:'fadeUp 0.4s ease'}}>
-            <MansinChat text="재물과 직업, 그리고 시간의 흐름을 읽어주마.\n대운을 눌러보면 세운 10년이 펼쳐지느니라."/>
-
-            {/* 사회 카드 (고양이 파트 형식) */}
-            {[
-              {name:'재물과 사업',icon:'💰',data:result.사회.재물},
-              {name:'직장과 명예',icon:'🏢',data:result.사회.직장},
-              {name:'인격과 학문',icon:'📚',data:result.사회.학문}
-            ].map(function(item,i){
-              return React.createElement('div',{key:'soc'+i},
-                React.createElement('div',{style:{background:ac+'0.03)',border:'1px solid '+ac+'0.08)',borderRadius:10,padding:'12px 14px',marginBottom:4}},
-                  React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:8}},
-                    React.createElement('span',{style:{fontSize:16}},item.icon),
-                    React.createElement('span',{style:{fontSize:13,fontWeight:700,color:mcc,fontFamily:"'Noto Serif KR',serif"}},item.name),
-                    React.createElement('span',{style:{marginLeft:'auto',fontSize:16,fontWeight:800,color:item.data.점수>=70?'#6abf5a':item.data.점수>=40?'#c8a050':'#d46050'}},item.data.점수)
-                  ),
-                  item.data.특징.map(function(t,j){return React.createElement('div',{key:j,style:{fontSize:11.5,lineHeight:1.8,color:'rgba(225,210,220,0.5)',paddingLeft:8,borderLeft:'2px solid '+ac+'0.1)',marginBottom:3}},t);})
-                ),
-                i===0&&React.createElement(CatAsk,{key:'cq_money',text:'스승님, 재물운을 높이려면 어떻게 해야 하나요?'}),
-                i===0&&React.createElement(MansinChat,{key:'ma_money',text:(function(){
-                  var ss=result.십성;var t='';
-                  if((ss.식신||0)+(ss.상관||0)>=1&&(ss.정재||0)+(ss.편재||0)>=1)t+='식상생재(食傷生財)의 흐름이 있으니 재능으로 돈을 버는 구조이니라. 기술, 예술, 교육 등 손재주를 쓰는 분야에서 재물이 따르느니라.\n\n';
-                  if((ss.겁재||0)>=2)t+='겁재가 강하니 투자 손실이나 사기에 주의하라.\n\n';
-                  t+='용신 '+result.용신+'이 오는 대운에서 재물의 문이 열리니, 그 전까지 실력을 쌓는 것이 상책이니라.';
-                  return t;
-                })()})
-              );
-            })}
-
-            <MansinDiv/>
-
-            {/* 대운 타임라인 + 세운 펼침 */}
-            <div style={{fontSize:11,fontWeight:700,color:ac+'0.5)',marginBottom:8,fontFamily:"'Noto Serif KR',serif"}}>대운 흐름 (클릭하면 세운 10년)</div>
-            <div style={{display:'flex',gap:4,overflowX:'auto',paddingBottom:6,marginBottom:8}}>
-              {daeunData.map(function(d,i){
-                var c=d.점수>=70?'#6abf5a':d.점수>=45?'#c8a050':'#d46050';
-                var isCur=i===curDaeunIdx;
-                return React.createElement('div',{key:'dw2'+i,onClick:function(){setPaidTab(paidTab);setExpandedDW(expandedDW===i?null:i);},style:{minWidth:50,textAlign:'center',padding:'6px 4px',background:isCur?ac+'0.1)':ac+'0.02)',border:isCur?'1px solid '+ac+'0.25)':'1px solid '+ac+'0.05)',borderRadius:8,flexShrink:0,cursor:'pointer',position:'relative'}},
-                  isCur&&React.createElement('div',{style:{position:'absolute',top:-6,left:'50%',transform:'translateX(-50%)',fontSize:7,background:ac+'0.6)',color:'#140810',borderRadius:4,padding:'1px 5px',fontWeight:800}},'현재'),
-                  React.createElement('div',{style:{fontSize:12,fontWeight:700,color:isCur?mcc:ac+'0.5)',fontFamily:"'Noto Serif KR',serif"}},d.간지),
-                  React.createElement('div',{style:{fontSize:8,color:ac+'0.3)'}},d.start+'~'+(d.start+9)+'세'),
-                  React.createElement('div',{style:{width:8,height:8,borderRadius:4,background:c,margin:'3px auto 0'}}),
-                  React.createElement('div',{style:{fontSize:7,color:ac+'0.2)',marginTop:1}},expandedDW===i?'▲':'▼')
-                );
-              })}
-            </div>
-
-            {/* 세운 펼침 (genPremium 년운 데이터 사용) */}
-            {expandedDW!==null&&pm&&pm.년운&&(
-              <div style={{background:ac+'0.03)',border:'1px solid '+ac+'0.08)',borderRadius:10,padding:12,marginBottom:12,animation:'fadeUp 0.3s ease'}}>
-                <div style={{fontSize:11,fontWeight:700,color:mcc,marginBottom:8,fontFamily:"'Noto Serif KR',serif"}}>{daeunData[expandedDW]?daeunData[expandedDW].간지:''} 대운 — 세운</div>
-                {pm.년운&&pm.년운.filter(function(y){
-                  var dw=daeunData[expandedDW];if(!dw)return false;
-                  return y.나이>=dw.start&&y.나이<dw.start+10;
-                }).map(function(y,i){
-                  var c=y.sc>=70?'#6abf5a':y.sc>=45?'#c8a050':'#d46050';
-                  return React.createElement('div',{key:'sw'+i,style:{display:'flex',alignItems:'center',gap:8,marginBottom:4}},
-                    React.createElement('div',{style:{width:36,fontSize:10,color:ac+'0.5)',fontWeight:600}},y.연도),
-                    React.createElement('div',{style:{width:28,fontSize:11,color:mcc,fontFamily:"'Noto Serif KR',serif"}},y.간지),
-                    React.createElement('div',{style:{flex:1,height:4,background:ac+'0.06)',borderRadius:2}},
-                      React.createElement('div',{style:{width:y.sc+'%',height:'100%',background:c,borderRadius:2}})
-                    ),
-                    React.createElement('div',{style:{width:20,fontSize:9,color:c,fontWeight:600,textAlign:'right'}},y.sc)
-                  );
-                })}
-              </div>
-            )}
-
-            {premCats['인생의 흐름']&&premCats['인생의 흐름'].length>0&&(
-              <div style={{marginTop:14}}>
-                <MansinDiv/>
-                <div style={{fontSize:11,fontWeight:700,color:ac+'0.5)',marginBottom:8,fontFamily:"'Noto Serif KR',serif"}}>운세 서사 해설</div>
-                {premCats['인생의 흐름'].map(function(block,i){
-                  return React.createElement(MansinAccordion,{key:'lf'+i,title:block.title||'해설',tag:block.tag||null,text:block.text||'',defaultOpen:i===0,index:i});
-                })}
-              </div>
-            )}
-          </div>
-        )}
-
+        <div style={{height:20}}/>
       </div>
-
-      {/* 하단 돌아가기 */}
-      <div style={{padding:'8px 16px 16px',flexShrink:0,textAlign:'center'}}>
-        <button onClick={function(){setCatNavStep(6);setPhase('catNav');}} style={{background:'transparent',border:'1px solid '+ac+'0.1)',borderRadius:8,padding:'8px 20px',fontSize:11,color:ac+'0.3)',cursor:'pointer',fontFamily:"'Noto Serif KR',serif"}}>돌아가기</button>
+      {/* 하단 */}
+      <div style={{padding:'12px 16px',borderTop:'1px solid rgba(160,120,200,0.06)',flexShrink:0}}>
+        {pidx<premCatKeys.length-1?(
+          <button onClick={function(){var nxt=premCatKeys[pidx+1];trackAct('premium_tab',{tab:nxt});setPaidTab(nxt);if(premiumScrollRef.current)premiumScrollRef.current.scrollTop=0;}} style={{width:'100%',padding:'13px',background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:10,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:"'Noto Serif KR',serif",boxShadow:'0 4px 16px rgba(100,60,180,0.2)'}}>
+            {'다음: '+premCatKeys[pidx+1]+' →'}
+          </button>
+        ):(
+          <div style={{display:'flex',flexDirection:'column',gap:8}}>
+            <button onClick={function(){setCatNavStep(0);setPhase('catNav');setTimeout(function(){setCatNavStep(1);},400);setTimeout(function(){setCatNavStep(2);},1600);setTimeout(function(){setCatNavStep(3);},3000);setTimeout(function(){setCatNavStep(4);},4400);setTimeout(function(){setCatNavStep(5);},6000);setTimeout(function(){setCatNavStep(6);},7600);}} style={{width:'100%',padding:'13px',background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:10,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:"'Noto Serif KR',serif",boxShadow:'0 4px 16px rgba(100,60,180,0.2)'}}>
+              다음 →
+            </button>
+            <button onClick={function(){setPhase('result');setResultTab(0);}} style={{width:'100%',background:'transparent',border:'1px solid rgba(160,120,200,0.1)',borderRadius:8,padding:'10px',fontSize:12,color:'#6050a0',cursor:'pointer'}}>고양이 결과로 돌아가기</button>
+          </div>
+        )}
       </div>
-
-      <style>{
-        '@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}'
-      }</style>
+      <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}div::-webkit-scrollbar{width:0;height:0;display:none;}`}</style>
     </div>
   );
   }
+
+  // ============================================================
+  // AI 심층해설 페이지 — 풀스크린 퀘스트 대화
+  // ============================================================
+  if(phase==='aiDetail'){
+    var rawText=aiCache[aiDetailKey]||'';
+    var isLoading=!!aiLoading&&!rawText;
+    var bubbles=makeBubbles(rawText, aiDetailTitle);
+
+    return(
+    <div style={{height:'100vh',overflowY:'auto',scrollSnapType:'y mandatory',WebkitOverflowScrolling:'touch',background:'radial-gradient(ellipse at 50% 10%,#1a1028,#08040a)',fontFamily:"'Noto Sans KR',sans-serif"}}>
+
+      {/* 로딩 화면 */}
+      {isLoading&&(
+        <div style={{height:'100vh',scrollSnapAlign:'start',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:32}}>
+          <BariMansin size={90}/>
+          <div style={{marginTop:20,textAlign:'center'}}>
+            <p style={{fontSize:14,lineHeight:1.9,color:'#c0b8d0'}}>흠... 천기를 살피는 중이니<br/>잠시 기다려라.</p>
+            <div style={{marginTop:12,width:80,height:3,background:'rgba(160,120,200,0.1)',borderRadius:2,overflow:'hidden',margin:'12px auto 0'}}>
+              <div style={{width:'100%',height:'100%',background:'linear-gradient(90deg,#8060c0,#d0b0ff)',animation:'loadBar 1.5s ease infinite'}}/>
+            </div>
+          </div>
+          <button onClick={function(){setPhase('premium');}} style={{marginTop:32,background:'transparent',border:'1px solid rgba(160,120,200,0.12)',borderRadius:8,padding:'8px 20px',fontSize:11,color:'#6050a0',cursor:'pointer'}}>돌아가기</button>
+        </div>
+      )}
+
+      {/* 에러 화면 */}
+      {!isLoading&&!rawText&&(
+        <div style={{height:'100vh',scrollSnapAlign:'start',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:32}}>
+          <BariMansin size={70}/>
+          <p style={{fontSize:14,color:'#a090c0',margin:'16px 0 6px'}}>천기를 읽는 데 방해가 있었느니라.</p>
+          {aiError&&<p style={{fontSize:10,color:'#6050a0',margin:'4px 24px 16px',wordBreak:'break-all',textAlign:'center',lineHeight:1.6}}>{aiError}</p>}
+          <div style={{display:'flex',gap:8}}>
+            <button onClick={retryAiDetail} style={{background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:8,padding:'10px 20px',fontSize:12,fontWeight:600,color:'#fff',cursor:'pointer'}}>다시 시도</button>
+            <button onClick={function(){setPhase('premium');}} style={{background:'transparent',border:'1px solid rgba(160,120,200,0.15)',borderRadius:8,padding:'10px 20px',fontSize:12,color:'#8070a0',cursor:'pointer'}}>돌아가기</button>
+          </div>
+        </div>
+      )}
+
+      {/* 대화 씬 */}
+      {bubbles.map(function(b, i) {
+        var isBari = b.who === 'bari';
+        var isLast = i === bubbles.length - 1;
+        return (
+          <div key={i} style={{
+            minHeight:'100vh',
+            scrollSnapAlign:'start',
+            display:'flex',
+            flexDirection:'column',
+            alignItems:'center',
+            justifyContent:'center',
+            padding:'40px 24px',
+            boxSizing:'border-box',
+            position:'relative',
+          }}>
+            {/* 배경 파티클 */}
+            {i<3&&<div style={{position:'absolute',top:0,left:0,right:0,bottom:0,pointerEvents:'none'}}>
+              <div style={{position:'absolute',top:'12%',left:'15%',width:4,height:4,borderRadius:2,background:isBari?'rgba(160,120,200,0.12)':'rgba(180,140,80,0.12)',animation:'float1 5s ease infinite'}}/>
+              <div style={{position:'absolute',bottom:'20%',right:'12%',width:3,height:3,borderRadius:2,background:isBari?'rgba(160,120,200,0.08)':'rgba(180,140,80,0.08)',animation:'float2 4s ease infinite'}}/>
+            </div>}
+
+            {/* 캐릭터 */}
+            <div style={{marginBottom:20,animation:'fadeUp 0.5s ease'}}>
+              {isBari ? <BariMansin size={80}/> : <CatFace size={70}/>}
+            </div>
+
+            {/* 말풍선 */}
+            <div style={{
+              maxWidth:340,
+              width:'100%',
+              background: isBari ? 'rgba(160,120,200,0.06)' : 'rgba(180,140,80,0.06)',
+              border: '1px solid ' + (isBari ? 'rgba(160,120,200,0.12)' : 'rgba(180,140,80,0.12)'),
+              borderRadius:16,
+              padding:'18px 20px',
+              position:'relative',
+              animation:'fadeUp 0.6s ease',
+            }}>
+              {/* 꼬리 */}
+              <div style={{position:'absolute',top:-8,left:'50%',marginLeft:-8,width:0,height:0,borderLeft:'8px solid transparent',borderRight:'8px solid transparent',borderBottom:'8px solid '+(isBari?'rgba(160,120,200,0.12)':'rgba(180,140,80,0.12)')}}/>
+              <div style={{
+                whiteSpace:'pre-wrap',
+                fontSize:13,
+                lineHeight:2.0,
+                color: isBari ? '#c8c0d8' : '#c0b8a0',
+                textAlign:'center',
+              }}>{isBari ? renderBoldText(b.text) : b.text}</div>
+            </div>
+
+            {/* 하단 안내 */}
+            {!isLast&&(
+              <div style={{marginTop:24,animation:'fadeUp 0.8s ease',opacity:0.4}}>
+                <div style={{fontSize:10,color:isBari?'#6050a0':'#5a5040',textAlign:'center'}}>↓ 스크롤</div>
+              </div>
+            )}
+
+            {/* 마지막: 출처 + 돌아가기 */}
+            {isLast&&(
+              <div style={{marginTop:24,textAlign:'center'}}>
+                <p style={{fontSize:9,color:'#4a3a60',fontStyle:'italic',margin:'0 0 16px'}}>
+                  자평진전 · 적천수 · 궁통보감 등 고전 명리서의 이론에 근거
+                </p>
+                <button onClick={function(){setPhase('premium');}} style={{background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:10,padding:'12px 32px',fontSize:13,fontWeight:600,color:'#fff',cursor:'pointer'}}>돌아가기</button>
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      <style>{'@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}@keyframes float1{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}@keyframes float2{0%,100%{transform:translateY(0) translateX(0)}50%{transform:translateY(-15px) translateX(8px)}}@keyframes loadBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}'}</style>
+    </div>
+  );}
+
+
+
+
+  // ============================================================
+  // 컷씬: 고양이 → 바리만신 바톤터치
+  // ============================================================
+
+  if(phase==='transition'&&result)return(
+    <div style={{minHeight:'100vh',background:'radial-gradient(ellipse at 50% 20%,#12080c,#08040a)',fontFamily:"'Noto Sans KR',sans-serif",padding:'60px 20px 40px',maxWidth:440,margin:'0 auto',textAlign:'center',overflowY:'auto'}}>
+
+      {/* Step 0: 고양이 등장 */}
+      <div style={{opacity:transStep>=0?1:0,transform:transStep>=0?'translateY(0) scale(1)':'translateY(60px) scale(0.5)',transition:'opacity 0.8s cubic-bezier(0.34,1.56,0.64,1),transform 0.8s cubic-bezier(0.34,1.56,0.64,1)',marginBottom:16}}>
+        <CatFace size={80}/>
+      </div>
+
+      {/* Step 1: 고양이 대사 */}
+      {transStep>=1&&(
+        <div style={{animation:'fadeUp 0.6s ease',marginBottom:32,maxWidth:320,margin:'0 auto 32px'}}>
+          <div style={{background:'rgba(180,140,80,0.06)',border:'1px solid rgba(180,140,80,0.15)',borderRadius:16,padding:'14px 18px',position:'relative'}}>
+            <div style={{position:'absolute',top:-8,left:'50%',marginLeft:-8,width:0,height:0,borderLeft:'8px solid transparent',borderRight:'8px solid transparent',borderBottom:'8px solid rgba(180,140,80,0.15)'}}/>
+            <p style={{fontSize:13,lineHeight:1.9,color:'#c0b8a0',margin:0}}>
+              스승님! 이 분의 사주를 봐드렸는데요...<br/>
+              <b style={{color:'#e8d5a8'}}>{result.일간}{result.일지}일주</b>, <b style={{color:'#e8d5a8'}}>{result.격국}</b>에 <b style={{color:'#e8d5a8'}}>{result.강약}</b>이에요.<br/>
+              제 실력으론 여기까지가 한계에요...
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Step 2: 바리만신 등장 */}
+      {transStep>=2&&(
+        <div style={{opacity:transStep>=2?1:0,transform:transStep>=2?'translateX(0) scale(1)':'translateX(80px) scale(0.5)',transition:'opacity 1s cubic-bezier(0.34,1.56,0.64,1),transform 1s cubic-bezier(0.34,1.56,0.64,1)',marginBottom:16,position:'relative'}}>
+          <div style={{position:'absolute',top:-20,left:'50%',marginLeft:-60,width:120,height:120,borderRadius:60,background:'radial-gradient(circle,rgba(160,120,200,0.15),transparent)',animation:'pulse 2s ease infinite'}}/>
+          <BariMansin size={100}/>
+        </div>
+      )}
+
+      {/* Step 3: 바리만신 대사 1 */}
+      {transStep>=3&&(
+        <div style={{animation:'fadeUp 0.6s ease',marginBottom:16,maxWidth:320,margin:'0 auto 16px'}}>
+          <div style={{background:'rgba(160,120,200,0.06)',border:'1px solid rgba(160,120,200,0.15)',borderRadius:16,padding:'14px 18px',position:'relative'}}>
+            <div style={{position:'absolute',top:-8,left:'50%',marginLeft:-8,width:0,height:0,borderLeft:'8px solid transparent',borderRight:'8px solid transparent',borderBottom:'8px solid rgba(160,120,200,0.15)'}}/>
+            <p style={{fontSize:13,lineHeight:1.9,color:'#c0b8d0',margin:0}}>
+              허허, 어디 보자꾸나...<br/>
+              <b style={{color:'#d0b0ff'}}>{result.일간}{result.일지}</b>라.
+              {result.강약==='신강'?' 기운이 넘치는 명식이로구나. 설기(洩氣)와 극제(克制)의 균형이 관건이겠구나.':' 기운이 약한 명식이니, 인성과 비겁의 도움이 절실하겠구나.'}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Step 4: 바리만신 대사 2 — 전문성 */}
+      {transStep>=4&&(
+        <div style={{animation:'fadeUp 0.6s ease',marginBottom:20,maxWidth:340,margin:'0 auto 20px'}}>
+          <div style={{background:'rgba(160,120,200,0.06)',border:'1px solid rgba(160,120,200,0.12)',borderRadius:16,padding:'14px 18px'}}>
+            <p style={{fontSize:13,lineHeight:1.9,color:'#c0b8d0',margin:0}}>
+              좋다. <b style={{color:'#d0b0ff'}}>자평진전(子平眞詮)</b>과 <b style={{color:'#d0b0ff'}}>적천수(滴天髓)</b>의 이치로,<br/>
+              합충형해파(合沖刑害破)를 낱낱이 살피고<br/>
+              <b style={{color:'#d0b0ff'}}>왕자충쇠(旺者沖衰)</b>의 원리로 대운의 흐름까지...<br/>
+              재물·건강·인연 모든 것을 밝혀주마.
+            </p>
+            <p style={{fontSize:9,color:'#6050a0',marginTop:8,marginBottom:0,fontStyle:'italic'}}>
+              자평진전 · 적천수 · 궁통보감 등 고전 명리서의 이론에 근거
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Step 5: 버튼 */}
+      {transStep>=5&&(
+        <div style={{animation:'fadeUp 0.8s ease',margin:'20px auto 0',maxWidth:320}}>
+          <div style={{fontSize:11,color:'#9080b0',lineHeight:1.7,margin:'0 0 12px'}}>
+            건강·성격·용모·사건사고·가족관계<br/>
+            재물·직업·적성 · 대운별 재물 흐름<br/>
+            <b>10년 년운 + 월운</b> 총 16개 항목
+          </div>
+          <button onClick={function(){
+            if(!result)return;
+            var p=genPremium(result,result.birthYear);
+            setPremium(p);
+            setPaidTab('타고난 나');
+            setPhase('premium');
+          }} style={{width:'100%',background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:10,padding:'15px',fontSize:15,fontWeight:700,color:'#fff',cursor:'pointer',boxShadow:'0 4px 20px rgba(100,60,180,0.4)',letterSpacing:1}}>
+            바리만신의 심층 해석 열기 🔮
+          </button>
+          <p style={{fontSize:9,color:'#4a3a60',marginTop:8}}>* 데모: 결제 없이 체험 · 실서비스 ₩3,000~₩10,000</p>
+          <button onClick={function(){setPhase('result');}} style={{marginTop:8,background:'transparent',border:'none',color:'#4a3a60',fontSize:10,cursor:'pointer',textDecoration:'underline'}}>돌아가기</button>
+        </div>
+      )}
+
+      <style>{
+        '@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}'
+        +'@keyframes float1{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}'
+        +'@keyframes float2{0%,100%{transform:translateY(0) translateX(0)}50%{transform:translateY(-15px) translateX(10px)}}'
+        +'@keyframes pulse{0%,100%{opacity:0.3;transform:scale(1)}50%{opacity:0.6;transform:scale(1.1)}}'
+      }</style>
+    </div>
+  );
 
   // ============================================================
   // 바리만신 채팅 초대 연출 (phase='chatInvite')
