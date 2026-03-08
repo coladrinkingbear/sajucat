@@ -3362,7 +3362,10 @@ export default function App(){
         <button onClick={function(){setCatNavStep(6);setPhase('catNav');}} style={{background:'transparent',border:'1px solid '+ac+'0.1)',borderRadius:8,padding:'10px 16px',fontSize:11,color:ac+'0.3)',cursor:'pointer',fontFamily:"'Noto Serif KR',serif"}}>돌아가기</button>
       </div>
 
-      <style>{'@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}div::-webkit-scrollbar{width:0;height:0;display:none}'}</style>
+      <style>{
+        '@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}'
+        +'div::-webkit-scrollbar{width:0;height:0;display:none}'
+      }</style>
     </div>
   );
   }
