@@ -3108,7 +3108,7 @@ export default function App(){
           </button>
         ):(
           <div style={{display:'flex',flexDirection:'column',gap:8}}>
-            <button onClick={function(){unlockPremium();setPaidTab('심층 사주원국');setMsChatInviteStep(0);setPhase('chatInvite');setTimeout(function(){setMsChatInviteStep(1);},500);setTimeout(function(){setMsChatInviteStep(2);},2000);setTimeout(function(){setMsChatInviteStep(3);},3500);setTimeout(function(){setMsChatInviteStep(4);},5000);trackAct('mansin_click');}} style={{width:'100%',padding:'14px',background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:10,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:"'Noto Serif KR',serif",boxShadow:'0 4px 20px rgba(100,60,180,0.3)',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+            <button onClick={function(){unlockPremium();setPaidTab('심층 사주원국');setPhase('premium');trackAct('mansin_click');}} style={{width:'100%',padding:'14px',background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:10,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:"'Noto Serif KR',serif",boxShadow:'0 4px 20px rgba(100,60,180,0.3)',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
               스승님의 심층 해석 받기
             </button>
             <button onClick={function(){setPhase('intro');setIntroStep(0);setResult(null);setPremium(null);setAiCache({});setDialogStep(0);setDialogMsgs([]);setResultTab(0);}} style={{width:'100%',background:'transparent',border:'1px solid rgba(180,140,80,0.1)',borderRadius:8,padding:'10px',fontSize:12,color:'#5a5040',cursor:'pointer'}}>다른 사주 보기</button>
@@ -3609,14 +3609,11 @@ export default function App(){
 
         {msChatInviteStep>=4&&(
           <div style={{animation:'fadeUp 0.6s ease',display:'flex',flexDirection:'column',gap:10,alignItems:'center'}}>
-            <button onClick={function(){setPhase('premium');}} style={{background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:22,padding:'14px 40px',fontSize:15,fontWeight:700,color:'#fff',cursor:'pointer',boxShadow:'0 4px 20px rgba(100,60,180,0.4)',letterSpacing:1}}>
-              🔮 심층 해석 보기
-            </button>
             <button onClick={function(){
               setMsChatMsgs([{role:'assistant',content:'허, '+result.일간+result.일지+' 일주... 내 눈에도 범상치 않은 사주로구나.\n궁금한 것이 있으면 물어보거라. 무엇이든 답해주리라.'}]);
               setPhase('mansinChat');
-            }} style={{background:'transparent',border:'1px solid rgba(130,100,200,0.2)',borderRadius:22,padding:'10px 30px',fontSize:13,fontWeight:600,color:'#c0b8d0',cursor:'pointer'}}>
-              바리만신과 1:1 대화하기
+            }} style={{background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:22,padding:'14px 40px',fontSize:15,fontWeight:700,color:'#fff',cursor:'pointer',boxShadow:'0 4px 20px rgba(100,60,180,0.4)',letterSpacing:1}}>
+              🔮 바리만신과 대화하기
             </button>
             <button onClick={function(){setCatNavStep(6);setCatNavLoading(null);setPhase('catNav');}} style={{background:'transparent',border:'none',color:'#5a5040',fontSize:11,cursor:'pointer',textDecoration:'underline'}}>돌아가기</button>
           </div>
