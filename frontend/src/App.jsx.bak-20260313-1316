@@ -313,15 +313,15 @@ function analyze(s){
   
   // ===== Phase 4: 대운 =====
   const dir=(천간음양[s.yg]==='양')===(gender==='남')?1:-1;
-  let 대운,대운시작나이val;
-  if(s.birthYear&&s.birthMonth&&s.birthDay){
-    var dResult=대운생성(s.mg,s.mj,s.yg,gender,s.birthYear,s.birthMonth,s.birthDay,일간);
-    대운시작나이val=dResult.시작나이;
-    대운=dResult.대운.map(function(d){return{간지:d.간지,천간십성:십성(일간,d.천간),지지십성:십성(일간,정기T[d.지지]),천간:d.천간,지지:d.지지,천간오행:천간오행[d.천간],지지오행:지지오행[d.지지],운성:d.운성,start:d.시작나이,시작:d.시작나이};});
-  }else{
-    대운시작나이val=s.대운시작나이||3;
-    대운=[];let gi2=천간.indexOf(s.mg),ji2=지지.indexOf(s.mj);
-    for(let i=0;i<10;i++){gi2=((gi2+dir)%10+10)%10;ji2=((ji2+dir)%12+12)%12;const g=천간[gi2],j=지지[ji2];const startAge=대운시작나이val+(i*10);대운.push({간지:g+j,천간십성:십성(일간,g),지지십성:십성(일간,정기T[j]),천간:g,지지:j,천간오행:천간오행[g],지지오행:지지오행[j],운성:calc운성(일간,j),start:startAge,시작:startAge});}
+  let gi=천간.indexOf(s.mg),ji=지지.indexOf(s.mj);
+  const 대운=[];
+  // 대운 시작나이 추정 (정확한 계산은 절기 거리 필요 — 여기선 근사치 사용)
+  var 대운시작나이=s.대운시작나이||3; // saju-core에서 넘어오면 사용, 아니면 기본 3세
+  for(let i=0;i<10;i++){
+    gi=((gi+dir)%10+10)%10;ji=((ji+dir)%12+12)%12;
+    const g=천간[gi],j=지지[ji];
+    const startAge=대운시작나이+(i*10);
+    대운.push({간지:g+j,천간십성:십성(일간,g),지지십성:십성(일간,정기T[j]),천간:g,지지:j,천간오행:천간오행[g],지지오행:지지오행[j],운성:calc운성(일간,j),start:startAge,시작:startAge});
   }
   // 대운 길흉 판정
   const 대운길흉결과=대운길흉(대운, 용신오행, 용신결과.기신, 일간, Z);
@@ -481,14 +481,9 @@ var EDU={
 직장:'직장·명예운은 **관성**(정관·편관)으로 보네. **정관**은 안정적인 직장·승진의 기운이고, **편관**은 외부 압박과 경쟁 속에서 성장하는 기운이네. 관성이 없으면 조직보다 자유업이 맞을 수 있지. **상관견관**이라는 구조가 있는데, 상관이 정관을 극하면 상사와 충돌하거나 이직이 잦을 수 있다는 뜻이네.',
 학문:'학문운은 **인성**(정인·편인)으로 보네. **정인**은 정통 학문·자격증·전문직에 유리하고, **편인**은 독특한 사고방식으로 특수 분야에 깊이 파고드는 기운이네. 인성이 사주에 있으면 배움에 대한 욕구가 강하고, 너무 많으면 **도식(倒食)**이라 해서 생각만 많고 행동이 느려질 수 있으니 균형이 중요하네.',
 진태양시:'고양이 사주명당은 **진태양시(眞太陽時)** 보정을 적용하네. 한국 표준시는 동경 135도(일본 아카시) 기준인데, 서울은 동경 127도라서 실제 태양 위치가 약 32분 느리지. **시주(時柱)**는 태양의 실제 위치가 기준이라 이 보정이 중요하네. 출생지에서 \"보정없음\"을 선택하면 보정 없는 결과가 나오네.',
-오행차이:'오행 비율을 정확하게 계산하는 데는 세 가지가 중요하네. 첫째, **진태양시 보정**으로 정확한 시주를 구해야 하네. 둘째, **지장간(支藏干)** 반영이네 — 각 지지 안에 숨은 천간이 2~3개 들어있는데, 고양이 사주명당은 전통 지장간 일수(日數)를 기반으로 비율을 계산하네. 셋째, **왕상휴수사** 보정이네. 태어난 월지의 계절에 따라 오행의 세기가 달라지는데, 辰戌丑未월은 토(土)가 왕한 토왕용사(土旺用事) 기간으로 별도 처리하네.',
+오행차이:'오행 비율이 다른 사이트와 다를 수 있는 이유가 있네. 첫째, **진태양시 보정**으로 시주가 달라질 수 있네. 둘째, **지장간(支藏干)** 반영이네 — 각 지지 안에 숨은 천간이 2~3개 들어있는데, 고양이 사주명당은 전통 지장간 일수(日數)를 기반으로 비율을 계산하네. 셋째, **왕상휴수사** 보정이네. 태어난 월지의 계절에 따라 오행의 세기가 달라지는데, 辰戌丑未월은 토(土)가 왕한 토왕용사(土旺用事) 기간으로 별도 처리하네. 사이트마다 이 계수가 달라 비율에 차이가 있을 수 있네.',
 강약격국:'사주를 볼 때 알아야 할 세 가지 핵심이네.\n**강약(强弱)**은 일간(나 자신)의 에너지가 강한지 약한지이네. 태어난 계절에 힘을 얻었으면 신강, 못 얻었으면 신약이지. 타고난 체력과 추진력의 크기라고 보면 되네.\n**격국(格局)**은 사주의 구조, 즉 어떤 타입의 인생인가를 보여주네. **비견격**은 독립·경쟁형, **겁재격**은 승부사·도전형, **식신격**은 재능·표현형, **상관격**은 창의·반골형, **정재격**은 안정·저축형, **편재격**은 사업·투자형, **정관격**은 조직·출세형, **편관격**은 개혁·돌파형, **정인격**은 학문·전문형, **편인격**은 독창·탐구형이네.\n**용신(用神)**은 사주의 불균형을 보완해주는 오행이네. 일간의 비타민 같은 존재라서 이 오행의 기운이 오는 시기에 운이 좋아지네.',
-신살설명:'**신살(神殺)**은 사주에 나타나는 특수한 기운이네. **✦ 길신**은 좋은 기운으로, 천을귀인이면 위기 때 도움이 오고 문창귀인이면 시험·학문에 유리하네. **✧ 흉신**은 주의할 기운으로, 양인이면 성격이 강렬해서 화를 부를 수 있고 겁살이면 뜻밖의 손실을 뜻하네. **○ 중립** 신살은 쓰기에 따라 달라지는데, 역마면 이동·변화가 많고 화개면 학문·종교·예술에 끌리는 기운이네.\n위치도 중요한데, **연지**는 조상·유년기, **월지**는 부모·청년기, **일지**는 나 자신·배우자, **시지**는 자녀·노년기에 해당하네.',
-통근설명:'**통근(通根)**이란 일간이 지지 속에 **뿌리를 내리고 있는지**를 보는 것이네. 지지 안에는 **지장간(支藏干)**이라는 숨은 천간이 2~3개 들어있는데, 이 중 일간과 같은 오행이 있으면 "통근했다"고 하네. 뿌리가 깊으면 일간이 강하고, 얕으면 약하네. 특히 **일지에 통근**하면 가중치가 1.5배라 매우 중요하네.',
-왕상설명:'**왕상휴수사(旺相休囚死)**는 태어난 계절에 따라 오행의 힘이 달라지는 원리이네. 예를 들어 봄에 태어나면 **목(木)**이 가장 강하고(旺), 화(火)가 그 다음(相)이네. 겨울생이면 **수(水)**가 왕(旺)이고 화(火)가 가장 약한 사(死) 상태이네. 이 계절 보정이 오행 비율과 강약 판정에 직접 영향을 주네.',
-합충설명:'**합(合)**은 기둥끼리 당기는 힘이네. 서로 다른 오행이 만나 **새로운 기운**을 만들어내는 것이네. 합이 있으면 인연이 깊고 조화로운 구조이네.\n**충(沖)**은 기둥끼리 부딪히는 힘이네. 子와 午, 寅과 申처럼 정반대 위치의 지지가 만나면 **변화와 갈등**이 생기네. 충이 많으면 인생에 파란이 많으나, 잘 쓰면 정체를 깨는 전환점이 되네.\n**형(刑)**은 벌의 기운, **해(害)**는 합을 방해하는 기운, **파(破)**는 깨지는 기운이네.',
-대운설명:'**대운(大運)**은 10년마다 바뀌는 큰 운의 흐름이네. 월주에서 출발해 순행 또는 역행하며 10개의 대운이 이어지네. 대운의 오행이 용신이면 좋고 기신이면 나쁜 시기이네.\n**세운(歲運)**은 매년 바뀌는 1년짜리 운이네. 올해의 천간·지지가 내 사주와 어떻게 부딪히고 합하는지를 보네.\n**월운(月運)**은 매달 바뀌는 운이네. 대운과 세운의 큰 틀 안에서 보조적으로 작용하네. 용신이 오는 달이 기회의 창이네.'
-
+신살설명:'**신살(神殺)**은 사주에 나타나는 특수한 기운이네. **✦ 길신**은 좋은 기운으로, 천을귀인이면 위기 때 도움이 오고 문창귀인이면 시험·학문에 유리하네. **✧ 흉신**은 주의할 기운으로, 양인이면 성격이 강렬해서 화를 부를 수 있고 겁살이면 뜻밖의 손실을 뜻하네. **○ 중립** 신살은 쓰기에 따라 달라지는데, 역마면 이동·변화가 많고 화개면 학문·종교·예술에 끌리는 기운이네.\n위치도 중요한데, **연지**는 조상·유년기, **월지**는 부모·청년기, **일지**는 나 자신·배우자, **시지**는 자녀·노년기에 해당하네.'
 };
 
 function FortuneBarNew({score,size}){
@@ -1812,7 +1807,6 @@ export default function App(){
             var f=data.form;
             setForm(f);
             var s=birthToSaju(f.year,f.month,f.day,f.hour,f.gender,f.city);
-            s.birthYear=f.year;s.birthMonth=f.month;s.birthDay=f.day;
             var a=analyze(s);
             setResult(Object.assign({},a,{birthYear:f.year,birthMonth:f.month,birthDay:f.day}));
             setPhase('result');
@@ -2085,7 +2079,6 @@ export default function App(){
     setPhase('loading');
     setTimeout(()=>{
       const s=birthToSaju(form.year,form.month,form.day,form.hour,form.gender,form.city);
-      s.birthYear=form.year;s.birthMonth=form.month;s.birthDay=form.day;
       const a=analyze(s);
       setResult({...a,birthYear:form.year,birthMonth:form.month,birthDay:form.day});
       saveSajuToServer(a);
@@ -2251,7 +2244,6 @@ export default function App(){
           setLoadStep(0);setPhase('loading');
           setTimeout(function(){
             var s=birthToSaju(lastSaju.year,lastSaju.month,lastSaju.day,lastSaju.hour,lastSaju.gender,lastSaju.city||127);
-            s.birthYear=lastSaju.year;s.birthMonth=lastSaju.month;s.birthDay=lastSaju.day;
             var a=analyze(s);
             setResult({...a,birthYear:lastSaju.year,birthMonth:lastSaju.month,birthDay:lastSaju.day});
             setPhase('result');
@@ -2266,7 +2258,6 @@ export default function App(){
           if(!lastSaju)return;
           setForm({year:lastSaju.year,month:lastSaju.month,day:lastSaju.day,hour:lastSaju.hour,gender:lastSaju.gender,city:lastSaju.city||127});
           var s=birthToSaju(lastSaju.year,lastSaju.month,lastSaju.day,lastSaju.hour,lastSaju.gender,lastSaju.city||127);
-          s.birthYear=lastSaju.year;s.birthMonth=lastSaju.month;s.birthDay=lastSaju.day;
           var a=analyze(s);
           setResult({...a,birthYear:lastSaju.year,birthMonth:lastSaju.month,birthDay:lastSaju.day});
           // 이전 대화 불러오기
@@ -2290,7 +2281,6 @@ export default function App(){
           if(!lastSaju)return;
           setForm({year:lastSaju.year,month:lastSaju.month,day:lastSaju.day,hour:lastSaju.hour,gender:lastSaju.gender,city:lastSaju.city||127});
           var s=birthToSaju(lastSaju.year,lastSaju.month,lastSaju.day,lastSaju.hour,lastSaju.gender,lastSaju.city||127);
-          s.birthYear=lastSaju.year;s.birthMonth=lastSaju.month;s.birthDay=lastSaju.day;
           var a=analyze(s);
           setResult({...a,birthYear:lastSaju.year,birthMonth:lastSaju.month,birthDay:lastSaju.day});
           var ym=getYeoninMatches(a.일간,lastSaju.gender);
@@ -2822,8 +2812,8 @@ export default function App(){
                 </div>
               );})}
             </EduBlock>
-            {/* 오행 비율 계산 방식 */}
-            <EduBlock title="오행 비율 계산 방식">
+            {/* 다른 사이트와 오행이 다른 이유 */}
+            <EduBlock title="다른 사이트와 오행 비율이 다른 이유">
               <EduText text={EDU.오행차이}/>
               {form.city!==135&&(<div style={{marginTop:8}}><EduText text={EDU.진태양시}/></div>)}
             </EduBlock>
@@ -2845,9 +2835,6 @@ export default function App(){
                 </div>
               );
             })()}
-            {/* 일간 성정 카드 */}
-            {(function(){var info=일간성정[result.일간];if(!info)return null;return React.createElement('div',{style:{background:'rgba(180,140,80,0.04)',border:'1px solid rgba(180,140,80,0.12)',borderRadius:14,padding:'16px',marginBottom:10}},React.createElement('div',{style:{display:'flex',alignItems:'center',gap:10,marginBottom:10}},React.createElement('div',{style:{width:42,height:42,borderRadius:12,background:'rgba(180,140,80,0.08)',border:'1px solid rgba(180,140,80,0.15)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,fontWeight:900,fontFamily:"'Noto Serif KR',serif",color:'#c8a85a'}},result.일간),React.createElement('div',null,React.createElement('div',{style:{fontSize:13,fontWeight:700,color:'#e8d5a8',fontFamily:"'Noto Serif KR',serif"}},info.물상+' — '+info.핵심),React.createElement('div',{style:{fontSize:10,color:'#8a7e6d'}},'오상: '+info.오상))),React.createElement('div',{style:{fontSize:12,lineHeight:2,color:'#a09880'}},info.설명));})()}
-            <EduBlock title="일간(日干)이란?"><EduText text="**일간**은 사주 8글자 중 **일주의 천간**으로, 바로 **나 자신**을 뜻하네. 甲부터 癸까지 10개 천간 중 하나가 일간이 되며, 각각 고유한 물상(物象)과 성정이 있네. 위의 설명이 자네 일간의 타고난 기질이네."/></EduBlock>
             {/* 신살 뱃지 */}
             <SectionDivider/>
             <SinsalBadges 신살={result.신살}/>
@@ -2856,8 +2843,6 @@ export default function App(){
             <SectionDivider/>
             {/* 대운 타임라인 */}
             <DaeunTimelineSimple 대운={result.대운} birthYear={result.birthYear}/>
-            {/* 종합서사 보강 블록 (특수조합, 충합서사, 공망, 오행전무/과다 등) */}
-            {(function(){try{var blocks=종합서사생성(result);var shown=['ilju','ilgan'];var extras=blocks.filter(function(b){return shown.indexOf(b.type)<0;});if(extras.length===0)return null;var typeColor={special:'#c8a85a',gangak:'#a09880',gyeokguk:'#b48c50',chung:'#d45050',hap:'#5aaa5a',cheongan_hap:'#5aaa5a',hyeong:'#d4a050',hae:'#8a70b0',pa:'#6a9ac4',gilsin:'#5aaa5a',hyungsin:'#d45050',neutral_sinsal:'#8a8a6a',gongmang:'#6a6a9a',oheng_zero:'#d07070',oheng_excess:'#c8a050',reversal:'#6abf5a',warning:'#d46050',daeun:'#b48c50',money:'#c8a050',family:'#a0a8c0'};return React.createElement('div',{style:{marginBottom:8}},extras.slice(0,12).map(function(b,i){var c=typeColor[b.type]||'#b48c50';return React.createElement('div',{key:'ns'+i,style:{padding:'10px 12px',marginBottom:4,background:c+'08',borderLeft:'3px solid '+c+'40',borderRadius:'0 8px 8px 0',animation:'fadeUp 0.4s ease both'}},b.title&&React.createElement('div',{style:{fontSize:11,fontWeight:700,color:c,marginBottom:3,fontFamily:"'Noto Serif KR',serif"}},b.title),React.createElement('div',{style:{fontSize:11.5,lineHeight:1.9,color:'#a09880'}},b.text));}));}catch(e){return null;}})()}
             {/* 특이 사항 (간략하게) */}
             {result.특이&&result.특이.length>0&&(
               <div style={{marginTop:8,marginBottom:12}}>
@@ -3277,8 +3262,6 @@ export default function App(){
               );
             })()}
             <MansinChat text={"자네의 사주 여덟 글자를 하나하나 읽어주마. 제자가 보여준 기본 위에, **왜 이런 구조가 되었는지** 그 뿌리를 밝혀주겠느니라."}/>
-            <EduBlock title="강약·격국·용신이 뭔가요?"><EduText text={EDU.강약격국}/></EduBlock>
-            <EduBlock title="통근(뿌리)이란?"><EduText text={EDU.통근설명}/></EduBlock>
             {/* 일주 서사 */}
             {(function(){var ilju=result.일간+result.일지;var ij=ILJU_NARRATIVE[ilju];if(!ij)return null;
               return React.createElement('div',{style:{background:'linear-gradient(135deg,'+ac+'0.06),'+ac+'0.02))',border:'1px solid '+ac+'0.12)',borderRadius:14,padding:'16px',marginBottom:10}},
@@ -3371,7 +3354,6 @@ export default function App(){
         {paidTab==='심층 개인성향'&&(
           <div style={{animation:'fadeUp 0.4s ease'}}>
             <MansinChat text="자네의 **오행 균형**과 **십성 배분**, 그리고 **타고난 기질과 건강**을 깊이 풀어주마."/>
-            <EduBlock title="오행과 왕상휴수사란?"><EduText text={EDU.왕상설명}/></EduBlock>
             {/* 오행 분포 */}
             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}><div style={{width:36,height:36,borderRadius:10,background:'#c8a85a10',border:'1px solid #c8a85a30',display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontSize:16,fontWeight:900,color:'#c8a85a'}}>行</span></div><div><div style={{fontSize:14,fontWeight:800,color:mcc,fontFamily:"'Noto Serif KR',serif"}}>오행(五行) 분포</div><div style={{fontSize:11,color:ac+'0.5)'}}>지장간 가중치 + 왕상휴수사 반영</div></div></div>
             <div style={{background:ac+'0.02)',border:'1px solid '+ac+'0.06)',borderRadius:12,padding:14,marginBottom:6}}>
@@ -3421,7 +3403,6 @@ export default function App(){
         {paidTab==='심층 인간관계'&&(
           <div style={{animation:'fadeUp 0.4s ease'}}>
             <MansinChat text="인연의 깊고 얕음을 사주의 **합충(合沖)**과 **궁성(宮星)**으로 풀어주마."/>
-            <EduBlock title="합충형해파(合沖刑害破)란?"><EduText text={EDU.합충설명}/></EduBlock>
             {/* 합충 다이어그램 */}
             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}><div style={{width:36,height:36,borderRadius:10,background:'#d4505010',border:'1px solid #d4505030',display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontSize:16,fontWeight:900,color:'#d45050'}}>{'沖'}</span></div><div><div style={{fontSize:14,fontWeight:800,color:mcc,fontFamily:"'Noto Serif KR',serif"}}>{'사주 관계도'}</div><div style={{fontSize:11,color:ac+'0.5)'}}>{'합충형해파(合沖刑害破)'}</div></div></div>
             {(function(){var ps=[{label:'시주',g:result.saju.hg,j:result.saju.hj},{label:'일주(나)',g:result.saju.dg,j:result.saju.dj},{label:'월주',g:result.saju.mg,j:result.saju.mj},{label:'연주',g:result.saju.yg,j:result.saju.yj}];var 충s=result.충||[];var 합s=result.합||[];var 천간합s=result.천간합||[];function Badge(props){return React.createElement('div',{style:{padding:'2px 6px',borderRadius:4,background:props.c+'15',border:'1px solid '+props.c+'40',fontSize:8,fontWeight:700,color:props.c}},props.t);}
@@ -3492,7 +3473,6 @@ export default function App(){
         {paidTab==='심층 사회/운세'&&(
           <div style={{animation:'fadeUp 0.4s ease'}}>
             <MansinChat text="**재물과 직업**, 그리고 **시간의 흐름**을 읽어주마. 언제 나아가고 멈출지 알려주겠느니라."/>
-            <EduBlock title="대운·세운·월운이란?"><EduText text={EDU.대운설명}/></EduBlock>
             {/* 재물/직장/학문 */}
             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}><div style={{width:36,height:36,borderRadius:10,background:'#c8a85a10',border:'1px solid #c8a85a30',display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontSize:16,fontWeight:900,color:'#c8a85a'}}>財</span></div><div><div style={{fontSize:14,fontWeight:800,color:mcc,fontFamily:"'Noto Serif KR',serif"}}>재물·직업·학문</div><div style={{fontSize:11,color:ac+'0.5)'}}>사회적 운의 세 축</div></div></div>
             {(function(){
@@ -3530,7 +3510,7 @@ export default function App(){
             {result.운성&&result.운성.length>0&&(function(){var cur=result.운성.find(function(u){return u.위치==='일지';});if(!cur)cur=result.운성[0];var info=십이운성해설[cur.운성];if(!info)return null;return React.createElement('div',{style:{background:ac+'0.03)',border:'1px solid '+ac+'0.06)',borderRadius:8,padding:'10px 12px',marginBottom:6}},React.createElement('div',{style:{display:'flex',alignItems:'center',gap:6,marginBottom:4}},React.createElement('span',{style:{fontSize:10,fontWeight:700,color:ac+'0.5)'}},'십이운성'),React.createElement('span',{style:{fontSize:12,fontWeight:800,color:mcc}},cur.운성)),React.createElement(BoldText,{text:info.해설}));})()}
             <MansinDiv/>
             {/* ── 올해 세운 ── */}
-            {(function(){var curYear=new Date().getFullYear();var sw=세운분석(curYear,result.일간,result.용신,result.용신상세?result.용신상세.기신:'',result.Z);var sc_c=sw.점수>=70?'#6abf5a':sw.점수>=45?'#c8a050':'#d46050';
+            {(function(){if(!pm||!pm.년운)return null;var curYear=new Date().getFullYear();var sw=pm.년운.find(function(y){return y.연도===curYear;});if(!sw)return null;var sc_c=sw.sc>=70?'#6abf5a':sw.sc>=45?'#c8a050':'#d46050';
               return React.createElement('div',null,
                 React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:10}},
                   React.createElement('div',{style:{width:36,height:36,borderRadius:10,background:'#c8a05010',border:'1px solid #c8a05030',display:'flex',alignItems:'center',justifyContent:'center'}},
@@ -3538,15 +3518,15 @@ export default function App(){
                   ),
                   React.createElement('div',null,
                     React.createElement('div',{style:{fontSize:14,fontWeight:800,color:mcc,fontFamily:"'Noto Serif KR',serif"}},'올해 세운 — '+curYear+'년'),
-                    React.createElement('div',{style:{fontSize:11,color:sc_c}},sw.등급+' · 점수 '+sw.점수)
+                    React.createElement('div',{style:{fontSize:11,color:sc_c}},sw.등급||'보통'+' · 점수 '+sw.sc)
                   )
                 ),
                 React.createElement('div',{style:{background:ac+'0.03)',border:'1px solid '+ac+'0.08)',borderRadius:12,padding:'12px 14px',marginBottom:6}},
                   React.createElement('div',{style:{fontSize:12,lineHeight:1.9,color:'rgba(225,210,220,0.55)',fontFamily:"'Noto Serif KR',serif",marginBottom:8}},
-                    (function(){var t='';var gss=sw.천간?십성(result.일간,sw.천간):'';var jss=sw.지지?십성(result.일간,정기T[sw.지지]):'';if(gss)t+='천간 **'+sw.천간+'('+gss+')**이 오는 해이니라. ';if(jss)t+='지지 **'+sw.지지+'('+jss+')**의 기운이 흐르느니라. ';if(sw.요소.length>0)t+=sw.요소.map(function(e){return '**'+e+'**';}).join('. ')+'. ';if(sw.점수>=70)t+='용신의 기운이 실리는 **좋은 해**이니 적극적으로 나아가도 좋으니라.';else if(sw.점수<=40)t+='기신의 기운이 있는 해이니 **신중하게** 움직여야 하느니라. 무리한 투자와 확장을 삼가라.';else t+='**보통의 해**이니라. 큰 변화보다 내실을 다지는 것이 현명하느니라.';return t;})()
+                    (function(){var t='';var yg=sw.간지?sw.간지[0]:'';var yj=sw.간지?sw.간지[1]:'';var gss=yg?십성(result.일간,yg):'';var jss=yj?십성(result.일간,정기T[yj]):'';if(gss)t+='천간 **'+yg+'('+gss+')**이 오는 해이니라. ';if(jss)t+='지지 **'+yj+'('+jss+')**의 기운이 흐르느니라. ';if(sw.sc>=70)t+='용신의 기운이 실리는 **좋은 해**이니 적극적으로 나아가도 좋으니라.';else if(sw.sc<=40)t+='기신의 기운이 있는 해이니 **신중하게** 움직여야 하느니라. 무리한 투자와 확장을 삼가라.';else t+='**보통의 해**이니라. 큰 변화보다 내실을 다지는 것이 현명하느니라.';return t;})()
                   ),
                   React.createElement('div',{style:{display:'flex',gap:6}},
-                    [{l:'상반기',v:sw.점수>=50?'기회 포착':'인내의 시기',c:sw.점수>=50?'#c8a050':'#d46050'},{l:'하반기',v:sw.점수>=60?'운기 상승':'안정 유지',c:sw.점수>=60?'#6abf5a':'#c8a050'},{l:'용신월',v:result.용신+'기운 월 공략',c:'#6abf5a'}].map(function(item,i){return React.createElement('div',{key:'sw3'+i,style:{flex:1,textAlign:'center',padding:'6px 4px',background:item.c+'10',borderRadius:6,border:'1px solid '+item.c+'25'}},React.createElement('div',{style:{fontSize:8,color:item.c,fontWeight:600,marginBottom:2}},item.l),React.createElement('div',{style:{fontSize:10,color:'rgba(225,210,220,0.5)'}},item.v));})
+                    [{l:'상반기',v:sw.sc>=50?'기회 포착':'인내의 시기',c:sw.sc>=50?'#c8a050':'#d46050'},{l:'하반기',v:sw.sc>=60?'운기 상승':'안정 유지',c:sw.sc>=60?'#6abf5a':'#c8a050'},{l:'용신월',v:result.용신+'기운 월 공략',c:'#6abf5a'}].map(function(item,i){return React.createElement('div',{key:'sw3'+i,style:{flex:1,textAlign:'center',padding:'6px 4px',background:item.c+'10',borderRadius:6,border:'1px solid '+item.c+'25'}},React.createElement('div',{style:{fontSize:8,color:item.c,fontWeight:600,marginBottom:2}},item.l),React.createElement('div',{style:{fontSize:10,color:'rgba(225,210,220,0.5)'}},item.v));})
                   )
                 ),
                 React.createElement(MansinDiv,null)
@@ -3556,7 +3536,7 @@ export default function App(){
             <MansinChat text={(function(){var gi=result.용신상세?result.용신상세.기신:'';var yo=result.용신||'';var t='';if(gi)t+='**기신 '+gi+'**이 강해지는 달에 주의해야 하느니라. ';t+='반면 **용신 '+yo+'**이 오는 달은 기회의 창이니 놓치지 마라. ';t+='특히 **용신 기운이 오는 2~3개월**을 노려서 중요한 결정이나 새로운 시도를 하는 것이 현명하느니라. 기신이 강한 달에는 방어적으로 움직이되, 그 시기가 지나면 반드시 **반등의 시기**가 오느니라.';return t;})()}/>
             <MansinDiv/>
             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}><div style={{width:36,height:36,borderRadius:10,background:ac+'0.06)',border:'1px solid '+ac+'0.12)',display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontSize:16,fontWeight:900,color:ac+'0.6)'}}>{'月'}</span></div><div><div style={{fontSize:14,fontWeight:800,color:mcc,fontFamily:"'Noto Serif KR',serif"}}>{'12월운'}</div><div style={{fontSize:11,color:ac+'0.5)'}}>{'월별 기운의 흐름'}</div></div></div>
-            {(function(){var curYear=new Date().getFullYear();var months=월운생성(curYear,result.일간,result.용신,result.용신상세?result.용신상세.기신:'');return React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:5,marginBottom:6}},months.map(function(m,i){var c=m.등급==='길'?'#6abf5a':m.등급==='흉'?'#d46050':'#c8a050';var hint=m.등급==='길'?'용신 기운 '+m.점수+'점':m.등급==='흉'?'기신 기운 '+m.점수+'점':m.점수+'점';return React.createElement('div',{key:'mw'+i,style:{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'7px 10px',background:ac+'0.02)',borderRadius:6,border:'1px solid '+c+'15'}},React.createElement('div',{style:{fontSize:10,color:ac+'0.5)',fontWeight:600}},m.이름+' '+m.간지),React.createElement('div',{style:{fontSize:10,color:c,fontWeight:700}},hint));}));})()}
+            {(function(){var months=월운해설생성('',result.일간,result.용신,result.용신상세?result.용신상세.기신:'');return React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:5,marginBottom:6}},months.map(function(m,i){var c=m.등급==='길'?'#6abf5a':m.등급==='흉'?'#d46050':'#c8a050';var hint=m.등급==='길'?'용신 '+m.오행+' 기회':m.등급==='흉'?'기신 '+m.오행+' 주의':m.오행+' 평온';return React.createElement('div',{key:'mw'+i,style:{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'7px 10px',background:ac+'0.02)',borderRadius:6,border:'1px solid '+c+'15'}},React.createElement('div',{style:{fontSize:10,color:ac+'0.5)',fontWeight:600}},m.이름),React.createElement('div',{style:{fontSize:10,color:c,fontWeight:700}},hint));}));})()}
             <MansinChat text={'월운은 대략적인 흐름이니 **절대적이지 않느니라**. 대운과 세운의 큰 틀 안에서 월운이 보조적으로 작용하느니라. **용신 '+result.용신+'**이 오는 달이 편안하고, **기신**이 오는 달이 가장 조심할 시기이니라. 다만 흉월이라 해서 가만히 있으라는 뜻이 아니니라. **방어적으로 움직이되 내실을 다지는 시간**으로 삼으라.'}/>
             {/* 인생 조망 */}
             <MansinDiv/>
