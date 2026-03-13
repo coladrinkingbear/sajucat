@@ -607,38 +607,20 @@ function SinsalBadges({신살}){
 function DaeunTimelineSimple({대운,birthYear}){
   if(!대운||!대운.length)return null;
   var now=new Date().getFullYear();
-  var curIdx=대운.findIndex(function(d){var age=d.start||d.시작||0;var yr=birthYear+age;return now>=yr&&now<yr+10;});
-  if(curIdx<0)curIdx=0;
-  var cur=대운[curIdx];var curAge=cur.start||cur.시작||0;var curYr=birthYear+curAge;
-  var prev=curIdx>0?대운[curIdx-1]:null;
-  var next=curIdx<대운.length-1?대운[curIdx+1]:null;
-  var nextNext=curIdx<대운.length-2?대운[curIdx+2]:null;
   return React.createElement('div',{style:{marginBottom:14}},
-    React.createElement('div',{style:{fontSize:10,fontWeight:600,color:'#6a6050',marginBottom:8,letterSpacing:1}},'대운 흐름'),
-    React.createElement('div',{style:{display:'flex',alignItems:'stretch',gap:6}},
-      prev&&React.createElement('div',{style:{flex:'0 0 50px',textAlign:'center',padding:'8px 2px',background:'rgba(180,140,80,0.03)',borderRadius:8,border:'1px solid rgba(180,140,80,0.06)',opacity:0.5}},
-        React.createElement('div',{style:{fontSize:11,color:'#6a6050',fontFamily:"'Noto Serif KR',serif"}},prev.간지),
-        React.createElement('div',{style:{fontSize:8,color:'#4a4030',marginTop:2}},(prev.start||prev.시작)+'대')
-      ),
-      React.createElement('div',{style:{flex:1,textAlign:'center',padding:'12px 8px',background:'linear-gradient(135deg,rgba(180,140,80,0.15),rgba(180,140,80,0.05))',borderRadius:12,border:'1.5px solid rgba(180,140,80,0.3)',position:'relative'}},
-        React.createElement('div',{style:{position:'absolute',top:-8,left:'50%',transform:'translateX(-50%)',fontSize:8,background:'#c8a85a',color:'#14110c',borderRadius:4,padding:'1px 8px',fontWeight:800}},'현재 대운'),
-        React.createElement('div',{style:{fontSize:22,fontWeight:900,color:'#e8d5a8',fontFamily:"'Noto Serif KR',serif",marginTop:4}},cur.간지),
-        React.createElement('div',{style:{fontSize:11,color:'#c0b8a0',marginTop:4,fontWeight:600}},curAge+'~'+(curAge+9)+'세 ('+curYr+'~'+(curYr+9)+')'),
-        cur.천간십성&&React.createElement('div',{style:{display:'flex',justifyContent:'center',gap:8,marginTop:6}},
-          React.createElement('span',{style:{fontSize:9,padding:'2px 8px',background:'rgba(180,140,80,0.1)',borderRadius:4,color:'#c8a85a'}},cur.천간십성),
-          cur.지지십성&&React.createElement('span',{style:{fontSize:9,padding:'2px 8px',background:'rgba(180,140,80,0.1)',borderRadius:4,color:'#c8a85a'}},cur.지지십성)
-        )
-      ),
-      React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:4,flex:'0 0 50px'}},
-        next&&React.createElement('div',{style:{flex:1,textAlign:'center',padding:'6px 2px',background:'rgba(180,140,80,0.03)',borderRadius:8,border:'1px solid rgba(180,140,80,0.06)'}},
-          React.createElement('div',{style:{fontSize:11,color:'#8a7e6d',fontFamily:"'Noto Serif KR',serif"}},next.간지),
-          React.createElement('div',{style:{fontSize:8,color:'#4a4030'}},(next.start||next.시작)+'대')
-        ),
-        nextNext&&React.createElement('div',{style:{flex:1,textAlign:'center',padding:'6px 2px',background:'rgba(180,140,80,0.03)',borderRadius:8,border:'1px solid rgba(180,140,80,0.06)',opacity:0.5}},
-          React.createElement('div',{style:{fontSize:11,color:'#6a6050',fontFamily:"'Noto Serif KR',serif"}},nextNext.간지),
-          React.createElement('div',{style:{fontSize:8,color:'#4a4030'}},(nextNext.start||nextNext.시작)+'대')
-        )
-      )
+    React.createElement('div',{style:{fontSize:10,fontWeight:600,color:'#6a6050',marginBottom:10,letterSpacing:1}},'대운 흐름'),
+    React.createElement('div',{style:{display:'flex',gap:4,overflowX:'auto',paddingBottom:4}},
+      대운.map(function(d,i){
+        var age=d.start||d.시작||0;
+        var yr=birthYear+age;
+        var cur=now>=yr&&now<yr+10;
+        return React.createElement('div',{key:i,style:{minWidth:52,textAlign:'center',padding:'8px 4px',background:cur?'rgba(180,140,80,0.12)':'rgba(180,140,80,0.03)',border:cur?'1px solid rgba(180,140,80,0.3)':'1px solid rgba(180,140,80,0.06)',borderRadius:8,position:'relative',flexShrink:0}},
+          cur&&React.createElement('div',{style:{position:'absolute',top:-6,left:'50%',transform:'translateX(-50%)',fontSize:7,background:'#c8a85a',color:'#14110c',borderRadius:4,padding:'1px 5px',fontWeight:800,whiteSpace:'nowrap'}},'현재'),
+          React.createElement('div',{style:{fontSize:13,fontWeight:700,color:cur?'#e8d5a8':'#8a7e6d',fontFamily:"'Noto Serif KR',serif"}},d.간지),
+          React.createElement('div',{style:{fontSize:9,color:'#5a5040',marginTop:2}},age+'~'+(age+9)+'세'),
+          React.createElement('div',{style:{fontSize:8,color:'#4a4030'}},yr+'~')
+        );
+      })
     )
   );
 }
@@ -2874,13 +2856,13 @@ export default function App(){
             <SectionDivider/>
             {/* 대운 타임라인 */}
             <DaeunTimelineSimple 대운={result.대운} birthYear={result.birthYear}/>
-            {/* 종합서사 핵심 인사이트 (간결하게) */}
-            {(function(){try{var blocks=종합서사생성(result);var dominated=['ilju','ilgan','gilsin','hyungsin','neutral_sinsal'];var extras=blocks.filter(function(b){return dominated.indexOf(b.type)<0&&b.title;});if(extras.length===0)return null;var typeIcon={special:'\u2728',gangak:'\u2696',gyeokguk:'\u25C8',chung:'\u26A1',hap:'\u2661',cheongan_hap:'\u2661',hyeong:'\u26A0',hae:'\u2637',pa:'\u2702',gongmang:'\u25CC',oheng_zero:'\u2716',oheng_excess:'\u25B2',reversal:'\u2600',warning:'\u26D4'};var typeColor={special:'#c8a85a',gangak:'#a09880',gyeokguk:'#b48c50',chung:'#d45050',hap:'#5aaa5a',cheongan_hap:'#5aaa5a',hyeong:'#d4a050',gilsin:'#5aaa5a',hyungsin:'#d45050',gongmang:'#6a6a9a',oheng_zero:'#d07070',oheng_excess:'#c8a050',reversal:'#6abf5a',warning:'#d46050'};return React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,marginBottom:10}},extras.slice(0,6).map(function(b,i){var c=typeColor[b.type]||'#b48c50';var ic=typeIcon[b.type]||'▸';var shortText=b.text.length>40?b.text.substring(0,40)+'...':b.text;return React.createElement('div',{key:'ni'+i,style:{padding:'10px',background:c+'08',border:'1px solid '+c+'20',borderRadius:10}},React.createElement('div',{style:{display:'flex',alignItems:'center',gap:4,marginBottom:4}},React.createElement('span',{style:{fontSize:12}},ic),React.createElement('span',{style:{fontSize:11,fontWeight:700,color:c,fontFamily:"'Noto Serif KR',serif",lineHeight:1.3}},b.title)),React.createElement('div',{style:{fontSize:10,color:'#a09880',lineHeight:1.6}},shortText));}));}catch(e){return null;}})()}
-            {/* 특이 사항 (콤팩트 뱃지) */}
+            {/* 종합서사 보강 블록 (특수조합, 충합서사, 공망, 오행전무/과다 등) */}
+            {(function(){try{var blocks=종합서사생성(result);var shown=['ilju','ilgan'];var extras=blocks.filter(function(b){return shown.indexOf(b.type)<0;});if(extras.length===0)return null;var typeColor={special:'#c8a85a',gangak:'#a09880',gyeokguk:'#b48c50',chung:'#d45050',hap:'#5aaa5a',cheongan_hap:'#5aaa5a',hyeong:'#d4a050',hae:'#8a70b0',pa:'#6a9ac4',gilsin:'#5aaa5a',hyungsin:'#d45050',neutral_sinsal:'#8a8a6a',gongmang:'#6a6a9a',oheng_zero:'#d07070',oheng_excess:'#c8a050',reversal:'#6abf5a',warning:'#d46050',daeun:'#b48c50',money:'#c8a050',family:'#a0a8c0'};return React.createElement('div',{style:{marginBottom:8}},extras.slice(0,12).map(function(b,i){var c=typeColor[b.type]||'#b48c50';return React.createElement('div',{key:'ns'+i,style:{padding:'10px 12px',marginBottom:4,background:c+'08',borderLeft:'3px solid '+c+'40',borderRadius:'0 8px 8px 0',animation:'fadeUp 0.4s ease both'}},b.title&&React.createElement('div',{style:{fontSize:11,fontWeight:700,color:c,marginBottom:3,fontFamily:"'Noto Serif KR',serif"}},b.title),React.createElement('div',{style:{fontSize:11.5,lineHeight:1.9,color:'#a09880'}},b.text));}));}catch(e){return null;}})()}
+            {/* 특이 사항 (간략하게) */}
             {result.특이&&result.특이.length>0&&(
-              <div style={{display:'flex',flexWrap:'wrap',gap:4,marginTop:8,marginBottom:12}}>
-                {result.특이.slice(0,8).map(function(t,i){var isChung=t.indexOf('충')>=0;var isHap=t.indexOf('합')>=0;var c=isChung?'#d45050':isHap?'#5aaa5a':'#8a7e6d';return(
-                  <div key={i} style={{fontSize:10,lineHeight:1.5,color:c,padding:'4px 10px',background:c+'08',border:'1px solid '+c+'20',borderRadius:6,fontWeight:600}}>{t.split(' — ')[0]}</div>
+              <div style={{marginTop:8,marginBottom:12}}>
+                {result.특이.map(function(t,i){return(
+                  <div key={i} style={{fontSize:11.5,lineHeight:1.8,color:'#a09880',padding:'6px 10px',marginBottom:4,background:'rgba(180,140,80,0.03)',borderLeft:'2px solid rgba(180,140,80,0.2)',borderRadius:'0 6px 6px 0'}}>{t}</div>
                 );})}
               </div>
             )}
