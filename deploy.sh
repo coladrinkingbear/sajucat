@@ -6,9 +6,13 @@ set -e
 cd "$(dirname "$0")"
 MSG=${1:-"deploy: $(date +%Y%m%d-%H%M)"}
 
+# 토큰은 .env에서만 읽음 (깃에 안 올라감)
+source ./.env
+[ -z "$GITHUB_TOKEN" ] && echo ".env에 GITHUB_TOKEN이 없습니다" && exit 1
+
 git add -A
 git diff --cached --quiet || git commit -m "$MSG"
-git push origin master
+git push "https://coladrinkingbear:${GITHUB_TOKEN}@github.com/coladrinkingbear/sajucat.git" master
 
 ssh jupvps bash -s << 'REMOTE'
 set -e
