@@ -188,6 +188,40 @@ function findCurrentJeolgi(birthNumeric) {
   return null;
 }
 
+/**
+ * 주어진 birthNumeric 직후(초과)의 절기를 찾는다
+ */
+function findNextJeolgi(birthNumeric) {
+  const birthYear = Math.floor(birthNumeric / 100000000);
+
+  if (birthYear >= KASI_MIN_YEAR && birthYear <= KASI_MAX_YEAR) {
+    for (let i = 0; i < KASI_TL.length; i++) {
+      if (KASI_TL[i].numericTime > birthNumeric) return KASI_TL[i];
+    }
+    // KASI 마지막 이벤트 이후 → 이듬해 소한을 astro로
+    return calcJeolgiByAstro(birthYear + 1, '소한');
+  }
+
+  const candidates = [
+    ...getYearJeolgiByAstro(birthYear),
+    ...getYearJeolgiByAstro(birthYear + 1),
+  ].sort((a, b) => a.numericTime - b.numericTime);
+
+  for (const c of candidates) {
+    if (c.numericTime > birthNumeric) return c;
+  }
+  return null;
+}
+
+/**
+ * 출생 시각 전후의 절기 (대운수 계산용)
+ * @returns {{ prev, next }} — 각각 { year, month, day, hour, minute, ... } 또는 null
+ */
+export function findPrevNextJeolgi(year, month, day, hour = 12, minute = 0) {
+  const birthNumeric = year * 100000000 + month * 1000000 + day * 10000 + hour * 100 + minute;
+  return { prev: findCurrentJeolgi(birthNumeric), next: findNextJeolgi(birthNumeric) };
+}
+
 // ============================================================
 // 연주 (年柱)
 // ============================================================

@@ -20,7 +20,7 @@ const 오행색={'목':'#4a8a4a','화':'#c44040','토':'#b48c50','금':'#8a8a8a'
 const 상생={'목':'화','화':'토','토':'금','금':'수','수':'목'};
 const 상극={'목':'토','토':'수','수':'화','화':'금','금':'목'};
 const 정기T={'子':'癸','丑':'己','寅':'甲','卯':'乙','辰':'戊','巳':'丙','午':'丁','未':'己','申':'庚','酉':'辛','戌':'戊','亥':'壬'};
-const 지장간T={'子':['壬','癸'],'丑':['癸','辛','己'],'寅':['戊','丙','甲'],'卯':['甲','乙'],'辰':['乙','癸','戊'],'巳':['戊','庚','丙'],'午':['丙','己','丁'],'未':['丁','乙','己'],'申':['己','壬','庚'],'酉':['庚','辛'],'戌':['辛','丁','戊'],'亥':['戊','甲','壬']};
+const 지장간T={'子':['壬','癸'],'丑':['癸','辛','己'],'寅':['戊','丙','甲'],'卯':['甲','乙'],'辰':['乙','癸','戊'],'巳':['戊','庚','丙'],'午':['丙','己','丁'],'未':['丁','乙','己'],'申':['戊','壬','庚'],'酉':['庚','辛'],'戌':['辛','丁','戊'],'亥':['戊','甲','壬']};
 
 function 십성(일간,대상){
   const a=천간오행[일간],b=천간오행[대상],s=천간음양[일간]===천간음양[대상];
@@ -50,15 +50,17 @@ function birthToSaju(year,month,day,hour,gender,longitude){
     const s=calculateSaju(year,month,day,12,0);
     return{yg:s.연주.천간,yj:s.연주.지지,mg:s.월주.천간,mj:s.월주.지지,dg:s.일주.천간,dj:s.일주.지지,hg:'?',hj:'?',gender:gender||'남'};
   }
-  // 진태양시 보정 — 시주 판정에만 사용, 일주/월주/연주는 원래 양력 날짜 유지
+  // 진태양시 보정 — 시주 판정에만 적용.
+  // 연·월·일주의 절기 경계 판정은 KST 표준시 기준이어야 함 (KASI 절기 시각이 KST라서
+  // 보정 시각을 넣으면 절기 당일 ±32분 구간에서 연주/월주가 뒤집힘)
   let adjHour=hour,adjMinute=0;
   if(longitude&&longitude!==135){
     const corr=applyTrueSolarTime(hour,0,longitude);
     adjHour=corr.hour;adjMinute=corr.minute;
-    // dayOffset 무시 — 날짜는 원래 양력 기준
   }
-  const s=calculateSaju(year,month,day,adjHour,adjMinute);
-  return{yg:s.연주.천간,yj:s.연주.지지,mg:s.월주.천간,mj:s.월주.지지,dg:s.일주.천간,dj:s.일주.지지,hg:s.시주.천간,hj:s.시주.지지,gender:gender||'남'};
+  const s=calculateSaju(year,month,day,hour,0);
+  const hp=(adjHour===hour&&adjMinute===0)?s.시주:calculateSaju(year,month,day,adjHour,adjMinute).시주;
+  return{yg:s.연주.천간,yj:s.연주.지지,mg:s.월주.천간,mj:s.월주.지지,dg:s.일주.천간,dj:s.일주.지지,hg:hp.천간,hj:hp.지지,gender:gender||'남'};
 }
 
 // 바리만신 말투 변환 (존댓말→무당체)
@@ -91,9 +93,14 @@ const CHUNG_NARR={'자오충':'삶에 극적인 전환점이 오는 사주이네
 const HAP_NARR={'자축합':'안정과 결속의 기운이 강하네. 신뢰할 수 있는 파트너를 만나면 시너지가 폭발하네.','인해합':'봉사와 출세를 동시에 추구하는 기운이네.','묘술합':'재적 성취를 향한 강한 추진력이 있네.','진유합':'문학과 예술적 감각이 뛰어나네.','사신합':'지혜와 활동력의 조합이네. 수완이 좋고 대인관계에서 유리하네.','오미합':'태양과 대지의 만남처럼 풍요롭고 따뜻한 기운이네. 가정에 복이 있네.'};
 function generateNarrative(r){var b=[];var ilju=r.일간+r.일지;var ij=ILJU_NARRATIVE[ilju];if(ij)b.push({type:'ilju',title:'✦ '+ilju+'일주 — '+ij.title,text:ij.desc});var gn=GANGYA_NARR[r.강약];if(gn)b.push({type:'gangya',text:gn.p+' '+gn.c});if(r.격국&&GYEOKGUK_NARR[r.격국])b.push({type:'gyeokguk',title:r.격국,text:GYEOKGUK_NARR[r.격국]});var ss=r.십성;if(r.강약==='신약'&&(ss.정재+ss.편재)>=3)b.push({type:'special',text:'재물이 많이 보이지만 잡기 어려운 형국이네. 용신 대운이 오면 한번에 크게 잡을 수 있네.'});if(ss.정관>=1&&ss.편관>=1)b.push({type:'special',text:'관살혼잡의 구조이네. 여러 갈래의 압박이 있지만, 극복하면 큰 성취가 가능하네.'});if((ss.식신+ss.상관)>=1&&(ss.정재+ss.편재)>=1)b.push({type:'special',text:'식상생재의 흐름이 있네. 재능으로 돈을 버는 구조이네.'});if(ss.편관>=1&&(ss.정인+ss.편인)>=1)b.push({type:'special',text:'살인상생의 좋은 구조이네. 외부의 압력을 학문과 지혜로 승화시키는 힘이 있네.'});if((ss.정재+ss.편재)>=1&&(ss.정관+ss.편관)>=1&&r.강약==='신강')b.push({type:'special',text:'재관이 함께 있고 일간이 강해서 재물과 명예를 동시에 쥘 수 있는 팔자이네.'});if(r.충)r.충.forEach(function(c){var j1=c.지1,j2=c.지2;var jmap={'子':'자','丑':'축','寅':'인','卯':'묘','辰':'진','巳':'사','午':'오','未':'미','申':'신','酉':'유','戌':'술','亥':'해'};var k=(jmap[j1]||'')+(jmap[j2]||'')+'충';if(CHUNG_NARR[k])b.push({type:'chung',text:CHUNG_NARR[k]});});if(r.합)r.합.forEach(function(h){var hs=typeof h==='string'?h:'';Object.keys(HAP_NARR).forEach(function(k){var hj={'자':'子','축':'丑','인':'寅','묘':'卯','진':'辰','사':'巳','오':'午','미':'未','신':'申','유':'酉','술':'戌','해':'亥'};var c1=hj[k[0]],c2=hj[k[1]];if(c1&&c2&&hs.includes(c1)&&hs.includes(c2))b.push({type:'hap',text:HAP_NARR[k]});});});if(r.대운&&r.대운.length>0){var yoh=r.용신;var goh={'甲':'목','乙':'목','丙':'화','丁':'화','戊':'토','己':'토','庚':'금','辛':'금','壬':'수','癸':'수'};for(var i=0;i<r.대운.length;i++){var dw=r.대운[i];var tc=dw.간지?dw.간지[0]:'';if(tc&&goh[tc]===yoh){var age=(i+1)*10;b.push({type:'reversal',text:age+'대 무렵('+dw.간지+' 대운)에 용신 '+yoh+'의 기운이 들어와 큰 전환점이 될 수 있네. 이 시기를 잘 준비하면 인생이 크게 달라질 것이네.'});break;}}}return b;}
 
+// 사주 기반 결정론적 PRNG — 같은 사주는 항상 같은 점수 (공유 링크 재현 보장)
+function hashSeed(str){var h=1779033703^str.length;for(var i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=(h<<13)|(h>>>19);}h=Math.imul(h^(h>>>16),2246822507);h=Math.imul(h^(h>>>13),3266489909);return(h^(h>>>16))>>>0;}
+function mulberry32(a){return function(){a|=0;a=(a+0x6D2B79F5)|0;var t=Math.imul(a^(a>>>15),1|a);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296;};}
+
 function analyze(s){
   const G=[s.yg,s.mg,s.dg,s.hg], Z=[s.yj,s.mj,s.dj,s.hj];
   const 일간=s.dg, 일지=s.dj, gender=s.gender;
+  const rand=mulberry32(hashSeed(G.join('')+Z.join('')+(gender||'')));
   
   // 오행 분포 — 지장간 일수(日數) 기반 + 완만한 왕상 보정
   // 辰戌丑未 = 토 계절 (토왕용사)
@@ -232,14 +239,14 @@ function analyze(s){
     const bonus=(cnt1+cnt2)*15;
     const 충패널티=충목록.length*7;
     const 신살보너스=신살.길신.length*3;
-    return Math.min(95, Math.max(10, base+bonus-충패널티+신살보너스+Math.floor(Math.random()*8)));
+    return Math.min(95, Math.max(10, base+bonus-충패널티+신살보너스+Math.floor(rand()*8)));
   }
-  
+
   function 인연(십성1,십성2){
     const cnt=십성카운트[십성1]+십성카운트[십성2];
-    if(cnt>=2)return{등급:'깊은 인연',점수:75+Math.floor(Math.random()*15)};
-    if(cnt===1)return{등급:'평범한 인연',점수:40+Math.floor(Math.random()*20)};
-    return{등급:'인연이 얕음',점수:15+Math.floor(Math.random()*20)};
+    if(cnt>=2)return{등급:'깊은 인연',점수:75+Math.floor(rand()*15)};
+    if(cnt===1)return{등급:'평범한 인연',점수:40+Math.floor(rand()*20)};
+    return{등급:'인연이 얕음',점수:15+Math.floor(rand()*20)};
   }
   
   function 복덕(십성1,십성2){
@@ -1558,7 +1565,7 @@ function genPremium(a,birthYear){
 
   // 년운/월운
   function getYGJ(y){return{g:천간[((y-4)%10+10)%10],j:지지[((y-4)%12+12)%12]};}
-  const cy=2026;
+  const cy=new Date().getFullYear();
   const 년운=[];
   for(let y=cy;y<=cy+10;y++){
     const yg=getYGJ(y);const gSS=십성(일간,yg.g);const jSS=십성(일간,정기T[yg.j]);
@@ -1742,7 +1749,7 @@ function getYeoninMatches(userIlgan, userGender) {
 // ============================================================
 // 메인 앱
 // ============================================================
-const CY=2026;
+const CY=new Date().getFullYear();
 const YEARS=Array.from({length:80},(_,i)=>({v:CY-10-i,l:`${CY-10-i}`}));
 const MONTHS=Array.from({length:12},(_,i)=>({v:i+1,l:`${i+1}월`}));
 const DAYS=Array.from({length:31},(_,i)=>({v:i+1,l:`${i+1}일`}));
@@ -2122,8 +2129,8 @@ export default function App(){
     try {
       var sajuSum = result.일간 + result.일지 + ' 일주, ' + result.saju.gender + '명, ' +
         result.강약 + ', 격국: ' + result.격국 + ', 용신: ' + result.용신 +
-        ', 오행: 목' + result.오행.목 + ' 화' + result.오행.화 + ' 토' + result.오행.토 +
-        ' 금' + result.오행.금 + ' 수' + result.오행.수 +
+        ', 오행: 목' + result.오행.카운트.목 + ' 화' + result.오행.카운트.화 + ' 토' + result.오행.카운트.토 +
+        ' 금' + result.오행.카운트.금 + ' 수' + result.오행.카운트.수 +
         ', 사주: ' + result.saju.yg + result.saju.yj + ' ' + result.saju.mg + result.saju.mj +
         ' ' + result.saju.dg + result.saju.dj + ' ' + result.saju.hg + result.saju.hj +
         ', 생년: ' + result.birthYear + '년' +
@@ -2316,17 +2323,16 @@ export default function App(){
           if(lastYeoninProfile){
             // 이전 프로필로 대화 복원
             fetch('/auth/chat-history?chatType=yeonin&profileKey='+lastYeoninProfile).then(function(r){return r.json();}).then(function(d){
-              var match=ym.find(function(m){return m.profile.key===lastYeoninProfile;});
+              var match=ym.find(function(m){return m.key===lastYeoninProfile;});
               if(match&&d.messages&&d.messages.length>0){
-                var profile=match.profile;
-                var target={key:profile.key,name:profile.name,emoji:profile.emoji,ilju:profile.ilju,matchReason:match.label};
+                var target={key:match.key,name:match.name,emoji:match.emoji,ilju:match.ilju,matchReason:match.matchReason,matchGrade:match.matchGrade,matchScore:match.matchScore};
                 setChatTarget(target);
                 var restored=d.messages.map(function(m){
                   var now2=new Date();var t2=String(now2.getHours()).padStart(2,'0')+':'+String(now2.getMinutes()).padStart(2,'0');
-                  return{from:m.role==='user'?'me':profile.key,text:m.content,time:t2,role:m.role,content:m.content};
+                  return{from:m.role==='user'?'me':match.key,text:m.content,time:t2,role:m.role,content:m.content};
                 });
-                restored.push({from:profile.key,text:'다시 만났네요! 반가워요 ㅎㅎ\n지난번 이야기 이어서 해요!',time:'',role:'assistant',content:'다시 만났네요! 반가워요 ㅎㅎ\n지난번 이야기 이어서 해요!'});
-                var nextMsgs={};nextMsgs[profile.key]=restored;setChatMsgs(nextMsgs);
+                restored.push({from:match.key,text:'다시 만났네요! 반가워요 ㅎㅎ\n지난번 이야기 이어서 해요!',time:'',role:'assistant',content:'다시 만났네요! 반가워요 ㅎㅎ\n지난번 이야기 이어서 해요!'});
+                var nextMsgs={};nextMsgs[match.key]=restored;setChatMsgs(nextMsgs);
                 setPhase('chat');
               }else{
                 setPhase('matches');
@@ -3584,7 +3590,7 @@ export default function App(){
             {result.운성&&result.운성.length>0&&(function(){var cur=result.운성.find(function(u){return u.위치==='일지';});if(!cur)cur=result.운성[0];var info=십이운성해설[cur.운성];if(!info)return null;return React.createElement('div',{style:{background:ac+'0.03)',border:'1px solid '+ac+'0.06)',borderRadius:8,padding:'10px 12px',marginBottom:6}},React.createElement('div',{style:{display:'flex',alignItems:'center',gap:6,marginBottom:4}},React.createElement('span',{style:{fontSize:10,fontWeight:700,color:ac+'0.5)'}},'십이운성'),React.createElement('span',{style:{fontSize:12,fontWeight:800,color:mcc}},cur.운성)),React.createElement(BoldText,{text:info.해설}));})()}
             <MansinDiv/>
             {/* ── 올해 세운 ── */}
-            {(function(){var curYear=new Date().getFullYear();var sw=세운분석(curYear,result.일간,result.용신,result.용신상세?result.용신상세.기신:'',result.Z);var sc_c=sw.점수>=70?'#6abf5a':sw.점수>=45?'#c8a050':'#d46050';
+            {(function(){var _n=new Date();var curYear=calculateSaju(_n.getFullYear(),_n.getMonth()+1,_n.getDate(),12,0).meta.sajuYear;var sw=세운분석(curYear,result.일간,result.용신,result.용신상세?result.용신상세.기신:'',result.Z);var sc_c=sw.점수>=70?'#6abf5a':sw.점수>=45?'#c8a050':'#d46050';
               return React.createElement('div',null,
                 React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:10}},
                   React.createElement('div',{style:{width:36,height:36,borderRadius:10,background:'#c8a05010',border:'1px solid #c8a05030',display:'flex',alignItems:'center',justifyContent:'center'}},
@@ -3610,7 +3616,7 @@ export default function App(){
             <MansinChat text={(function(){var gi=result.용신상세?result.용신상세.기신:'';var yo=result.용신||'';var t='';if(gi)t+='**기신 '+gi+'**이 강해지는 달에 주의해야 하느니라. ';t+='반면 **용신 '+yo+'**이 오는 달은 기회의 창이니 놓치지 마라. ';t+='특히 **용신 기운이 오는 2~3개월**을 노려서 중요한 결정이나 새로운 시도를 하는 것이 현명하느니라. 기신이 강한 달에는 방어적으로 움직이되, 그 시기가 지나면 반드시 **반등의 시기**가 오느니라.';return t;})()}/>
             <MansinDiv/>
             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}><div style={{width:36,height:36,borderRadius:10,background:ac+'0.06)',border:'1px solid '+ac+'0.12)',display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontSize:16,fontWeight:900,color:ac+'0.6)'}}>{'月'}</span></div><div><div style={{fontSize:14,fontWeight:800,color:mcc,fontFamily:"'Noto Serif KR',serif"}}>{'12월운'}</div><div style={{fontSize:11,color:ac+'0.5)'}}>{'월별 기운의 흐름'}</div></div></div>
-            {(function(){var curYear=new Date().getFullYear();var months=월운생성(curYear,result.일간,result.용신,result.용신상세?result.용신상세.기신:'');return React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:5,marginBottom:6}},months.map(function(m,i){var c=m.등급==='길'?'#6abf5a':m.등급==='흉'?'#d46050':'#c8a050';var hint=m.등급==='길'?'용신 기운 '+m.점수+'점':m.등급==='흉'?'기신 기운 '+m.점수+'점':m.점수+'점';return React.createElement('div',{key:'mw'+i,style:{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'7px 10px',background:ac+'0.02)',borderRadius:6,border:'1px solid '+c+'15'}},React.createElement('div',{style:{fontSize:10,color:ac+'0.5)',fontWeight:600}},m.이름+' '+m.간지),React.createElement('div',{style:{fontSize:10,color:c,fontWeight:700}},hint));}));})()}
+            {(function(){var _n=new Date();var curYear=calculateSaju(_n.getFullYear(),_n.getMonth()+1,_n.getDate(),12,0).meta.sajuYear;var months=월운생성(curYear,result.일간,result.용신,result.용신상세?result.용신상세.기신:'');return React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:5,marginBottom:6}},months.map(function(m,i){var c=m.등급==='길'?'#6abf5a':m.등급==='흉'?'#d46050':'#c8a050';var hint=m.등급==='길'?'용신 기운 '+m.점수+'점':m.등급==='흉'?'기신 기운 '+m.점수+'점':m.점수+'점';return React.createElement('div',{key:'mw'+i,style:{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'7px 10px',background:ac+'0.02)',borderRadius:6,border:'1px solid '+c+'15'}},React.createElement('div',{style:{fontSize:10,color:ac+'0.5)',fontWeight:600}},m.이름+' '+m.간지),React.createElement('div',{style:{fontSize:10,color:c,fontWeight:700}},hint));}));})()}
             <MansinChat text={'월운은 대략적인 흐름이니 **절대적이지 않느니라**. 대운과 세운의 큰 틀 안에서 월운이 보조적으로 작용하느니라. **용신 '+result.용신+'**이 오는 달이 편안하고, **기신**이 오는 달이 가장 조심할 시기이니라. 다만 흉월이라 해서 가만히 있으라는 뜻이 아니니라. **방어적으로 움직이되 내실을 다지는 시간**으로 삼으라.'}/>
             {/* 인생 조망 */}
             <MansinDiv/>

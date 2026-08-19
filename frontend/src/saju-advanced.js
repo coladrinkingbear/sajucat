@@ -3,47 +3,26 @@
 // ============================================================
 
 import { 천간, 지지, 천간오행, 지지오행, 천간음양, 지장간, 월령세력, 십이운성 } from './saju-tables.js';
+import { findPrevNextJeolgi } from './saju-core.js';
 
 // ──────────────────────────────────────────
 // 4-1. 대운 시작 나이 계산
-// 생일~다음(또는 이전) 절기까지 일수 ÷ 3 = 대운 시작 나이
-// 절기 데이터가 없으면 평균값(남양순4세, 여양역4세 등) 사용
+// 순행(양남음녀): 출생 → 다음 절기까지 / 역행: 이전 절기 → 출생까지, 일수 ÷ 3
+// 절기 시각은 KASI 표(2000~2026) + astronomy-engine 폴백 (saju-core.js)
 // ──────────────────────────────────────────
-const 절기일자 = {
-  // 월별 절기 대략 일자 (양력 기준 평균). 정확한 계산은 saju-core.js의 KASI 데이터로.
-  1:6, 2:4, 3:6, 4:5, 5:6, 6:6, 7:7, 8:8, 9:8, 10:8, 11:7, 12:7
-};
-
-export function 대운시작나이(birthYear, birthMonth, birthDay, gender, 연간) {
+export function 대운시작나이(birthYear, birthMonth, birthDay, gender, 연간, birthHour = 12, birthMinute = 0) {
   const 양남음녀 = (천간음양[연간] === '양' && gender === '남') || (천간음양[연간] === '음' && gender === '여');
-  // 순행: 다음 절기까지 / 역행: 이전 절기까지
-  let 절기월, 절기일;
-  if (양남음녀) {
-    // 순행 → 다음 절기
-    절기월 = birthMonth + 1;
-    if (절기월 > 12) 절기월 = 1;
-    절기일 = 절기일자[절기월] || 6;
-  } else {
-    // 역행 → 이전(현재 월) 절기
-    절기월 = birthMonth;
-    절기일 = 절기일자[절기월] || 6;
-  }
+  const { prev, next } = findPrevNextJeolgi(birthYear, birthMonth, birthDay, birthHour, birthMinute);
+  const target = 양남음녀 ? next : prev;
+  if (!target) return 5; // 절기 계산 실패 시 안전 폴백
 
-  let diff;
-  if (양남음녀) {
-    // 생일 → 다음 절기까지 남은 일수
-    const 절기Date = new Date(birthYear, (birthMonth + 1 > 12 ? 0 : birthMonth), 절기일);
-    const 생일Date = new Date(birthYear, birthMonth - 1, birthDay);
-    diff = Math.abs(Math.round((절기Date - 생일Date) / 86400000));
-  } else {
-    // 이전 절기 → 생일까지 일수
-    const 절기Date = new Date(birthYear, birthMonth - 1, 절기일);
-    const 생일Date = new Date(birthYear, birthMonth - 1, birthDay);
-    diff = Math.abs(Math.round((생일Date - 절기Date) / 86400000));
-  }
+  // KST 벽시계를 Date.UTC로 통일해 로컬 타임존 영향 제거
+  const birthMs = Date.UTC(birthYear, birthMonth - 1, birthDay, birthHour, birthMinute);
+  const targetMs = Date.UTC(target.year, target.month - 1, target.day, target.hour, target.minute);
+  const diffDays = Math.abs(targetMs - birthMs) / 86400000;
 
   // 3일 = 1년. 나머지는 반올림.
-  const 시작나이 = Math.max(1, Math.round(diff / 3));
+  const 시작나이 = Math.max(1, Math.round(diffDays / 3));
   return Math.min(시작나이, 10); // 최대 10세
 }
 
