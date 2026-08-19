@@ -14,14 +14,14 @@ DIR="$(cd "$(dirname "$0")" && pwd)"
 # --- API 키 입력 ---
 if [ ! -f "$DIR/backend/.env" ]; then
   echo ""
-  echo "Google Gemini API 키가 필요합니다"
-  echo "  → https://aistudio.google.com 에서 무료 발급"
+  echo "xAI Grok API 키가 필요합니다"
+  echo "  → https://console.x.ai 에서 발급"
   echo ""
-  read -p "Gemini API 키: " GEMINI_KEY
+  read -p "xAI API 키: " XAI_KEY
   read -p "도메인 (없으면 엔터=IP): " DOMAIN
   [ -z "$DOMAIN" ] && DOMAIN=$(curl -s ifconfig.me) && USEIP=1
   cat > "$DIR/backend/.env" << ENVX
-GEMINI_KEY=${GEMINI_KEY}
+XAI_KEY=${XAI_KEY}
 DOMAIN=${DOMAIN}
 PORT=4000
 NODE_ENV=production
@@ -64,7 +64,7 @@ server {
     root ${DIR}/frontend/dist;
     index index.html;
     location / { try_files \$uri \$uri/ /index.html; }
-    location /api/ {
+    location ~ ^/(api|auth)/ {
         proxy_pass http://127.0.0.1:4000;
         proxy_http_version 1.1;
         proxy_set_header Host \$host;

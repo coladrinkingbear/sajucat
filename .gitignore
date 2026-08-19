@@ -3,3 +3,11 @@ dist/
 backend/.env
 .DS_Store
 *.log
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+.env
+*.bak
+*.bak-*
+db-backup/

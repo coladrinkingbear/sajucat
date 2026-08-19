@@ -3,12 +3,39 @@ const router = express.Router();
 const cleanText = require('../lib/clean-text');
 const { SAJU_KB_FULL } = require('../lib/saju-kb');
 
+// ── xAI Grok 공통 호출부 (2026-08 Gemini→Grok 이식) ──
+const XAI_URL = 'https://api.x.ai/v1/chat/completions';
+// non-reasoning 모델: 채팅 1초 내 응답, reasoning 모델(grok-4.6 등) 대비 비용 1/30 (2026-08 실측)
+const XAI_MODEL = process.env.XAI_MODEL || 'grok-4.20-0309-non-reasoning';
+// 고서 지식 전문이 약 93만 자 — 전체 포함 시 토큰 비용·지연 과도, 기본 12만 자 제한 (SAJU_KB_MAX=0 이면 무제한)
+const KB_MAX = parseInt(process.env.SAJU_KB_MAX || '120000', 10);
+const SAJU_KB = KB_MAX > 0 ? SAJU_KB_FULL.slice(0, KB_MAX) : SAJU_KB_FULL;
+
+async function callGrok(messages, { maxTokens, temperature, timeoutMs }) {
+  const KEY = process.env.XAI_KEY;
+  if (!KEY) { const e = new Error('API 키 미설정'); e.status = 500; throw e; }
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const resp = await fetch(XAI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + KEY },
+      signal: ctrl.signal,
+      body: JSON.stringify({ model: XAI_MODEL, messages, max_tokens: maxTokens, temperature })
+    });
+    if (!resp.ok) {
+      const body = await resp.text();
+      console.error('Grok error:', resp.status, body.substring(0, 300));
+      const e = new Error('AI 오류 (' + resp.status + ')'); e.status = 502; throw e;
+    }
+    const data = await resp.json();
+    return data.choices?.[0]?.message?.content || '';
+  } finally { clearTimeout(timer); }
+}
+
 router.post('/enrich', async (req, res) => {
   const { ruleText, sajuSummary } = req.body;
   if (!ruleText || !sajuSummary) return res.status(400).json({ error: '파라미터 누락' });
-
-  const KEY = process.env.GEMINI_KEY;
-  if (!KEY) return res.status(500).json({ error: 'API 키 미설정' });
 
   const prompt = `너는 바리만신이라는 한국 전통 사주 해석가야.
 
@@ -26,7 +53,7 @@ router.post('/enrich', async (req, res) => {
 - 첫 문단: 핵심 진단. 중간: 상세 분석 + 실생활 조언. 마지막: 종합 당부.
 
 [명리학 지식 — 아래 고서 내용을 참고하여 해설하라]
-${SAJU_KB_FULL}
+${SAJU_KB}
 
 [사주] ${sajuSummary}
 
@@ -34,38 +61,17 @@ ${SAJU_KB_FULL}
 ${ruleText}`;
 
   try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 60000);
-
-    const resp = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=' + KEY,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: ctrl.signal,
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 1500, temperature: 0.8, thinkingConfig: { thinkingLevel: "MINIMAL" } }
-        })
-      }
+    const text = await callGrok(
+      [{ role: 'user', content: prompt }],
+      { maxTokens: 1500, temperature: 0.8, timeoutMs: 60000 }
     );
-    clearTimeout(timer);
-
-    if (!resp.ok) {
-      const e = await resp.text();
-      console.error('Gemini error:', resp.status, e.substring(0, 300));
-      return res.status(502).json({ error: 'AI 오류 (' + resp.status + ')' });
-    }
-
-    const data = await resp.json();
-    let text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     if (!text) return res.status(502).json({ error: '빈 응답' });
 
     res.json({ text: cleanText(text) });
   } catch (err) {
     console.error('Enrich:', err.message);
     if (err.name === 'AbortError') return res.status(504).json({ error: '시간 초과' });
-    res.status(500).json({ error: '서버 오류' });
+    res.status(err.status || 500).json({ error: err.status ? err.message : '서버 오류' });
   }
 });
 
@@ -78,9 +84,6 @@ module.exports = router;
 router.post('/chat', async (req, res) => {
   const { sajuSummary, messages } = req.body;
   if (!sajuSummary || !messages || !messages.length) return res.status(400).json({ error: '파라미터 누락' });
-
-  const KEY = process.env.GEMINI_KEY;
-  if (!KEY) return res.status(500).json({ error: 'API 키 미설정' });
 
   const systemPrompt = `너는 "바리만신"이라는 이름의 한국 전통 사주 해석가야.
 
@@ -128,45 +131,19 @@ ${sajuSummary}
 
 위 사주를 기반으로, 상담자와 자연스러운 대화를 나눠라.`;
 
-  const contents = messages.map(m => ({
-    role: m.role === 'user' ? 'user' : 'model',
-    parts: [{ text: m.content }]
-  }));
+  const msgs = [{ role: 'system', content: systemPrompt }].concat(
+    messages.map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content }))
+  );
 
   try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 30000);
-
-    const resp = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=' + KEY,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: ctrl.signal,
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemPrompt }] },
-          contents: contents,
-          generationConfig: { maxOutputTokens: 2000, temperature: 0.85 }
-        })
-      }
-    );
-    clearTimeout(timer);
-
-    if (!resp.ok) {
-      const e = await resp.text();
-      console.error('Chat Gemini error:', resp.status, e.substring(0, 300));
-      return res.status(502).json({ error: 'AI 오류' });
-    }
-
-    const data = await resp.json();
-    let text = data.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '';
+    const text = await callGrok(msgs, { maxTokens: 2000, temperature: 0.85, timeoutMs: 30000 });
     if (!text) return res.status(502).json({ error: '빈 응답' });
 
     res.json({ text: cleanText(text) });
   } catch (err) {
     console.error('Chat:', err.message);
     if (err.name === 'AbortError') return res.status(504).json({ error: '시간 초과' });
-    res.status(500).json({ error: '서버 오류' });
+    res.status(err.status || 500).json({ error: err.status ? err.message : '서버 오류' });
   }
 });
 
@@ -200,9 +177,6 @@ const YEONIN_PROFILES = {
 router.post('/yeonin-chat', async (req, res) => {
   const { characterKey, userSajuSummary, characterSajuSummary, matchReason, messages } = req.body;
   if (!characterKey || !messages || !messages.length) return res.status(400).json({ error: '파라미터 누락' });
-
-  const KEY = process.env.GEMINI_KEY;
-  if (!KEY) return res.status(500).json({ error: 'API 키 미설정' });
 
   const profile = YEONIN_PROFILES[characterKey];
   if (!profile) return res.status(400).json({ error: '캐릭터 없음' });
@@ -283,44 +257,14 @@ router.post('/yeonin-chat', async (req, res) => {
 ${userSajuSummary || '정보 없음'}
 - 우리 궁합: ${matchReason || '좋은 궁합'}`;
 
-  const contents = messages.map(m => ({
-    role: m.role === 'user' ? 'user' : 'model',
-    parts: [{ text: m.content }]
-  }));
-
-  // 첫 메시지가 assistant면 필터 (Gemini는 user가 먼저)
-  const apiMsgs = contents.filter(function(m, i) {
-    if (i === 0 && m.role === 'model') return false;
-    return true;
-  });
+  const msgs = [{ role: 'system', content: systemPrompt }].concat(
+    messages
+      .filter((m, i) => !(i === 0 && m.role !== 'user')) // 첫 메시지가 캐릭터 인사면 제외 (빈 content 방지)
+      .map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content }))
+  );
 
   try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 30000);
-
-    const resp = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=' + KEY,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: ctrl.signal,
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemPrompt }] },
-          contents: apiMsgs,
-          generationConfig: { maxOutputTokens: 1500, temperature: 0.9 }
-        })
-      }
-    );
-    clearTimeout(timer);
-
-    if (!resp.ok) {
-      const e = await resp.text();
-      console.error('Yeonin Gemini error:', resp.status, e.substring(0, 300));
-      return res.status(502).json({ error: 'AI 오류' });
-    }
-
-    const data = await resp.json();
-    let text = data.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '';
+    let text = await callGrok(msgs, { maxTokens: 1500, temperature: 0.9, timeoutMs: 30000 });
     if (!text) return res.status(502).json({ error: '빈 응답' });
 
     // 마크다운 제거만 (캐릭터 말투 변환은 안 함)
@@ -330,6 +274,6 @@ ${userSajuSummary || '정보 없음'}
   } catch (err) {
     console.error('Yeonin chat:', err.message);
     if (err.name === 'AbortError') return res.status(504).json({ error: '시간 초과' });
-    res.status(500).json({ error: '서버 오류' });
+    res.status(err.status || 500).json({ error: err.status ? err.message : '서버 오류' });
   }
 });

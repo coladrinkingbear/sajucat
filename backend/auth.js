@@ -58,6 +58,7 @@ function loginOrCreate(provider, pid, email, image) {
 // Google OAuth
 // ══════════════════════════════════════
 router.get('/google', (req, res) => {
+  if (!G_ID) return res.redirect('/'); // OAuth 미설정 — 로그인 비활성 상태
   res.redirect('https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams({
     client_id: G_ID, redirect_uri: BASE + '/auth/google/callback',
     response_type: 'code', scope: 'openid email profile', prompt: 'select_account'
@@ -86,6 +87,7 @@ router.get('/google/callback', async (req, res) => {
 // Kakao OAuth
 // ══════════════════════════════════════
 router.get('/kakao', (req, res) => {
+  if (!K_ID) return res.redirect('/'); // OAuth 미설정 — 로그인 비활성 상태
   res.redirect('https://kauth.kakao.com/oauth/authorize?' + new URLSearchParams({
     client_id: K_ID, redirect_uri: BASE + '/auth/kakao/callback', response_type: 'code'
   }));
@@ -113,6 +115,7 @@ router.get('/kakao/callback', async (req, res) => {
 // Naver OAuth
 // ══════════════════════════════════════
 router.get('/naver', (req, res) => {
+  if (!N_ID) return res.redirect('/'); // OAuth 미설정 — 로그인 비활성 상태
   const state = crypto.randomBytes(16).toString('hex');
   res.redirect('https://nid.naver.com/oauth2.0/authorize?' + new URLSearchParams({
     client_id: N_ID, redirect_uri: BASE + '/auth/naver/callback', response_type: 'code', state

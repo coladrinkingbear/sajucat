@@ -3,7 +3,6 @@ const express = require('express');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
-const Database = require('better-sqlite3');
 const app = express();
 const PORT = process.env.PORT || 4000;
 
@@ -12,9 +11,8 @@ app.set('trust proxy', 1);
 app.use(express.json({ limit: '100kb' }));
 app.use(cookieParser());
 
-// DB init
-const db = new Database('./sajucat.db');
-db.pragma('journal_mode = WAL');
+// DB init — db.js의 단일 커넥션 공유 (guest/share 테이블도 같은 backend/sajucat.db에 생성)
+const { db } = require('./db');
 
 // Rate limiters
 app.use('/api/enrich', rateLimit({ windowMs: 60000, max: 10, message: { error: '잠시 후 다시 시도하세요' } }));
