@@ -36,6 +36,31 @@ function setCookie(res, sid) {
   res.cookie(COOKIE, sid, { httpOnly: true, secure: true, sameSite: 'lax', maxAge: MAX_AGE, path: '/' });
 }
 
+// ── OAuth state (로그인 CSRF 방지) ──
+// state 쿠키는 콜백 도메인(BASE) 호스트에만 붙으므로, 로그인 시작도 BASE 호스트에서 해야 함
+const STATE_COOKIE = 'oauth_state';
+const BASE_HOST = new URL(BASE).host;
+
+function onCanonicalHost(req, res) {
+  if (req.get('host') === BASE_HOST) return true;
+  res.redirect(BASE + req.originalUrl);
+  return false;
+}
+
+function issueState(res) {
+  const state = crypto.randomBytes(16).toString('hex');
+  res.cookie(STATE_COOKIE, state, { httpOnly: true, secure: true, sameSite: 'lax', maxAge: 10 * 60 * 1000, path: '/auth' });
+  return state;
+}
+
+function stateValid(req, res) {
+  const expected = req.cookies?.[STATE_COOKIE];
+  res.clearCookie(STATE_COOKIE, { path: '/auth' });
+  const got = req.query.state;
+  if (!expected || typeof got !== 'string' || got.length !== expected.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(got), Buffer.from(expected));
+}
+
 function makeSession(userId) {
   const sid = crypto.randomBytes(32).toString('hex');
   const exp = new Date(Date.now() + MAX_AGE).toISOString();
@@ -59,14 +84,17 @@ function loginOrCreate(provider, pid, email, image) {
 // ══════════════════════════════════════
 router.get('/google', (req, res) => {
   if (!G_ID) return res.redirect('/'); // OAuth 미설정 — 로그인 비활성 상태
+  if (!onCanonicalHost(req, res)) return;
   res.redirect('https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams({
     client_id: G_ID, redirect_uri: BASE + '/auth/google/callback',
-    response_type: 'code', scope: 'openid email profile', prompt: 'select_account'
+    response_type: 'code', scope: 'openid email profile', prompt: 'select_account',
+    state: issueState(res)
   }));
 });
 
 router.get('/google/callback', async (req, res) => {
   try {
+    if (!stateValid(req, res)) return res.redirect('/?err=state');
     const { code } = req.query;
     if (!code) return res.redirect('/?err=no_code');
     const tr = await fetch('https://oauth2.googleapis.com/token', {
@@ -74,7 +102,7 @@ router.get('/google/callback', async (req, res) => {
       body: new URLSearchParams({ code, client_id: G_ID, client_secret: G_SEC, redirect_uri: BASE + '/auth/google/callback', grant_type: 'authorization_code' })
     });
     const tok = await tr.json();
-    if (!tok.access_token) return res.redirect('/?err=token');
+    if (!tok.access_token) { console.error('Google token:', tok.error, tok.error_description); return res.redirect('/?err=token'); }
     const ur = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', { headers: { Authorization: 'Bearer ' + tok.access_token } });
     const p = await ur.json();
     const { user, isNew } = loginOrCreate('google', p.id, p.email, p.picture);
@@ -88,21 +116,27 @@ router.get('/google/callback', async (req, res) => {
 // ══════════════════════════════════════
 router.get('/kakao', (req, res) => {
   if (!K_ID) return res.redirect('/'); // OAuth 미설정 — 로그인 비활성 상태
+  if (!onCanonicalHost(req, res)) return;
   res.redirect('https://kauth.kakao.com/oauth/authorize?' + new URLSearchParams({
-    client_id: K_ID, redirect_uri: BASE + '/auth/kakao/callback', response_type: 'code'
+    client_id: K_ID, redirect_uri: BASE + '/auth/kakao/callback', response_type: 'code',
+    state: issueState(res)
   }));
 });
 
 router.get('/kakao/callback', async (req, res) => {
   try {
+    if (!stateValid(req, res)) return res.redirect('/?err=state');
     const { code } = req.query;
     if (!code) return res.redirect('/?err=no_code');
+    // Client Secret은 카카오 콘솔에서 활성화한 경우에만 필요
+    const params = { grant_type: 'authorization_code', client_id: K_ID, redirect_uri: BASE + '/auth/kakao/callback', code };
+    if (K_SEC) params.client_secret = K_SEC;
     const tr = await fetch('https://kauth.kakao.com/oauth/token', {
       method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ grant_type: 'authorization_code', client_id: K_ID, client_secret: K_SEC, redirect_uri: BASE + '/auth/kakao/callback', code })
+      body: new URLSearchParams(params)
     });
     const tok = await tr.json();
-    if (!tok.access_token) return res.redirect('/?err=token');
+    if (!tok.access_token) { console.error('Kakao token:', tok.error, tok.error_code, tok.error_description); return res.redirect('/?err=token'); }
     const ur = await fetch('https://kapi.kakao.com/v2/user/me', { headers: { Authorization: 'Bearer ' + tok.access_token } });
     const p = await ur.json();
     const { user, isNew } = loginOrCreate('kakao', String(p.id), p.kakao_account?.email, p.properties?.profile_image);
@@ -116,14 +150,16 @@ router.get('/kakao/callback', async (req, res) => {
 // ══════════════════════════════════════
 router.get('/naver', (req, res) => {
   if (!N_ID) return res.redirect('/'); // OAuth 미설정 — 로그인 비활성 상태
-  const state = crypto.randomBytes(16).toString('hex');
+  if (!onCanonicalHost(req, res)) return;
   res.redirect('https://nid.naver.com/oauth2.0/authorize?' + new URLSearchParams({
-    client_id: N_ID, redirect_uri: BASE + '/auth/naver/callback', response_type: 'code', state
+    client_id: N_ID, redirect_uri: BASE + '/auth/naver/callback', response_type: 'code',
+    state: issueState(res)
   }));
 });
 
 router.get('/naver/callback', async (req, res) => {
   try {
+    if (!stateValid(req, res)) return res.redirect('/?err=state');
     const { code, state } = req.query;
     if (!code) return res.redirect('/?err=no_code');
     const tr = await fetch('https://nid.naver.com/oauth2.0/token?' + new URLSearchParams({

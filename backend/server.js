@@ -6,7 +6,9 @@ const cookieParser = require('cookie-parser');
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-app.use(cors({ origin: true, credentials: true }));
+// 프론트는 같은 도메인에서 서빙되므로 교차 출처는 자기 도메인만 허용 (로그인 쿠키 보호)
+const SITE = process.env.BASE_URL || 'https://sajucat.co.kr';
+app.use(cors({ origin: [SITE, SITE.replace('://', '://www.')], credentials: true }));
 app.set('trust proxy', 1);
 app.use(express.json({ limit: '100kb' }));
 app.use(cookieParser());
