@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const cleanText = require('../lib/clean-text');
 const { SAJU_KB_FULL } = require('../lib/saju-kb');
+const { q } = require('../db');
+const { sessionMw } = require('../auth');
 
 // ── xAI Grok 공통 호출부 (2026-08 Gemini→Grok 이식) ──
 const XAI_URL = 'https://api.x.ai/v1/chat/completions';
@@ -81,9 +83,13 @@ module.exports = router;
 // 바리만신 1:1 채팅 — 같은 라우터에 추가
 // ============================================================
 
-router.post('/chat', async (req, res) => {
+// 바리만신 질문 1회 = 엽전 1개 (로그인 사용자 전용, AI 실패 시 환불)
+router.post('/chat', sessionMw, async (req, res) => {
+  if (!req.userId) return res.status(401).json({ error: 'login_required' });
   const { sajuSummary, messages } = req.body;
   if (!sajuSummary || !messages || !messages.length) return res.status(400).json({ error: '파라미터 누락' });
+  if (q.spendCoin.run(req.userId).changes === 0) return res.status(402).json({ error: 'no_coins', coins: 0 });
+  const coinsLeft = () => (q.getCoins.get(req.userId) || {}).coins ?? 0;
 
   const systemPrompt = `너는 "바리만신"이라는 이름의 한국 전통 사주 해석가야.
 
@@ -132,18 +138,19 @@ ${sajuSummary}
 위 사주를 기반으로, 상담자와 자연스러운 대화를 나눠라.`;
 
   const msgs = [{ role: 'system', content: systemPrompt }].concat(
-    messages.map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content }))
+    messages.slice(-20).map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content }))
   );
 
   try {
     const text = await callGrok(msgs, { maxTokens: 2000, temperature: 0.85, timeoutMs: 30000 });
-    if (!text) return res.status(502).json({ error: '빈 응답' });
+    if (!text) { q.refundCoin.run(req.userId); return res.status(502).json({ error: '빈 응답', coins: coinsLeft() }); }
 
-    res.json({ text: cleanText(text) });
+    res.json({ text: cleanText(text), coins: coinsLeft() });
   } catch (err) {
+    q.refundCoin.run(req.userId);
     console.error('Chat:', err.message);
-    if (err.name === 'AbortError') return res.status(504).json({ error: '시간 초과' });
-    res.status(err.status || 500).json({ error: err.status ? err.message : '서버 오류' });
+    if (err.name === 'AbortError') return res.status(504).json({ error: '시간 초과', coins: coinsLeft() });
+    res.status(err.status || 500).json({ error: err.status ? err.message : '서버 오류', coins: coinsLeft() });
   }
 });
 

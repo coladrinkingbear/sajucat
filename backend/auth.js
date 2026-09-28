@@ -190,8 +190,8 @@ router.get('/me', sessionMw, (req, res) => {
   const lastYeonin = q.getLastChatProfile.get(req.userId, 'yeonin');
   res.json({
     loggedIn: true,
-    user: { id: u.id, nickname: u.nickname, nickConfirmed: !!u.nickname_confirmed, provider: u.provider, image: u.profile_image },
-    lastSaju: saju ? { gender: saju.gender, year: saju.birth_year, month: saju.birth_month, day: saju.birth_day, hour: saju.birth_hour, city: saju.birth_city, ilgan: saju.ilgan, ilji: saju.ilji } : null,
+    user: { id: u.id, nickname: u.nickname, nickConfirmed: !!u.nickname_confirmed, provider: u.provider, image: u.profile_image, coins: u.coins },
+    lastSaju: saju ? { gender: saju.gender, year: saju.birth_year, month: saju.birth_month, day: saju.birth_day, hour: saju.birth_hour, minute: saju.birth_minute || 0, city: saju.birth_city, ilgan: saju.ilgan, ilji: saju.ilji } : null,
     hasMansinChat: mansinChat.length > 0,
     lastYeoninProfile: lastYeonin ? lastYeonin.profile_key : null
   });
@@ -209,8 +209,8 @@ router.post('/nickname', sessionMw, express.json(), (req, res) => {
 // 사주 결과 저장
 router.post('/saju', sessionMw, express.json(), (req, res) => {
   if (!req.userId) return res.status(401).json({ error: '로그인 필요' });
-  const { gender, year, month, day, hour, city, ilgan, ilji, data } = req.body;
-  q.saveSaju.run(req.userId, gender, year, month, day, hour, city, ilgan, ilji, JSON.stringify(data || {}));
+  const { gender, year, month, day, hour, minute, city, ilgan, ilji, data } = req.body;
+  q.saveSaju.run(req.userId, gender, year, month, day, hour, minute || 0, city, ilgan, ilji, JSON.stringify(data || {}));
   res.json({ ok: true });
 });
 

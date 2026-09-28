@@ -64,6 +64,14 @@ db.exec(`
   );
 `);
 
+// ── 컬럼 추가 마이그레이션 (기존 DB 호환) ──
+function addColumnIfMissing(table, col, def) {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all().map(c => c.name);
+  if (!cols.includes(col)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${def}`);
+}
+addColumnIfMissing('saju_results', 'birth_minute', 'INTEGER');
+addColumnIfMissing('users', 'coins', 'INTEGER NOT NULL DEFAULT 10'); // 데모: 가입자당 엽전 10개
+
 // ── Prepared statements ──
 const q = {
   // Users
@@ -80,8 +88,13 @@ const q = {
   cleanExpired: db.prepare("DELETE FROM sessions WHERE expires <= datetime('now')"),
 
   // Saju
-  saveSaju: db.prepare('INSERT INTO saju_results (user_id, gender, birth_year, birth_month, birth_day, birth_hour, birth_city, ilgan, ilji, saju_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'),
+  saveSaju: db.prepare('INSERT INTO saju_results (user_id, gender, birth_year, birth_month, birth_day, birth_hour, birth_minute, birth_city, ilgan, ilji, saju_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'),
   getLatestSaju: db.prepare('SELECT * FROM saju_results WHERE user_id = ? ORDER BY created_at DESC LIMIT 1'),
+
+  // Coins (엽전)
+  spendCoin: db.prepare('UPDATE users SET coins = coins - 1 WHERE id = ? AND coins > 0'),
+  refundCoin: db.prepare('UPDATE users SET coins = coins + 1 WHERE id = ?'),
+  getCoins: db.prepare('SELECT coins FROM users WHERE id = ?'),
 
   // Activity
   logActivity: db.prepare('INSERT INTO user_activity (user_id, action, detail) VALUES (?, ?, ?)'),

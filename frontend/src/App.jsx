@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { calculateSaju, applyTrueSolarTime } from './saju-core.js';
+import { calculateSaju } from './saju-core.js';
+import { birthPillars, sijinOptions, eraNote } from './saju-time.js';
 import HanziWriter from 'hanzi-writer';
 import { 지장간 as 지장간Full, 십이운성 as calc운성, 월령세력, 공망 as calc공망, 통근판정, 강약판정, 용신판정, 천간합감지, 천간충감지, 해감지, 파감지, 방합감지, 반합감지, 사주운성, 공망체크, 신살판정 } from './saju-tables.js';
 import { 대운생성, 대운길흉, 세운분석, 월운생성, 오늘운세, 일진계산 } from './saju-advanced.js';
@@ -44,23 +45,14 @@ const CITIES=[
 const SK_MAP=["209.0,343.4 226.0,341.4 232.4,336.0 235.5,330.1 235.5,323.1 240.1,320.3 255.4,354.9 270.8,377.8 279.0,391.1 281.0,392.2 283.2,398.6 293.2,414.2 295.8,424.9 298.9,429.7 297.7,432.7 301.1,452.9 298.2,460.8 290.3,459.7 290.7,446.6 284.3,445.1 280.4,439.7 280.5,435.7 285.4,434.2 283.2,431.6 278.4,432.3 271.7,430.3 268.5,432.2 268.5,429.7 264.2,427.5 261.7,429.5 261.6,434.3 260.2,434.1 248.0,428.8 243.1,429.5 241.2,425.9 235.1,426.5 237.7,421.7 230.5,419.8 222.1,423.4 219.3,418.7 215.5,421.0 215.8,424.4 213.9,426.0 209.6,425.8 210.0,422.4 198.4,424.8 207.2,405.8 207.3,402.6 210.7,398.4 209.3,396.6 194.7,391.7 195.6,386.6 193.5,386.2 195.1,384.3 194.6,378.6 198.5,376.1 199.4,372.3 195.3,367.6 191.3,366.5 189.5,359.4 185.2,360.0 181.3,358.1 181.9,354.3 177.8,356.6 176.0,354.2 174.7,358.8 163.1,349.1 173.7,342.5 185.7,341.7 191.0,343.3 206.5,341.2 209.0,343.4","146.7,376.1 146.6,368.4 151.9,365.5 160.6,354.6 163.1,349.1 174.7,358.8 176.0,354.2 177.8,356.6 181.9,354.3 181.3,358.1 185.2,360.0 189.5,359.4 191.3,366.5 195.3,367.6 199.4,372.3 198.5,376.1 194.6,378.6 195.1,384.3 193.5,386.2 195.6,386.6 194.7,391.7 209.3,396.6 210.7,398.4 207.3,402.6 207.2,405.8 198.0,425.6 193.5,433.0 190.7,433.3 185.9,440.0 179.3,442.5 172.2,439.2 167.6,441.2 162.9,440.6 165.0,439.0 164.7,436.3 167.3,434.4 164.0,435.4 163.3,438.8 160.2,438.9 155.3,433.8 160.1,433.0 159.0,427.3 156.7,431.4 151.5,430.6 152.0,425.8 157.5,423.5 157.9,421.7 155.6,422.9 154.1,421.0 148.7,425.3 147.7,424.2 148.9,422.5 146.8,422.7 146.9,421.0 149.5,419.1 147.4,418.8 147.0,415.7 152.2,416.2 153.0,418.6 155.1,414.8 157.9,415.2 147.9,410.7 149.6,407.6 152.5,406.2 153.8,403.0 148.5,395.4 143.2,395.5 140.8,391.5 139.4,380.2 146.4,380.9 146.4,386.9 151.5,389.3 147.3,386.0 148.5,375.9 146.7,376.1","154.7,500.7 148.1,504.0 144.7,498.7 142.4,494.8 139.1,493.3 137.1,494.8 137.4,492.8 139.2,491.8 143.2,492.0 139.4,488.6 142.0,483.4 138.3,481.4 142.0,479.3 138.6,477.8 137.4,474.6 144.0,470.9 137.4,472.6 136.6,469.2 138.3,467.0 135.2,462.3 138.2,461.8 136.6,458.5 137.9,457.1 136.1,455.8 136.3,453.8 137.5,453.6 136.4,451.7 134.1,453.8 134.4,459.3 133.3,461.5 130.2,460.0 130.8,454.8 128.9,452.2 127.8,455.0 126.6,455.0 128.9,461.3 126.2,463.2 125.1,453.6 119.8,456.9 118.6,454.9 121.7,453.1 118.7,450.7 117.1,454.2 117.1,450.7 119.1,446.9 121.7,449.3 120.6,447.4 123.2,446.9 120.9,446.4 121.7,444.0 120.6,442.0 122.9,440.7 122.6,442.9 125.1,442.8 125.7,436.7 127.0,436.3 127.8,442.2 125.7,448.4 129.6,448.8 128.1,444.7 130.1,445.5 132.3,444.0 130.8,442.6 133.1,439.4 129.5,437.1 130.7,435.8 128.5,434.9 131.5,434.7 134.5,433.8 133.8,436.7 136.3,438.5 135.6,443.3 136.6,445.1 138.6,437.6 142.0,441.1 137.1,434.2 141.5,435.6 138.2,432.8 137.5,430.2 144.4,434.3 144.7,440.2 146.6,434.8 151.7,435.2 153.8,437.1 153.0,441.6 155.7,440.3 156.7,448.8 155.6,449.7 156.8,451.2 157.5,446.0 159.8,446.4 157.3,443.1 162.9,440.6 167.6,441.2 172.2,439.2 179.3,442.5 182.8,447.1 183.0,453.4 178.6,458.8 170.7,455.6 169.5,459.2 169.6,469.8 168.3,472.1 177.0,472.1 181.0,478.8 182.4,487.7 189.7,483.6 191.5,477.8 194.6,476.7 191.2,483.1 190.6,489.7 195.7,491.0 196.7,497.9 199.0,501.9 196.4,504.5 188.8,504.9 186.1,501.7 181.9,495.5 180.2,497.7 171.3,500.1 170.1,498.2 170.6,495.1 168.6,494.7 157.1,497.5 154.7,500.7","152.5,406.2 143.8,407.4 145.1,405.0 142.8,403.2 142.7,400.9 145.4,398.7 143.2,395.5 148.5,395.4 151.8,398.5 153.8,403.0 152.5,406.2","134.0,548.1 137.1,537.2 145.4,533.9 148.1,536.6 146.9,532.8 138.2,533.6 135.5,531.9 135.7,529.2 142.8,524.0 146.4,518.5 150.3,518.5 153.0,520.8 153.5,518.6 148.7,514.6 153.8,513.6 156.1,511.5 154.5,510.2 150.3,512.0 143.7,511.7 143.5,508.8 138.9,508.2 138.7,506.1 150.9,504.7 157.8,500.7 154.7,500.7 157.1,497.5 168.6,494.7 170.6,495.1 170.1,498.2 171.3,500.1 180.2,497.7 181.9,495.5 186.1,501.7 188.8,504.9 196.4,504.5 199.0,501.9 206.5,505.7 213.3,503.5 215.5,507.4 215.3,511.9 212.7,515.6 207.3,517.8 203.9,522.6 199.6,537.4 201.0,538.1 203.2,545.0 199.0,554.6 192.3,550.7 188.7,553.6 172.0,554.1 168.6,543.9 163.9,547.2 158.7,541.7 153.5,543.9 151.3,550.2 142.7,553.4 141.4,552.9 142.1,546.6 134.0,548.1","209.3,577.0 204.0,578.2 201.4,580.5 198.4,578.1 196.9,578.6 197.2,582.5 200.5,586.9 207.7,584.6 205.8,593.2 201.1,592.8 199.3,595.1 200.2,600.7 195.8,597.6 197.1,591.8 194.4,587.4 193.7,581.7 191.6,585.2 185.1,586.3 188.4,587.9 184.7,590.8 187.3,595.0 190.6,597.6 189.9,599.4 192.7,602.6 184.2,603.0 184.7,605.2 189.2,606.2 183.0,610.8 183.9,612.8 182.4,612.9 177.3,605.7 174.5,607.1 171.8,606.2 176.7,599.4 175.6,603.8 178.6,603.1 178.2,597.0 180.1,594.6 182.3,598.4 184.7,595.1 183.2,592.1 178.6,590.3 176.0,595.6 172.5,595.8 165.6,601.1 164.7,606.2 161.6,609.3 161.7,612.2 159.3,612.5 154.4,604.2 152.8,602.9 151.5,605.0 150.4,608.0 151.9,610.5 149.0,612.5 148.0,613.5 144.9,616.3 143.2,623.0 138.7,623.4 136.4,619.6 138.5,615.0 136.2,613.7 135.9,609.2 139.8,608.1 138.3,606.6 139.7,604.6 131.5,606.6 129.0,603.1 126.2,602.8 127.5,600.7 124.9,599.0 126.4,591.3 129.6,595.1 131.0,601.8 136.0,601.9 132.9,598.3 131.2,599.5 130.8,594.2 134.9,597.0 139.5,600.4 138.6,598.5 143.1,600.2 138.0,593.7 130.0,591.6 135.3,589.5 139.4,591.8 139.9,588.3 145.1,588.8 146.6,587.4 141.7,586.5 142.4,582.2 141.2,580.9 139.8,582.2 138.2,589.2 136.8,587.0 130.5,588.6 133.4,581.7 131.9,577.4 134.0,575.3 130.4,576.2 130.0,579.1 127.3,578.3 126.6,575.9 129.2,575.9 130.6,572.8 127.6,568.2 127.0,569.4 125.9,570.3 124.0,565.4 127.3,565.9 128.9,563.0 132.6,569.7 134.9,567.0 130.4,561.9 130.0,557.2 127.0,557.7 130.8,556.3 132.6,548.1 135.2,549.8 134.0,548.1 142.1,546.6 141.4,552.9 142.7,553.4 151.3,550.2 153.5,543.9 157.7,541.7 161.3,543.6 163.9,547.2 168.6,543.9 172.0,554.1 188.7,553.6 192.3,550.7 195.8,552.0 199.0,554.6 200.6,563.1 208.4,573.5 209.3,577.0","275.0,561.5 270.5,568.3 269.4,565.5 263.0,566.2 261.9,568.4 258.3,564.0 254.0,564.0 253.1,559.0 251.8,561.5 254.4,569.2 253.2,570.0 251.9,567.8 248.1,566.7 241.4,570.6 240.4,573.5 246.8,570.4 247.5,573.4 243.1,575.2 244.3,576.8 243.8,581.7 246.1,581.7 242.7,585.4 241.1,584.2 238.0,581.8 239.7,580.3 236.6,580.4 232.3,578.3 231.4,581.7 226.5,579.3 223.1,578.8 223.8,568.2 220.1,571.6 221.1,574.1 215.9,572.6 215.2,576.7 210.7,577.9 201.3,564.5 198.7,556.2 203.2,545.0 199.7,535.7 203.9,522.6 207.3,517.8 212.7,515.6 215.3,511.9 218.1,516.1 227.9,519.6 231.9,524.6 232.1,531.1 238.7,531.3 243.2,533.5 247.6,532.2 250.3,529.2 252.1,534.8 261.4,536.8 270.2,532.6 275.5,533.4 274.3,539.1 275.1,540.8 278.5,541.4 289.8,551.9 289.1,556.7 286.0,562.5 281.2,555.8 278.7,555.0 275.6,557.3 275.0,561.5","286.0,562.5 281.6,563.5 281.8,566.9 278.5,565.5 276.2,569.8 275.0,570.8 272.7,570.5 273.0,564.7 277.4,555.5 281.2,555.8 286.0,562.5","300.2,531.2 300.0,538.1 297.7,541.0 295.5,536.7 296.6,540.7 294.7,542.4 294.8,549.2 291.1,551.9 288.0,551.1 286.4,547.9 274.3,539.1 275.5,533.4 279.1,531.4 278.6,528.9 282.7,526.5 288.5,527.5 290.7,531.1 300.2,531.2","298.2,460.8 299.3,475.4 296.0,489.9 298.7,497.2 295.9,501.1 299.9,504.5 305.5,498.2 307.3,502.8 304.5,508.3 302.4,521.6 299.4,529.5 300.2,531.2 289.8,530.9 284.7,526.2 280.4,527.4 278.6,528.9 279.1,531.4 273.9,534.0 270.2,532.6 263.4,536.9 253.8,535.9 250.7,533.0 250.3,529.2 247.6,532.2 243.2,533.5 238.7,531.3 232.1,531.1 231.9,524.6 226.8,518.4 218.5,516.3 215.5,507.4 213.3,503.5 216.8,500.6 218.3,497.4 218.1,493.4 221.9,492.5 220.0,487.9 211.0,486.9 210.7,483.5 212.7,480.9 211.8,478.5 213.8,470.4 208.4,464.5 217.3,455.2 223.3,456.8 221.4,453.8 223.1,449.7 227.0,448.3 231.1,449.7 233.1,445.8 238.8,450.7 243.4,448.8 244.2,446.0 243.1,444.7 247.8,438.1 255.8,432.4 261.6,434.3 261.7,429.5 265.7,427.6 268.5,429.7 268.5,432.2 271.7,430.3 284.9,432.6 285.4,434.2 280.5,435.7 280.4,439.7 284.3,445.1 290.7,446.6 290.3,459.7 298.2,460.8","162.0,680.5 156.2,692.3 143.4,697.2 128.3,697.3 124.9,700.2 119.4,695.1 118.9,692.9 120.8,688.3 127.1,681.5 136.7,677.5 153.6,674.5 159.4,677.7 162.0,680.5","168.0,386.2 170.9,388.0 171.4,395.5 175.7,396.0 173.0,402.0 168.3,404.0 160.6,403.9 156.3,400.6 153.7,395.4 159.1,394.3 160.7,391.3 163.1,391.1 168.0,386.2","182.4,487.7 181.0,478.8 177.0,472.1 184.4,470.5 190.3,473.5 191.5,477.8 189.7,483.6 182.4,487.7","170.7,455.6 178.6,458.8 176.6,466.5 184.9,465.9 184.4,470.5 173.3,473.1 168.3,472.1 169.6,469.8 169.5,459.2 170.7,455.6","192.1,434.0 198.4,424.8 210.0,422.4 215.8,424.4 215.5,421.0 222.1,423.4 237.7,421.7 235.1,426.5 243.1,429.5 248.0,428.8 255.8,432.4 245.6,440.3 243.1,444.7 244.2,446.0 238.8,450.7 233.1,445.8 231.1,449.7 227.0,448.3 223.1,449.7 221.4,453.8 223.3,456.8 217.3,455.2 208.4,464.5 213.8,470.4 211.8,478.5 212.7,480.9 210.7,483.5 211.0,486.9 220.0,487.9 221.9,492.5 218.1,493.4 218.3,497.4 216.0,502.3 206.5,505.7 199.0,501.9 196.7,497.9 195.7,491.0 190.6,489.7 191.2,483.1 194.6,476.7 191.5,477.8 190.3,473.5 184.3,471.0 184.9,465.9 176.6,466.5 177.5,461.2 182.7,453.9 183.7,450.5 179.3,442.5 185.9,440.0 190.7,433.3 192.1,434.0","161.4,556.2 164.2,557.3 165.3,560.5 163.2,563.5 155.3,557.6 161.4,556.2","258.1,503.3 261.0,506.3 261.9,511.4 259.1,518.1 252.9,517.8 250.9,520.2 246.5,516.1 248.8,512.8 249.5,509.4 249.1,506.2 251.7,504.0 258.1,503.3"];
 const NK_MAP="79.5,253.1 70.7,257.5 61.4,254.4 41.0,239.2 40.9,248.9 35.1,252.7 35.6,245.2 31.0,237.0 23.0,236.3 17.7,230.1 22.3,222.1 27.5,222.4 20.3,217.1 39.2,202.3 49.3,190.1 57.3,191.7 56.4,186.6 71.1,178.6 77.7,179.8 86.4,169.1 92.5,170.2 90.5,167.3 96.9,162.0 110.4,161.0 116.8,148.7 125.1,143.3 134.2,129.6 138.7,129.4 137.6,123.6 141.2,111.0 150.0,104.9 153.4,105.3 161.1,97.9 167.3,102.7 168.2,109.0 174.9,113.0 172.4,117.5 194.9,119.6 200.1,123.9 220.1,121.0 228.0,127.7 236.7,113.2 222.6,93.5 221.9,84.4 271.7,81.5 273.0,77.8 286.6,68.6 287.5,63.2 293.7,52.8 298.9,53.1 304.4,58.1 313.7,53.0 318.3,36.6 316.9,31.8 325.0,13.4 329.8,16.7 336.7,15.3 343.1,20.8 344.4,34.4 354.9,45.5 358.4,42.0 361.7,52.8 366.1,57.2 368.3,63.8 362.9,65.6 358.1,60.5 352.0,67.0 341.1,71.9 338.8,78.9 334.0,78.5 328.1,91.1 321.9,100.5 313.0,108.5 311.3,121.5 319.3,127.7 314.2,145.4 317.1,157.9 314.4,165.6 294.3,171.8 287.8,174.6 279.3,190.9 255.0,202.1 256.6,209.9 240.1,217.2 234.5,218.6 228.5,222.9 220.4,220.8 214.9,225.1 213.1,231.5 201.5,237.5 193.3,242.3 193.2,248.5 196.6,252.3 193.6,258.3 195.9,271.9 191.6,263.4 185.8,267.5 191.0,269.7 185.5,277.2 189.9,282.4 194.2,283.8 206.8,285.8 220.8,303.9 231.6,313.1 239.1,315.2 240.1,320.3 235.5,323.1 234.7,332.3 222.2,342.7 170.0,344.0 146.6,368.4 146.7,376.1 142.6,379.8 131.9,371.6 118.7,382.7 113.1,373.1 107.8,370.1 109.2,376.4 99.0,364.5 87.8,361.7 87.8,364.5 95.7,369.2 89.7,369.2 89.1,380.4 84.0,378.3 74.1,386.7 75.0,380.7 83.8,376.8 81.4,374.0 83.1,371.4 76.1,371.6 79.5,375.0 72.0,377.4 68.2,376.4 69.3,368.7 53.9,369.2 58.4,365.5 60.9,361.6 68.5,362.6 69.6,358.5 55.7,359.6 48.7,354.8 43.7,357.2 36.7,355.2 47.1,348.1 54.6,348.1 48.0,346.0 48.4,339.8 55.9,329.1 54.1,322.6 62.0,323.4 64.9,317.1 80.4,314.5 91.2,319.8 79.6,309.6 70.3,314.8 68.3,308.5 62.5,307.8 65.9,295.0 73.4,288.2 70.8,283.3 77.6,279.0 79.5,272.3 77.3,268.5 80.3,267.0 73.8,263.7 79.5,253.1";
 
-function birthToSaju(year,month,day,hour,gender,longitude){
+function birthToSaju(year,month,day,hour,gender,longitude,minute){
   // 시 모름이면 시주 없이 계산
   if(hour<0){
     const s=calculateSaju(year,month,day,12,0);
     return{yg:s.연주.천간,yj:s.연주.지지,mg:s.월주.천간,mj:s.월주.지지,dg:s.일주.천간,dj:s.일주.지지,hg:'?',hj:'?',gender:gender||'남'};
   }
-  // 진태양시 보정 — 시주 판정에만 적용.
-  // 연·월·일주의 절기 경계 판정은 KST 표준시 기준이어야 함 (KASI 절기 시각이 KST라서
-  // 보정 시각을 넣으면 절기 당일 ±32분 구간에서 연주/월주가 뒤집힘)
-  let adjHour=hour,adjMinute=0;
-  if(longitude&&longitude!==135){
-    const corr=applyTrueSolarTime(hour,0,longitude);
-    adjHour=corr.hour;adjMinute=corr.minute;
-  }
-  const s=calculateSaju(year,month,day,hour,0);
-  const hp=(adjHour===hour&&adjMinute===0)?s.시주:calculateSaju(year,month,day,adjHour,adjMinute).시주;
-  return{yg:s.연주.천간,yj:s.연주.지지,mg:s.월주.천간,mj:s.월주.지지,dg:s.일주.천간,dj:s.일주.지지,hg:hp.천간,hj:hp.지지,gender:gender||'남'};
+  const p=birthPillars(year,month,day,hour,minute||0,longitude);
+  return{yg:p.연주.천간,yj:p.연주.지지,mg:p.월주.천간,mj:p.월주.지지,dg:p.일주.천간,dj:p.일주.지지,hg:p.시주.천간,hj:p.시주.지지,gender:gender||'남'};
 }
 
 // 바리만신 말투 변환 (존댓말→무당체)
@@ -1775,7 +1767,11 @@ export default function App(){
   const[premium,setPremium]=useState(null);
   const[paidTab,setPaidTab]=useState('심층 사주원국');
   const[expandedDW,setExpandedDW]=useState(null);
-  const[coins,setCoins]=useState(function(){try{var c=localStorage.getItem('mansin_coins');return c!==null?parseInt(c):100;}catch(e){return 100;}});
+  const[coins,setCoins]=useState(0); // 엽전 — 서버(users.coins)가 원본, 로그인 사용자 전용
+  const[loginGate,setLoginGate]=useState(null); // {back, returnTo, prefill}
+  const[sharedView,setSharedView]=useState(false); // 공유 링크로 남의 사주를 보는 중
+  const[quickLoad,setQuickLoad]=useState(false);
+  const pendingRef=useRef(null); // 신규 가입 시 닉네임 설정 후 이어갈 작업
   const[aiCache,setAiCache]=useState({});
   const[aiLoading,setAiLoading]=useState('');
   const[aiError,setAiError]=useState('');
@@ -1805,7 +1801,6 @@ export default function App(){
   const[visitedTabs,setVisitedTabs]=useState({});
   useEffect(function(){if(phase!=='premium')return;if(visitedTabs[paidTab]){setPremiumReveal(4);setPremiumCards(true);return;}setPremiumReveal(0);setPremiumCards(false);var t1=setTimeout(function(){setPremiumReveal(1);},500);var t2=setTimeout(function(){setPremiumReveal(2);},1800);var t3=setTimeout(function(){setPremiumReveal(3);},2800);var t4=setTimeout(function(){setPremiumReveal(4);setPremiumCards(true);setVisitedTabs(function(prev){var n=Object.assign({},prev);n[paidTab]=true;return n;});},3800);return function(){clearTimeout(t1);clearTimeout(t2);clearTimeout(t3);clearTimeout(t4);};},[phase,paidTab]);
   useEffect(function(){if(premiumScrollRef.current){premiumScrollRef.current.scrollTop=0;requestAnimationFrame(function(){if(premiumScrollRef.current)premiumScrollRef.current.scrollTop=0;});}},[paidTab]);
-  useEffect(function(){try{localStorage.setItem('mansin_coins',String(coins));}catch(e){}},[coins]);
   const[chatTarget,setChatTarget]=useState(null);
   const[chatMsgs,setChatMsgs]=useState({});
   const[chatInput,setChatInput]=useState('');
@@ -1822,21 +1817,25 @@ export default function App(){
   useEffect(function(){
     fetch('/auth/me').then(function(r){return r.json();}).then(function(d){
       if(d.loggedIn){
-        setAuthUser(d.user);setNickInput(d.user.nickname||'');
+        setAuthUser(d.user);setNickInput(d.user.nickname||'');setCoins(d.user.coins||0);
         if(d.lastSaju)setLastSaju(d.lastSaju);
         if(d.hasMansinChat)setHasMansinChat(true);
         if(d.lastYeoninProfile)setLastYeoninProfile(d.lastYeoninProfile);
       }
       setAuthChecked(true);
       var p=new URLSearchParams(window.location.search);
+      // 로그인하러 나가기 전에 보던 사주 (30분 이내만)
+      var pending=null;
+      if(p.get('login')&&d.loggedIn){try{pending=JSON.parse(sessionStorage.getItem('saju_pending')||'null');sessionStorage.removeItem('saju_pending');}catch(e){}}
+      if(pending&&!(Date.now()-pending.t<30*60*1000))pending=null;
       if(p.get('s')){
         var shareId=p.get('s');
         window.history.replaceState({},'','/');
         fetch('/api/share/'+shareId).then(function(r){return r.json();}).then(function(data){
           if(data.form){
             var f=data.form;
-            setForm(f);
-            var s=birthToSaju(f.year,f.month,f.day,f.hour,f.gender,f.city);
+            setForm(f);setSharedView(true);
+            var s=birthToSaju(f.year,f.month,f.day,f.hour,f.gender,f.city,f.minute);
             s.birthYear=f.year;s.birthMonth=f.month;s.birthDay=f.day;
             var a=analyze(s);
             setResult(Object.assign({},a,{birthYear:f.year,birthMonth:f.month,birthDay:f.day}));
@@ -1845,18 +1844,21 @@ export default function App(){
         }).catch(function(){});
       }else if(p.get('login')==='new'){
         window.history.replaceState({},'','/');
+        pendingRef.current=pending;
         setLoginStep(4);setPhase('loginFlow');
-      }else if(p.get('login')==='ok'){
+      }else if(p.get('login')==='ok'&&d.loggedIn){
         window.history.replaceState({},'','/');
-        setDialogStep(0);setDialogMsgs([{who:'cat',text:d.user.nickname+', 또 왔군.\n그럼 사주를 봐주지. 자네 성별이 뭔가?'}]);setDialogReady(false);setPhase('dialog');
+        if(pending){resumePending(pending,d.user.coins||0);}
+        else{setDialogStep(0);setDialogMsgs([{who:'cat',text:d.user.nickname+', 또 왔군.\n그럼 사주를 봐주지. 자네 성별이 뭔가?'}]);setDialogReady(false);setPhase('dialog');}
       }
     }).catch(function(){setAuthChecked(true);});
   },[]);
   // 사주 저장 헬퍼
+  function postSaju(f,a){
+    fetch('/auth/saju',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gender:f.gender,year:f.year,month:f.month,day:f.day,hour:f.hour,minute:f.minute||0,city:f.city,ilgan:a.일간,ilji:a.일지,data:{일간:a.일간,일지:a.일지,saju:a.saju}})}).catch(function(){});
+  }
   function saveSajuToServer(a){
-    if(authUser){
-      fetch('/auth/saju',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gender:form.gender,year:form.year,month:form.month,day:form.day,hour:form.hour,city:form.city,ilgan:a.일간,ilji:a.일지,data:{일간:a.일간,일지:a.일지,saju:a.saju}})}).catch(function(){});
-    }
+    if(authUser)postSaju(form,a);
     // 게스트도 저장
     fetch('/api/guest/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gender:form.gender,birthYear:form.year,birthMonth:form.month,birthDay:form.day,birthHour:form.hour,city:(CITIES.find(function(c){return c.v===form.city;})||{}).l||'',longitude:form.city,sajuJson:JSON.stringify({saju:a.saju,일간:a.일간,일지:a.일지,격국:a.격국,강약:a.강약,용신:a.용신})})}).catch(function(){});
   }
@@ -1868,7 +1870,7 @@ export default function App(){
     fetch('/api/track',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:authUser?authUser.id:null,action:action,detail:typeof detail==='object'?JSON.stringify(detail):detail||null})}).catch(function(){});
   }
   useEffect(function(){if(phase!=='intro')return;if(introStep>=5)return;var delays=[300,1000,1000,1200,1200];var d=delays[introStep]||1000;var t=setTimeout(function(){setIntroStep(function(s){return s+1;});},d);return function(){clearTimeout(t);};},[phase,introStep]);
-  useEffect(function(){if(phase!=='loading')return;if(loadStep>=4)return;var delays=[500,1800,2000,1500];var d=delays[loadStep]||1500;var t=setTimeout(function(){setLoadStep(function(s){return s+1;});},d);return function(){clearTimeout(t);};},[phase,loadStep]);
+  useEffect(function(){if(phase!=='loading')return;if(loadStep>=4)return;var delays=quickLoad?[150,450,500,400]:[500,1800,2000,1500];var d=delays[loadStep]||1500;var t=setTimeout(function(){setLoadStep(function(s){return s+1;});},d);return function(){clearTimeout(t);};},[phase,loadStep]);
   useEffect(function(){if(dialogRef.current)dialogRef.current.scrollTop=dialogRef.current.scrollHeight;},[dialogMsgs,dialogStep,dialogReady]);
   useEffect(function(){if(phase!=='dialog')return;setDialogReady(false);var t=setTimeout(function(){setDialogReady(true);},600);return function(){clearTimeout(t);};},[dialogStep,phase]);
   useEffect(function(){if(phase==='dialog'&&dialogStep>=6){var t=setTimeout(function(){doAnalyze();},1200);return function(){clearTimeout(t);};};},[phase,dialogStep]);
@@ -2105,23 +2107,31 @@ export default function App(){
     });
   }
 
+  // 첫 방문은 연출을 끝까지, 이후엔 짧게
+  function seenBefore(key){var seen=false;try{seen=!!localStorage.getItem(key);localStorage.setItem(key,'1');}catch(e){}return seen;}
+
   const doAnalyze=()=>{
+    const quick=seenBefore('saju_seen_load');
+    setQuickLoad(quick);setSharedView(false);
     setLoadStep(0);
     setPhase('loading');
     setTimeout(()=>{
-      const s=birthToSaju(form.year,form.month,form.day,form.hour,form.gender,form.city);
+      const s=birthToSaju(form.year,form.month,form.day,form.hour,form.gender,form.city,form.minute);
       s.birthYear=form.year;s.birthMonth=form.month;s.birthDay=form.day;
       const a=analyze(s);
       setResult({...a,birthYear:form.year,birthMonth:form.month,birthDay:form.day});
       saveSajuToServer(a);
       trackAct('analyze',{ilgan:a.일간,ilji:a.일지});
       setPhase('result');
-    },6500);
+    },quick?1800:6500);
   };
 
   // 바리만신 1:1 채팅 전송
+  var NO_COIN_MSG = '허허, 엽전이 다 떨어졌구나. 지금은 시험 운영 중이라 더 채워줄 수가 없느니라.\n오늘 나눈 이야기를 곱씹어 보거라.';
   var sendMansinChat = async function(userText) {
     if (!userText.trim() || msChatLoading) return;
+    if (!authUser) { openLoginGate('mansinChat', userText); return; }
+    if (coins <= 0) { setMsChatMsgs(function(prev) { return prev.concat([{ role: 'assistant', content: NO_COIN_MSG }]); }); return; }
     var newMsgs = msChatMsgs.concat([{ role: 'user', content: userText }]);
     setMsChatMsgs(newMsgs);
     setMsChatInput('');
@@ -2148,6 +2158,12 @@ export default function App(){
         body: JSON.stringify({ sajuSummary: sajuSum, messages: apiMsgs })
       });
       var data = await resp.json();
+      if (typeof data.coins === 'number') setCoins(data.coins);
+      if (resp.status === 401) { setMsChatLoading(false); openLoginGate('mansinChat', userText); return; }
+      if (resp.status === 402) {
+        setMsChatMsgs(function(prev) { return prev.concat([{ role: 'assistant', content: NO_COIN_MSG }]); });
+        setMsChatLoading(false); return;
+      }
       if (data.text) {
         setMsChatMsgs(function(prev) { return prev.concat([{ role: 'assistant', content: data.text }]); });
         // DB에 저장 (로그인 시)
@@ -2163,19 +2179,62 @@ export default function App(){
     setMsChatLoading(false);
   };
 
+  // 바리만신 안내 화면 — 첫 방문만 연출, 이후엔 바로 전체 표시
+  function playChatInvite(){
+    var seen=seenBefore('saju_seen_invite');
+    setMsChatInviteStep(seen?4:0);
+    setPhase('chatInvite');
+    if(seen)return;
+    setTimeout(function(){ setMsChatInviteStep(1); }, 500);
+    setTimeout(function(){ setMsChatInviteStep(2); }, 2000);
+    setTimeout(function(){ setMsChatInviteStep(3); }, 3500);
+    setTimeout(function(){ setMsChatInviteStep(4); }, 5000);
+  }
+
   // 바리만신 채팅 시작
   var startMansinChat = function() {
     trackAct('mansin_chat_start');
     setMsChatMsgs([]);
     setMsChatInput('');
-    setMsChatInviteStep(0);
-    setPhase('chatInvite');
-    // 연출 시퀀스
-    setTimeout(function(){ setMsChatInviteStep(1); }, 500);
-    setTimeout(function(){ setMsChatInviteStep(2); }, 2000);
-    setTimeout(function(){ setMsChatInviteStep(3); }, 3500);
-    setTimeout(function(){ setMsChatInviteStep(4); }, 5000);
+    playChatInvite();
   };
+
+  // ── 바리만신 1:1 질문 (로그인 사용자 전용, 질문 1회 = 엽전 1개) ──
+  var MANSIN_TOPIC={'심층 사주원국':'제 사주 원국에서 가장 중요한 점을 더 자세히 알려주세요.','심층 개인성향':'제 성향의 장단점을 더 자세히 알려주세요.','심층 인간관계':'제 인간관계와 인연에 대해 더 자세히 알려주세요.','심층 사회/운세':'앞으로의 재물운과 직업운을 더 자세히 알려주세요.'};
+  function openLoginGate(returnTo,prefill){
+    setLoginGate({back:phase,returnTo:returnTo,prefill:prefill||''});
+    setPhase('loginGate');
+  }
+  function openMansinChat(prefill){
+    if(!authUser){openLoginGate('mansinChat',prefill);return;}
+    setMsChatMsgs(function(prev){return prev.length?prev:[{role:'assistant',content:'허, '+result.일간+result.일지+' 일주... 내 눈에도 범상치 않은 사주로구나.\n궁금한 것이 있으면 물어보거라. 무엇이든 답해주리라.'}];});
+    setMsChatInput(prefill||'');
+    setPhase('mansinChat');
+  }
+  function askMansin(tab){openMansinChat(MANSIN_TOPIC[tab]||'');}
+  // 로그인하러 나가기 전에 보던 사주를 저장 → 돌아오면 resumePending이 이어줌
+  function goLogin(provider,pending){
+    try{if(pending&&result)sessionStorage.setItem('saju_pending',JSON.stringify(Object.assign({form:form,shared:sharedView,t:Date.now()},pending)));}catch(e){}
+    window.location.href='/auth/'+provider;
+  }
+  function resumePending(p,coinCount){
+    var f=p.form;setForm(f);setSharedView(!!p.shared);
+    var s=birthToSaju(f.year,f.month,f.day,f.hour,f.gender,f.city,f.minute);
+    s.birthYear=f.year;s.birthMonth=f.month;s.birthDay=f.day;
+    var a=analyze(s);
+    setResult(Object.assign({},a,{birthYear:f.year,birthMonth:f.month,birthDay:f.day}));
+    if(!p.shared)postSaju(f,a);
+    if(p.returnTo==='mansinChat'){
+      setMsChatMsgs([{role:'assistant',content:'허, '+a.일간+a.일지+' 일주로구나. 잘 돌아왔느니라.\n엽전 '+coinCount+'개가 있으니, 한 번 물을 때마다 하나씩 쓰면 되느니라.'}]);
+      setMsChatInput(p.prefill||'');setPhase('mansinChat');
+    }else if(p.returnTo==='catNav'){setCatNavStep(6);setCatNavLoading(null);setPhase('catNav');}
+    else setPhase('result');
+  }
+  // 신규 가입자: 닉네임 정한 뒤 보던 사주로 복귀, 없으면 새로 입력
+  function afterNickname(nick){
+    if(pendingRef.current){var pd=pendingRef.current;pendingRef.current=null;resumePending(pd,coins);return;}
+    setDialogStep(0);setDialogMsgs([{who:'cat',text:nick+', 좋은 이름이군.\n그럼 사주를 봐주지. 자네 성별이 뭔가?'}]);setDialogReady(false);setPhase('dialog');
+  }
 
   const unlockPremium=()=>{
     if(!result)return;
@@ -2272,15 +2331,15 @@ export default function App(){
         {/* 내 사주 다시보기 */}
         <button onClick={function(){
           if(!lastSaju)return;
-          setForm({year:lastSaju.year,month:lastSaju.month,day:lastSaju.day,hour:lastSaju.hour,gender:lastSaju.gender,city:lastSaju.city||127});
-          setLoadStep(0);setPhase('loading');
+          setForm({year:lastSaju.year,month:lastSaju.month,day:lastSaju.day,hour:lastSaju.hour,minute:lastSaju.minute||0,gender:lastSaju.gender,city:lastSaju.city||127});
+          setQuickLoad(true);setSharedView(false);setLoadStep(0);setPhase('loading');
           setTimeout(function(){
-            var s=birthToSaju(lastSaju.year,lastSaju.month,lastSaju.day,lastSaju.hour,lastSaju.gender,lastSaju.city||127);
+            var s=birthToSaju(lastSaju.year,lastSaju.month,lastSaju.day,lastSaju.hour,lastSaju.gender,lastSaju.city||127,lastSaju.minute);
             s.birthYear=lastSaju.year;s.birthMonth=lastSaju.month;s.birthDay=lastSaju.day;
             var a=analyze(s);
             setResult({...a,birthYear:lastSaju.year,birthMonth:lastSaju.month,birthDay:lastSaju.day});
             setPhase('result');
-          },3000);
+          },1800);
         }} style={{width:'100%',padding:'14px 18px',background:'transparent',border:'1px solid rgba(180,140,80,0.2)',borderRadius:16,fontSize:14,fontWeight:700,color:'#c0b8a0',cursor:'pointer',textAlign:'left',display:'flex',alignItems:'center',gap:10}}>
           <span style={{fontSize:20}}>📖</span>
           <div><div>내 사주 다시보기</div><div style={{fontSize:11,fontWeight:400,color:'#8a7e6d',marginTop:2}}>{lastSaju.year}년 {lastSaju.month}월 {lastSaju.day}일 {lastSaju.ilgan}{lastSaju.ilji}일주</div></div>
@@ -2289,8 +2348,8 @@ export default function App(){
         {/* 바리만신과 대화하기 */}
         <button onClick={function(){
           if(!lastSaju)return;
-          setForm({year:lastSaju.year,month:lastSaju.month,day:lastSaju.day,hour:lastSaju.hour,gender:lastSaju.gender,city:lastSaju.city||127});
-          var s=birthToSaju(lastSaju.year,lastSaju.month,lastSaju.day,lastSaju.hour,lastSaju.gender,lastSaju.city||127);
+          setForm({year:lastSaju.year,month:lastSaju.month,day:lastSaju.day,hour:lastSaju.hour,minute:lastSaju.minute||0,gender:lastSaju.gender,city:lastSaju.city||127});
+          var s=birthToSaju(lastSaju.year,lastSaju.month,lastSaju.day,lastSaju.hour,lastSaju.gender,lastSaju.city||127,lastSaju.minute);
           s.birthYear=lastSaju.year;s.birthMonth=lastSaju.month;s.birthDay=lastSaju.day;
           var a=analyze(s);
           setResult({...a,birthYear:lastSaju.year,birthMonth:lastSaju.month,birthDay:lastSaju.day});
@@ -2313,8 +2372,8 @@ export default function App(){
         {/* 인연과 대화하기 */}
         <button onClick={function(){
           if(!lastSaju)return;
-          setForm({year:lastSaju.year,month:lastSaju.month,day:lastSaju.day,hour:lastSaju.hour,gender:lastSaju.gender,city:lastSaju.city||127});
-          var s=birthToSaju(lastSaju.year,lastSaju.month,lastSaju.day,lastSaju.hour,lastSaju.gender,lastSaju.city||127);
+          setForm({year:lastSaju.year,month:lastSaju.month,day:lastSaju.day,hour:lastSaju.hour,minute:lastSaju.minute||0,gender:lastSaju.gender,city:lastSaju.city||127});
+          var s=birthToSaju(lastSaju.year,lastSaju.month,lastSaju.day,lastSaju.hour,lastSaju.gender,lastSaju.city||127,lastSaju.minute);
           s.birthYear=lastSaju.year;s.birthMonth=lastSaju.month;s.birthDay=lastSaju.day;
           var a=analyze(s);
           setResult({...a,birthYear:lastSaju.year,birthMonth:lastSaju.month,birthDay:lastSaju.day});
@@ -2434,7 +2493,7 @@ export default function App(){
                   <button onClick={function(){
                     fetch('/auth/nickname',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nickname:authUser.nickname})}).then(function(){
                       setAuthUser(Object.assign({},authUser,{nickConfirmed:true}));
-                      setDialogStep(0);setDialogMsgs([{who:'cat',text:authUser.nickname+', 좋은 이름이군.\n그럼 사주를 봐주지. 자네 성별이 뭔가?'}]);setDialogReady(false);setPhase('dialog');
+                      afterNickname(authUser.nickname);
                     });
                   }} style={{flex:1,padding:'11px',background:'linear-gradient(135deg,#b48c50,#8a6830)',border:'none',borderRadius:12,fontSize:14,fontWeight:700,color:'#14110c',cursor:'pointer',boxShadow:'0 4px 16px rgba(180,140,80,0.3)'}}>이대로 할래!</button>
                   <button onClick={function(){setNickMode('custom');setNickInput('');}} style={{flex:1,padding:'11px',background:'transparent',border:'1px solid rgba(180,140,80,0.2)',borderRadius:12,fontSize:13,fontWeight:600,color:'#c0b8a0',cursor:'pointer'}}>직접 정할래</button>
@@ -2454,7 +2513,7 @@ export default function App(){
                     if(!nickInput.trim())return;
                     fetch('/auth/nickname',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nickname:nickInput.trim()})}).then(function(){
                       setAuthUser(Object.assign({},authUser,{nickname:nickInput.trim(),nickConfirmed:true}));
-                      setDialogStep(0);setDialogMsgs([{who:'cat',text:nickInput.trim()+', 좋은 이름이군.\n그럼 사주를 봐주지. 자네 성별이 뭔가?'}]);setDialogReady(false);setPhase('dialog');
+                      afterNickname(nickInput.trim());
                     });
                   }} style={{flex:1,padding:'11px',background:nickInput.trim()?'linear-gradient(135deg,#b48c50,#8a6830)':'rgba(180,140,80,0.1)',border:'none',borderRadius:12,fontSize:14,fontWeight:700,color:nickInput.trim()?'#14110c':'#5a5040',cursor:'pointer'}}>확인!</button>
                   <button onClick={function(){setNickMode('auto');}} style={{flex:1,padding:'11px',background:'transparent',border:'1px solid rgba(180,140,80,0.2)',borderRadius:12,fontSize:13,fontWeight:600,color:'#c0b8a0',cursor:'pointer'}}>자동으로 할래</button>
@@ -2502,8 +2561,8 @@ export default function App(){
           {dialogStep>=2&&<span style={{fontSize:10,padding:'3px 10px',background:'rgba(180,140,80,0.08)',border:'1px solid rgba(180,140,80,0.15)',borderRadius:12,color:'#b48c50'}}>{form.year}년</span>}
           {dialogStep>=3&&<span style={{fontSize:10,padding:'3px 10px',background:'rgba(180,140,80,0.08)',border:'1px solid rgba(180,140,80,0.15)',borderRadius:12,color:'#b48c50'}}>{form.month}월</span>}
           {dialogStep>=4&&<span style={{fontSize:10,padding:'3px 10px',background:'rgba(180,140,80,0.08)',border:'1px solid rgba(180,140,80,0.15)',borderRadius:12,color:'#b48c50'}}>{form.day}일</span>}
-          {dialogStep>=5&&<span style={{fontSize:10,padding:'3px 10px',background:'rgba(180,140,80,0.08)',border:'1px solid rgba(180,140,80,0.15)',borderRadius:12,color:'#b48c50'}}>{form.hour>=0?form.hour+'시('+시진명D(form.hour)+')':'시간 모름'}</span>}
-          {dialogStep>=6&&<span style={{fontSize:10,padding:'3px 10px',background:'rgba(180,140,80,0.08)',border:'1px solid rgba(180,140,80,0.15)',borderRadius:12,color:'#b48c50'}}>{cityLabelD?cityLabelD.l.split(' ')[0]:'서울'}</span>}
+          {dialogStep>=5&&<span style={{fontSize:10,padding:'3px 10px',background:'rgba(180,140,80,0.08)',border:'1px solid rgba(180,140,80,0.15)',borderRadius:12,color:'#b48c50'}}>{form.city===135?'보정없음':(cityLabelD?cityLabelD.l.split(' ')[0]:'서울')}</span>}
+          {dialogStep>=6&&<span style={{fontSize:10,padding:'3px 10px',background:'rgba(180,140,80,0.08)',border:'1px solid rgba(180,140,80,0.15)',borderRadius:12,color:'#b48c50'}}>{form.hour>=0?(form.timeLabel||form.hour+'시'):'시간 모름'}</span>}
         </div>
       )}
 
@@ -2574,33 +2633,37 @@ export default function App(){
                 {DAYS.map(function(d){return(
                   <button key={d.v} onClick={function(){
                     setForm(function(f){return Object.assign({},f,{day:d.v});});
-                    dialogAnswer(d.v, d.v+'일', d.v+'일이로군.\n태어난 시간은 아는가?');
+                    dialogAnswer(d.v, d.v+'일', d.v+'일이로군.\n어디서 태어났는가?\n시간(時柱)은 태양의 실제 위치로 정하지. 표준시와 차이가 있어서 태어난 곳에 따라 보정이 필요하네.\n같은 세로선(경도)이면 보정이 같으니, 목록에 없으면 비슷한 위치를 고르면 되지.');
                   }} style={{padding:'8px 2px',borderRadius:6,border:form.day===d.v?'1px solid rgba(180,140,80,0.5)':'1px solid rgba(180,140,80,0.08)',background:form.day===d.v?'rgba(180,140,80,0.12)':'rgba(180,140,80,0.02)',color:form.day===d.v?'#e8d5a8':'#8a7e6d',fontSize:13,fontWeight:form.day===d.v?700:400,cursor:'pointer',transition:'all 0.15s'}}>{d.v}</button>
                 );})}
               </div>
             )}
 
-            {/* Step 4: 시간 — 스크롤 피커 */}
-            {dialogStep===4&&(
-              <div style={{background:'rgba(180,140,80,0.04)',border:'1px solid rgba(180,140,80,0.1)',borderRadius:12,padding:12}}>
-                <Picker items={HOURS.filter(function(h){return h.v>=0;})} value={form.hour>=0?form.hour:12} onChange={function(v){setForm(function(f){return Object.assign({},f,{hour:v});});}}/>
-                <div style={{display:'flex',gap:8,marginTop:12}}>
-                  <button onClick={function(){
-                    var disp=form.hour>=0?form.hour+'시('+시진명D(form.hour)+')':'12시(午)';
-                    var h=form.hour>=0?form.hour:12;
-                    setForm(function(f){return Object.assign({},f,{hour:h});});
-                    dialogAnswer(h, h+'시('+시진명D(h)+')', h+'시에 태어났군.\n마지막이네. 어디서 태어났는가?\n시간(時柱)은 태양의 실제 위치로 정하지. 표준시와 차이가 있어서 태어난 곳에 따라 보정이 필요하네.\n같은 세로선(경도)이면 보정이 같으니, 목록에 없으면 비슷한 위치를 고르면 되지.');
-                  }} style={{flex:1,background:'linear-gradient(135deg,#b48c50,#8a6830)',border:'none',borderRadius:8,padding:'11px',fontSize:14,fontWeight:700,color:'#14110c',cursor:'pointer'}}>선택</button>
-                  <button onClick={function(){
-                    setForm(function(f){return Object.assign({},f,{hour:-1});});
-                    dialogAnswer(-1, '시간 모름', '시간을 모르는군, 괜찮네.\n마지막이네. 어디서 태어났는가?\n같은 세로선(경도)이면 보정이 같으니, 목록에 없으면 비슷한 위치를 고르면 되지.');
-                  }} style={{flex:0,padding:'11px 16px',background:'transparent',border:'1px solid rgba(180,140,80,0.15)',borderRadius:8,fontSize:12,color:'#8a7e6d',cursor:'pointer',whiteSpace:'nowrap'}}>모름</button>
+            {/* Step 5: 시간 — 출생지·날짜로 보정한 시진 범위 */}
+            {dialogStep===5&&(
+              <div style={{background:'rgba(180,140,80,0.04)',border:'1px solid rgba(180,140,80,0.1)',borderRadius:12,padding:10}}>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}}>
+                  {sijinOptions(form.year,form.month,form.day,form.city).map(function(o,i){return(
+                    <button key={i} onClick={function(){
+                      setForm(function(f){return Object.assign({},f,{hour:o.hour,minute:o.minute,timeLabel:o.name+'('+o.ji+')'});});
+                      setDialogMsgs(dialogMsgs.concat([{who:'user',text:o.label+' '+o.range},{who:'cat',text:o.name+'로군.\n좋네, 다 모았네. 사주를 풀어보겠네...'}]));
+                      setDialogReady(false);setDialogStep(6);
+                    }} style={{padding:'9px 6px',borderRadius:8,border:'1px solid rgba(180,140,80,0.12)',background:'rgba(180,140,80,0.03)',color:'#e8d5a8',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:2}}>
+                      <span style={{fontSize:13,fontWeight:700,fontFamily:"'Noto Serif KR',serif"}}>{o.label}</span>
+                      <span style={{fontSize:11,color:'#8a7e6d'}}>{o.range}</span>
+                    </button>
+                  );})}
                 </div>
+                <button onClick={function(){
+                  setForm(function(f){return Object.assign({},f,{hour:-1,minute:0,timeLabel:null});});
+                  setDialogMsgs(dialogMsgs.concat([{who:'user',text:'시간 모름'},{who:'cat',text:'시간을 모르는군, 괜찮네.\n시주 없이 풀어보겠네...'}]));
+                  setDialogReady(false);setDialogStep(6);
+                }} style={{width:'100%',marginTop:8,padding:'10px',background:'transparent',border:'1px solid rgba(180,140,80,0.15)',borderRadius:8,fontSize:12,color:'#8a7e6d',cursor:'pointer'}}>시간을 몰라요</button>
               </div>
             )}
 
-            {/* Step 5: 지역 — 지도 */}
-            {dialogStep===5&&(
+            {/* Step 4: 지역 — 지도 */}
+            {dialogStep===4&&(
               <div style={{animation:'fadeUp 0.5s ease'}}>
                 <div style={{background:'rgba(180,140,80,0.03)',border:'1px solid rgba(180,140,80,0.08)',borderRadius:12,padding:'8px 2px',overflow:'hidden'}}>
                   <div style={{width:'100%',overflow:'auto',WebkitOverflowScrolling:'touch',touchAction:'pan-x pan-y pinch-zoom'}}>
@@ -2633,24 +2696,23 @@ export default function App(){
                 )}
                 <div style={{display:'flex',gap:8,marginTop:8}}>
                   <button onClick={function(){
-                    var cn=mapCity||'서울';
-                    var finalMsgs=dialogMsgs.concat([
-                      {who:'user',text:cn},
-                      {who:'cat',text:cn+'.\n좋네, 다 모았네. 사주를 풀어보겠네...'}
-                    ]);
-                    setDialogMsgs(finalMsgs);
+                    if(!mapCity)return;
+                    var note=eraNote(form.year,form.month,form.day,form.city);
+                    setDialogMsgs(dialogMsgs.concat([
+                      {who:'user',text:mapCity},
+                      {who:'cat',text:mapCity+'이로군.\n마지막이네. 태어난 시각이 들어가는 칸을 골라보게.\n태양 위치로 보정한 시간대라 정각에서 조금씩 어긋나 있네.'+(note?'\n'+note:'')}
+                    ]));
                     setDialogReady(false);
-                    setDialogStep(6);
+                    setDialogStep(5);
                   }} style={{flex:1,background:mapCity?'linear-gradient(135deg,#b48c50,#8a6830)':'rgba(180,140,80,0.15)',border:'none',borderRadius:8,padding:'11px',fontSize:14,fontWeight:700,color:mapCity?'#14110c':'#5a5040',cursor:mapCity?'pointer':'default',opacity:mapCity?1:0.5}}>선택</button>
                   <button onClick={function(){
                     setForm(function(f){return Object.assign({},f,{city:135});});
-                    var finalMsgs=dialogMsgs.concat([
+                    setDialogMsgs(dialogMsgs.concat([
                       {who:'user',text:'보정없음'},
-                      {who:'cat',text:'보정 없이 진행하겠네.\n좋네, 다 모았네. 사주를 풀어보겠네...'}
-                    ]);
-                    setDialogMsgs(finalMsgs);
+                      {who:'cat',text:'보정 없이 진행하겠네.\n마지막이네. 태어난 시각이 들어가는 칸을 골라보게.'}
+                    ]));
                     setDialogReady(false);
-                    setDialogStep(6);
+                    setDialogStep(5);
                   }} style={{flex:0,padding:'11px 14px',background:'transparent',border:'1px solid rgba(180,140,80,0.12)',borderRadius:8,fontSize:11,color:'#6a6050',cursor:'pointer',whiteSpace:'nowrap'}}>보정없음</button>
                 </div>
               </div>
@@ -3161,7 +3223,7 @@ export default function App(){
           </button>
         ):(
           <div style={{display:'flex',flexDirection:'column',gap:8}}>
-            <button onClick={function(){unlockPremium();setPaidTab('심층 사주원국');setMsChatInviteStep(0);setPhase('chatInvite');setTimeout(function(){setMsChatInviteStep(1);},500);setTimeout(function(){setMsChatInviteStep(2);},2000);setTimeout(function(){setMsChatInviteStep(3);},3500);setTimeout(function(){setMsChatInviteStep(4);},5000);trackAct('mansin_click');}} style={{width:'100%',padding:'14px',background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:10,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:"'Noto Serif KR',serif",boxShadow:'0 4px 20px rgba(100,60,180,0.3)',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+            <button onClick={function(){unlockPremium();setPaidTab('심층 사주원국');playChatInvite();trackAct('mansin_click');}} style={{width:'100%',padding:'14px',background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:10,fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:"'Noto Serif KR',serif",boxShadow:'0 4px 20px rgba(100,60,180,0.3)',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
               스승님의 심층 해석 받기
             </button>
             <button onClick={function(){setPhase('intro');setIntroStep(0);setResult(null);setPremium(null);setAiCache({});setDialogStep(0);setDialogMsgs([]);setResultTab(0);}} style={{width:'100%',background:'transparent',border:'1px solid rgba(180,140,80,0.1)',borderRadius:8,padding:'10px',fontSize:12,color:'#5a5040',cursor:'pointer'}}>다른 사주 보기</button>
@@ -3216,10 +3278,12 @@ export default function App(){
             {한글음M[result.일간]+한글음M[result.일지]+'('+result.일간+result.일지+')일주 · '+result.격국+' · '+result.강약}
           </div>
         </div>
+        {authUser&&(
         <div style={{flexShrink:0,display:'flex',alignItems:'center',gap:4,padding:'4px 10px',background:ac+'0.06)',borderRadius:8,border:'1px solid '+ac+'0.1)'}}>
           <span style={{fontSize:14}}>🪙</span>
           <span style={{fontSize:13,fontWeight:700,color:mcc,fontFamily:"'Noto Serif KR',serif"}}>{coins}</span>
         </div>
+        )}
       </div>
       {/* 탭 */}
       <div style={{display:'flex',gap:2,padding:'6px 8px',borderBottom:'1px solid '+ac+'0.06)',flexShrink:0,overflowX:'auto'}}>
@@ -3419,7 +3483,7 @@ export default function App(){
             {/* 천간합 */}
             {result.천간합&&result.천간합.length>0&&React.createElement('div',{style:{marginBottom:4}},React.createElement('div',{style:{fontSize:11,fontWeight:700,color:ac+'0.5)',marginBottom:6,fontFamily:"'Noto Serif KR',serif"}},'천간합(天干合)'),result.천간합.map(function(h,i){var info=천간합해설[Object.keys(천간합해설).find(function(k){return 천간합해설[k].합명.indexOf(h.간1)>=0&&천간합해설[k].합명.indexOf(h.간2)>=0;})||''];return React.createElement('div',{key:'tgh'+i,style:{background:ac+'0.03)',border:'1px solid '+ac+'0.08)',borderRadius:8,padding:'10px 12px',marginBottom:4}},React.createElement('div',{style:{fontSize:11,fontWeight:700,color:'#70b090',marginBottom:3}},info?info.합명:h.간1+h.간2+' 합'),React.createElement(BoldText,{text:info?info.해설:'천간이 합하여 새로운 기운을 만드느니라.'}));}))}
             {/* 더 묻기 */}
-            <div style={{background:ac+'0.03)',border:'1px solid '+ac+'0.12)',borderRadius:10,padding:'12px',textAlign:'center',marginTop:8}}><button onClick={function(){if(coins<10){alert('엽전이 부족합니다');return;}setCoins(function(c){return c-10;});}} style={{background:'linear-gradient(135deg,'+ac+'0.15),'+ac+'0.06))',border:'1px solid '+ac+'0.25)',borderRadius:8,padding:'10px 24px',fontSize:12,fontWeight:700,color:mcc,cursor:'pointer',fontFamily:"'Noto Serif KR',serif",display:'flex',alignItems:'center',gap:6,margin:'0 auto'}}><span style={{fontSize:14}}>🪙</span> 바리만신에게 더 묻기 <span style={{fontSize:10,opacity:0.6}}>(-10)</span></button></div>
+            <div style={{background:ac+'0.03)',border:'1px solid '+ac+'0.12)',borderRadius:10,padding:'12px',textAlign:'center',marginTop:8}}><button onClick={function(){askMansin(paidTab);}} style={{background:'linear-gradient(135deg,'+ac+'0.15),'+ac+'0.06))',border:'1px solid '+ac+'0.25)',borderRadius:8,padding:'10px 24px',fontSize:12,fontWeight:700,color:mcc,cursor:'pointer',fontFamily:"'Noto Serif KR',serif",display:'flex',alignItems:'center',gap:6,margin:'0 auto'}}><span style={{fontSize:14}}>🪙</span> 바리만신에게 더 묻기 <span style={{fontSize:10,opacity:0.6}}>(질문 1회 = 엽전 1개)</span></button></div>
           </div>
         )}
 
@@ -3472,7 +3536,7 @@ export default function App(){
             {result.건강.경고&&result.건강.경고.length>0&&React.createElement('div',{style:{background:'rgba(200,80,80,0.02)',border:'1px solid rgba(200,80,80,0.06)',borderRadius:10,padding:'10px 14px',marginBottom:6}},React.createElement('div',{style:{fontSize:11,fontWeight:600,color:'#d07070',marginBottom:6}},'건강 주의'),result.건강.경고.map(function(w,i){return React.createElement('div',{key:'hw'+i,style:{fontSize:10,lineHeight:1.8,color:'rgba(225,210,220,0.5)',paddingLeft:8,borderLeft:'2px solid rgba(200,80,80,0.15)',marginBottom:2}},w);}))}
             <CatAsk text={'스승님, 성격 점수가 '+result.성격.점수+'이면 성격이 안 좋다는 뜻인가요?'}/>
             <MansinChat text={(function(){var sc=result.성격.점수;var t='아니니라. 이 점수는 **원만한 정도**를 나타내느니라. ';if(sc>=70)t+='점수가 높으니 **협조적이고 원만한 성격**이니라. 사람들과 잘 어울리고 갈등을 피하느니라. 다만 때로 **자기 주장을 분명히** 해야 할 때도 있느니라.';else if(sc>=40)t+='점수가 중간이니 **개성이 강하고 독립적**이라는 뜻이니라. 세상을 바꾸는 사람들 중에 이 점수가 낮은 자가 많느니라. ';else t+='점수가 낮다는 것은 **독특하고 개성이 강하다**는 뜻이니라. 천재나 혁신가 중에 이 점수가 낮은 자가 많느니라. ';t+='중요한 것은 자네의 기질을 알고 **그에 맞는 삶**을 사는 것이니라. 물고기에게 나무를 오르라 하면 안 되듯, 자네의 **십성 구조에 맞는 환경**을 찾는 것이 지혜이니라.';return t;})()}/>
-            <div style={{background:ac+'0.03)',border:'1px solid '+ac+'0.12)',borderRadius:10,padding:'12px',textAlign:'center',marginTop:8}}><button onClick={function(){if(coins<10){alert('엽전이 부족합니다');return;}setCoins(function(c){return c-10;});}} style={{background:'linear-gradient(135deg,'+ac+'0.15),'+ac+'0.06))',border:'1px solid '+ac+'0.25)',borderRadius:8,padding:'10px 24px',fontSize:12,fontWeight:700,color:mcc,cursor:'pointer',fontFamily:"'Noto Serif KR',serif",display:'flex',alignItems:'center',gap:6,margin:'0 auto'}}><span style={{fontSize:14}}>🪙</span> 바리만신에게 더 묻기 <span style={{fontSize:10,opacity:0.6}}>(-10)</span></button></div>
+            <div style={{background:ac+'0.03)',border:'1px solid '+ac+'0.12)',borderRadius:10,padding:'12px',textAlign:'center',marginTop:8}}><button onClick={function(){askMansin(paidTab);}} style={{background:'linear-gradient(135deg,'+ac+'0.15),'+ac+'0.06))',border:'1px solid '+ac+'0.25)',borderRadius:8,padding:'10px 24px',fontSize:12,fontWeight:700,color:mcc,cursor:'pointer',fontFamily:"'Noto Serif KR',serif",display:'flex',alignItems:'center',gap:6,margin:'0 auto'}}><span style={{fontSize:14}}>🪙</span> 바리만신에게 더 묻기 <span style={{fontSize:10,opacity:0.6}}>(질문 1회 = 엽전 1개)</span></button></div>
           </div>
         )}
 
@@ -3544,7 +3608,7 @@ export default function App(){
             {/* 신살 상세 */}
             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}><div style={{width:36,height:36,borderRadius:10,background:ac+'0.06)',border:'1px solid '+ac+'0.12)',display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontSize:16,fontWeight:900,color:ac+'0.6)'}}>{'殺'}</span></div><div><div style={{fontSize:14,fontWeight:800,color:mcc,fontFamily:"'Noto Serif KR',serif"}}>{'신살(神殺) 상세'}</div><div style={{fontSize:11,color:ac+'0.5)'}}>{'각 별의 위치와 의미'}</div></div></div>
             {result.신살&&(result.신살.길신&&result.신살.길신.length>0||result.신살.흉신&&result.신살.흉신.length>0)&&React.createElement('div',{style:{marginBottom:6}},(result.신살.길신||[]).concat(result.신살.흉신||[]).map(function(s,i){var nm=s.명||'';var nmClean=nm.replace(/\([^)]*\)/g,'').trim();var detail=신살상세[nm]||신살상세[nmClean]||null;if(!detail){var 기본={건록:'**건록(建祿)**은 일간이 가장 왕성한 자리에 있는 것이니라. 자립심과 자존심이 강하고 **자수성가**하는 팔자이니라. 건록이 일지에 있으면 배우자도 자립적이고 독립적인 사람이니라.',천의:'**천의(天醫)**는 의술과 치유의 별이니라. 의료·간호·상담·약학 분야에 적성이 있으니라. 다른 이의 아픔을 이해하는 마음이 깊으니라.',학당:'**학당(學堂)**은 학문의 별이니라. 공부하는 데 재능이 있고 특히 전문 분야에서 두각을 나타내느니라.',장성:'**장성(將星)**은 리더십의 별이니라. 군인·경찰·관리자 등 조직의 수장이 될 기질이 있느니라. 결단력과 통솔력이 뛰어나느니라.',금여록:'**금여록(金輿祿)**은 귀인의 수레이니라. 높은 사람의 도움을 받고 **교통과 이동**에 복이 있느니라.'};detail=기본[nmClean]||null;}var isGil=(result.신살.길신||[]).indexOf(s)>=0;return React.createElement('div',{key:'ns'+i,style:{background:isGil?'rgba(80,160,80,0.03)':'rgba(200,80,80,0.03)',border:'1px solid '+(isGil?'rgba(80,160,80,0.08)':'rgba(200,80,80,0.08)'),borderRadius:10,padding:'10px 14px',marginBottom:4}},React.createElement('div',{style:{display:'flex',alignItems:'center',gap:6,marginBottom:3}},React.createElement('span',{style:{fontSize:9,padding:'2px 6px',borderRadius:4,background:isGil?'rgba(80,160,80,0.1)':'rgba(200,80,80,0.1)',color:isGil?'#70b090':'#d07070',fontWeight:600}},isGil?'길신':'흉신'),React.createElement('span',{style:{fontSize:11,fontWeight:700,color:mcc}},s.명),s.위치&&React.createElement('span',{style:{fontSize:9,color:ac+'0.3)',marginLeft:'auto'}},s.위치)),detail?React.createElement(BoldText,{text:detail}):React.createElement('div',{style:{fontSize:10,lineHeight:1.7,color:'rgba(225,210,220,0.4)'}},nmClean+'이(가) 사주에 있어 '+(isGil?'길한 기운이 작용하느니라.':'주의가 필요하느니라.')));}))}
-            <div style={{background:ac+'0.03)',border:'1px solid '+ac+'0.12)',borderRadius:10,padding:'12px',textAlign:'center',marginTop:8}}><button onClick={function(){if(coins<10){alert('엽전이 부족합니다');return;}setCoins(function(c){return c-10;});}} style={{background:'linear-gradient(135deg,'+ac+'0.15),'+ac+'0.06))',border:'1px solid '+ac+'0.25)',borderRadius:8,padding:'10px 24px',fontSize:12,fontWeight:700,color:mcc,cursor:'pointer',fontFamily:"'Noto Serif KR',serif",display:'flex',alignItems:'center',gap:6,margin:'0 auto'}}><span style={{fontSize:14}}>🪙</span> 바리만신에게 더 묻기 <span style={{fontSize:10,opacity:0.6}}>(-10)</span></button></div>
+            <div style={{background:ac+'0.03)',border:'1px solid '+ac+'0.12)',borderRadius:10,padding:'12px',textAlign:'center',marginTop:8}}><button onClick={function(){askMansin(paidTab);}} style={{background:'linear-gradient(135deg,'+ac+'0.15),'+ac+'0.06))',border:'1px solid '+ac+'0.25)',borderRadius:8,padding:'10px 24px',fontSize:12,fontWeight:700,color:mcc,cursor:'pointer',fontFamily:"'Noto Serif KR',serif",display:'flex',alignItems:'center',gap:6,margin:'0 auto'}}><span style={{fontSize:14}}>🪙</span> 바리만신에게 더 묻기 <span style={{fontSize:10,opacity:0.6}}>(질문 1회 = 엽전 1개)</span></button></div>
           </div>
         )}
 
@@ -3626,7 +3690,7 @@ export default function App(){
             </div>
             <CatAsk text="스승님, 전체적으로 보면 제 인생은 어떤 흐름인가요?"/>
             <MansinChat text={(function(){var t='';var goodPeriods=[];var badPeriods=[];var bestDw=null;var worstDw=null;daeunData.forEach(function(d){if(d.점수>=65)goodPeriods.push(d);if(d.점수<40)badPeriods.push(d);if(!bestDw||d.점수>bestDw.점수)bestDw=d;if(!worstDw||d.점수<worstDw.점수)worstDw=d;});if(badPeriods.length>0&&goodPeriods.length>0){var firstBad=badPeriods[0];var firstGood=goodPeriods.find(function(g){return g.start>firstBad.start;});if(firstGood&&firstGood.start>firstBad.start)t+='자네 인생은 **V자 곡선**이니라. ';else t+='자네 인생은 **파도형 곡선**이니라. ';}else if(goodPeriods.length>=4)t+='자네 인생은 전체적으로 **상승곡선**이니라. ';else t+='자네 인생은 **기복이 있는 곡선**이니라. ';if(worstDw)t+=worstDw.start+'~'+(worstDw.start+9)+'세 **'+worstDw.간지+' 대운**이 가장 힘든 구간이니라. ';if(bestDw)t+=bestDw.start+'~'+(bestDw.start+9)+'세 **'+bestDw.간지+' 대운**이 인생의 **황금기**이니라. ';t+='핵심은 — 지금 이 순간이 바닥이든 정상이든, **대운은 바꿀 수 없으나 대운을 맞이하는 준비는 바꿀 수 있느니라.** 좋은 대운이 올 때를 위해 **실력과 인맥을 쌓는 자**만이 그 운을 온전히 누릴 수 있느니라.';return t;})()}/>
-            <div style={{background:ac+'0.03)',border:'1px solid '+ac+'0.12)',borderRadius:10,padding:'12px',textAlign:'center',marginTop:8}}><button onClick={function(){if(coins<10){alert('엽전이 부족합니다');return;}setCoins(function(c){return c-10;});}} style={{background:'linear-gradient(135deg,'+ac+'0.15),'+ac+'0.06))',border:'1px solid '+ac+'0.25)',borderRadius:8,padding:'10px 24px',fontSize:12,fontWeight:700,color:mcc,cursor:'pointer',fontFamily:"'Noto Serif KR',serif",display:'flex',alignItems:'center',gap:6,margin:'0 auto'}}><span style={{fontSize:14}}>🪙</span> 바리만신에게 더 묻기 <span style={{fontSize:10,opacity:0.6}}>(-10)</span></button></div>
+            <div style={{background:ac+'0.03)',border:'1px solid '+ac+'0.12)',borderRadius:10,padding:'12px',textAlign:'center',marginTop:8}}><button onClick={function(){askMansin(paidTab);}} style={{background:'linear-gradient(135deg,'+ac+'0.15),'+ac+'0.06))',border:'1px solid '+ac+'0.25)',borderRadius:8,padding:'10px 24px',fontSize:12,fontWeight:700,color:mcc,cursor:'pointer',fontFamily:"'Noto Serif KR',serif",display:'flex',alignItems:'center',gap:6,margin:'0 auto'}}><span style={{fontSize:14}}>🪙</span> 바리만신에게 더 묻기 <span style={{fontSize:10,opacity:0.6}}>(질문 1회 = 엽전 1개)</span></button></div>
           </div>
         )}
 
@@ -3647,6 +3711,40 @@ export default function App(){
   // ============================================================
   // 바리만신 채팅 초대 연출 (phase='chatInvite')
   // ============================================================
+  // ============================================================
+  // 로그인 필요 안내 (바리만신 질문은 로그인 사용자 전용)
+  // ============================================================
+  if(phase==='loginGate'&&loginGate){
+    var gatePending={returnTo:loginGate.returnTo,prefill:loginGate.prefill};
+    return(
+      <div style={{minHeight:'100vh',background:'radial-gradient(ellipse at 50% 15%,#1a1028 0%,#0a0610 65%)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',color:'#e8d5a8',fontFamily:"'Noto Sans KR',sans-serif",padding:20}}>
+        <div style={{animation:'fadeUp 0.6s ease'}}><BariMansin size={80}/></div>
+        <div style={{animation:'fadeUp 0.6s ease',marginTop:16,textAlign:'center',maxWidth:320}}>
+          <div style={{background:'rgba(160,120,200,0.06)',border:'1px solid rgba(160,120,200,0.14)',borderRadius:14,padding:'14px 20px'}}>
+            <p style={{fontSize:14,color:'#c0b8d0',lineHeight:1.9,margin:0}}>
+              나에게 묻고 싶거든 먼저 이름을 밝히거라.<br/>
+              처음 온 자에게는 <b style={{color:'#e0c8ff'}}>엽전 10개</b>를 내어주지.<br/>
+              질문 한 번에 엽전 한 개씩이니라.
+            </p>
+            <p style={{fontSize:11,color:'#8a7e9d',margin:'8px 0 0'}}>보던 사주는 로그인 후 그대로 이어집니다</p>
+          </div>
+        </div>
+        <div style={{animation:'fadeUp 0.6s ease',marginTop:20,width:'100%',maxWidth:300,display:'flex',flexDirection:'column',gap:10}}>
+          <button onClick={function(){goLogin('kakao',gatePending);}} style={{width:'100%',padding:'13px',background:'#FEE500',border:'none',borderRadius:12,fontSize:14,fontWeight:700,color:'#3C1E1E',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+            <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#3C1E1E" d="M9 1C4.58 1 1 3.79 1 7.21c0 2.17 1.45 4.08 3.63 5.18l-.93 3.42c-.08.29.25.52.5.35L8 13.55c.33.03.66.05 1 .05 4.42 0 8-2.79 8-6.21S13.42 1 9 1z"/></svg>
+            카카오로 시작하기
+          </button>
+          <button onClick={function(){goLogin('google',gatePending);}} style={{width:'100%',padding:'13px',background:'#fff',border:'1px solid #ddd',borderRadius:12,fontSize:14,fontWeight:700,color:'#333',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+            <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2a10.4 10.4 0 0 0-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92A8.78 8.78 0 0 0 17.64 9.2z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.91-2.26a5.4 5.4 0 0 1-8.09-2.84H.96v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.96 10.71a5.4 5.4 0 0 1 0-3.42V4.96H.96a9 9 0 0 0 0 8.08l3-2.33z"/><path fill="#EA4335" d="M9 3.58a4.86 4.86 0 0 1 3.44 1.35l2.58-2.59A8.65 8.65 0 0 0 9 0 9 9 0 0 0 .96 4.96l3 2.33A5.36 5.36 0 0 1 9 3.58z"/></svg>
+            구글로 시작하기
+          </button>
+          <button onClick={function(){setPhase(loginGate.back||'result');}} style={{marginTop:4,background:'transparent',border:'none',fontSize:11,color:'#6a6080',cursor:'pointer'}}>← 돌아가기</button>
+        </div>
+        <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}`}</style>
+      </div>
+    );
+  }
+
   if(phase==='chatInvite'&&result){
     return(
       <div style={{minHeight:'100vh',background:'radial-gradient(ellipse at 50% 15%,#221c14 0%,#14110c 65%)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',color:'#e8d5a8',fontFamily:"'Noto Sans KR',sans-serif",padding:20}}>
@@ -3692,11 +3790,8 @@ export default function App(){
             <button onClick={function(){setPhase('premium');}} style={{background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:22,padding:'14px 40px',fontSize:15,fontWeight:700,color:'#fff',cursor:'pointer',boxShadow:'0 4px 20px rgba(100,60,180,0.4)',letterSpacing:1}}>
               🔮 심층 해석 보기
             </button>
-            <button onClick={function(){
-              setMsChatMsgs([{role:'assistant',content:'허, '+result.일간+result.일지+' 일주... 내 눈에도 범상치 않은 사주로구나.\n궁금한 것이 있으면 물어보거라. 무엇이든 답해주리라.'}]);
-              setPhase('mansinChat');
-            }} style={{background:'transparent',border:'1px solid rgba(130,100,200,0.2)',borderRadius:22,padding:'10px 30px',fontSize:13,fontWeight:600,color:'#c0b8d0',cursor:'pointer'}}>
-              바리만신과 1:1 대화하기
+            <button onClick={function(){openMansinChat('');}} style={{background:'transparent',border:'1px solid rgba(130,100,200,0.2)',borderRadius:22,padding:'10px 30px',fontSize:13,fontWeight:600,color:'#c0b8d0',cursor:'pointer'}}>
+              바리만신과 1:1 대화하기{authUser?' · 🪙'+coins:''}
             </button>
             <button onClick={function(){setCatNavStep(6);setCatNavLoading(null);setPhase('catNav');}} style={{background:'transparent',border:'none',color:'#5a5040',fontSize:11,cursor:'pointer',textDecoration:'underline'}}>돌아가기</button>
           </div>
@@ -3721,7 +3816,8 @@ export default function App(){
             <div style={{fontSize:14,fontWeight:700,color:'#d0b0ff',fontFamily:"'Noto Serif KR',serif"}}>바리만신</div>
             <div style={{fontSize:9,color:'#6050a0'}}>적천수 · 궁통보감 · 자평진전</div>
           </div>
-          <div style={{marginLeft:'auto'}}>
+          <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:8}}>
+            {authUser&&<span style={{fontSize:12,fontWeight:700,color:'#d0b0ff'}}>🪙 {coins}</span>}
             <button onClick={function(){setCatNavStep(6);setCatNavLoading(null);setPhase('catNav');}} style={{background:'rgba(160,120,200,0.08)',border:'1px solid rgba(160,120,200,0.15)',borderRadius:6,padding:'6px 12px',fontSize:10,color:'#8070a0',cursor:'pointer'}}>나가기</button>
           </div>
         </div>
@@ -3765,7 +3861,7 @@ export default function App(){
             value={msChatInput}
             onChange={function(e){setMsChatInput(e.target.value);}}
             onKeyDown={function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMansinChat(msChatInput);}}}
-            placeholder="바리만신에게 질문하기..."
+            placeholder={!authUser?'로그인하면 질문할 수 있느니라':coins>0?'바리만신에게 질문하기 (엽전 1개)':'엽전이 다 떨어졌느니라'}
             style={{flex:1,padding:'10px 14px',borderRadius:10,border:'1px solid rgba(160,120,200,0.15)',background:'rgba(160,120,200,0.04)',color:'#e8d5ff',fontSize:13,outline:'none'}}
           />
           <button
@@ -3860,11 +3956,11 @@ export default function App(){
       {catNavStep===7&&!authUser&&!catNavLoading&&(
         <div style={{animation:'fadeUp 0.5s ease',marginTop:16,textAlign:'center',width:'100%',maxWidth:300}}>
           <div style={{display:'flex',flexDirection:'column',gap:10}}>
-            <button onClick={function(){window.location.href='/auth/kakao';}} style={{width:'100%',padding:'13px',background:'#FEE500',border:'none',borderRadius:12,fontSize:14,fontWeight:700,color:'#3C1E1E',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+            <button onClick={function(){goLogin('kakao',{returnTo:'catNav'});}} style={{width:'100%',padding:'13px',background:'#FEE500',border:'none',borderRadius:12,fontSize:14,fontWeight:700,color:'#3C1E1E',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
               <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#3C1E1E" d="M9 1C4.58 1 1 3.79 1 7.21c0 2.17 1.45 4.08 3.63 5.18l-.93 3.42c-.08.29.25.52.5.35L8 13.55c.33.03.66.05 1 .05 4.42 0 8-2.79 8-6.21S13.42 1 9 1z"/></svg>
               카카오로 시작하기
             </button>
-            <button onClick={function(){window.location.href='/auth/google';}} style={{width:'100%',padding:'13px',background:'#fff',border:'1px solid #ddd',borderRadius:12,fontSize:14,fontWeight:700,color:'#333',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+            <button onClick={function(){goLogin('google',{returnTo:'catNav'});}} style={{width:'100%',padding:'13px',background:'#fff',border:'1px solid #ddd',borderRadius:12,fontSize:14,fontWeight:700,color:'#333',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
               <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2a10.4 10.4 0 0 0-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92A8.78 8.78 0 0 0 17.64 9.2z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.91-2.26a5.4 5.4 0 0 1-8.09-2.84H.96v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.96 10.71a5.4 5.4 0 0 1 0-3.42V4.96H.96a9 9 0 0 0 0 8.08l3-2.33z"/><path fill="#EA4335" d="M9 3.58a4.86 4.86 0 0 1 3.44 1.35l2.58-2.59A8.65 8.65 0 0 0 9 0 9 9 0 0 0 .96 4.96l3 2.33A5.36 5.36 0 0 1 9 3.58z"/></svg>
               구글로 시작하기
             </button>
