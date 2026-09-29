@@ -251,13 +251,20 @@ function analyze(s){
   }
 
   // 성격 (강약 등급 반영)
+  const 성격근거=[];
   const 성격점수=(()=>{
     let sc=50;
     if(강약등급==='극신강')sc+=3;else if(강약등급==='신강')sc+=8;else if(강약등급==='신약')sc-=3;else sc-=8;
-    sc+=합목록.length*6;sc-=충목록.length*8;sc-=형목록.length*6;
-    if(전무.length>0)sc-=6;if(십성카운트.상관>=2)sc-=10;
-    if(십성카운트.정인>=1)sc+=5;if(십성카운트.식신>=1)sc+=5;
-    sc+=신살.길신.length*2;sc-=신살.흉신.length*2;
+    성격근거.push(강약등급+(강약==='신강'?'(+)':'(−)'));
+    if(합목록.length){sc+=합목록.length*6;성격근거.push('합 '+합목록.length+'(+)');}
+    if(충목록.length){sc-=충목록.length*8;성격근거.push('충 '+충목록.length+'(−)');}
+    if(형목록.length){sc-=형목록.length*6;성격근거.push('형 '+형목록.length+'(−)');}
+    if(전무.length>0){sc-=6;성격근거.push(전무.join('·')+' 없음(−)');}
+    if(십성카운트.상관>=2){sc-=10;성격근거.push('상관 과다(−)');}
+    if(십성카운트.정인>=1){sc+=5;성격근거.push('정인(+)');}
+    if(십성카운트.식신>=1){sc+=5;성격근거.push('식신(+)');}
+    if(신살.길신.length){sc+=신살.길신.length*2;성격근거.push('길신 '+신살.길신.length+'(+)');}
+    if(신살.흉신.length){sc-=신살.흉신.length*2;성격근거.push('흉신 '+신살.흉신.length+'(−)');}
     return Math.min(92,Math.max(12,sc));
   })();
   
@@ -270,7 +277,17 @@ function analyze(s){
   if(강약등급==='극신강')성격특징.push('추진력이 대단하나 주변과 부딪힐 수 있어');
   if(강약등급==='극신약')성격특징.push('겉으로는 유순하나 내면의 의지가 강해');
 
-  const 건강점수=(()=>{let sc=55;sc-=전무.length*10;sc-=과다.length*7;sc-=충목록.length*6;sc-=형목록.length*5;if(십성카운트.편인>=2)sc-=8;sc-=신살.흉신.filter(s=>s.명.includes('백호')||s.명.includes('겁살')).length*5;return Math.min(92,Math.max(12,sc));})();
+  const 건강근거=[];
+  const 건강점수=(()=>{let sc=55;
+    if(전무.length){sc-=전무.length*10;건강근거.push(전무.join('·')+' 없음(−)');}
+    if(과다.length){sc-=과다.length*7;건강근거.push(과다.join('·')+' 과다(−)');}
+    if(충목록.length){sc-=충목록.length*6;건강근거.push('충 '+충목록.length+'(−)');}
+    if(형목록.length){sc-=형목록.length*5;건강근거.push('형 '+형목록.length+'(−)');}
+    if(십성카운트.편인>=2){sc-=8;건강근거.push('편인 과다(−)');}
+    const 흉살수=신살.흉신.filter(s=>s.명.includes('백호')||s.명.includes('겁살')).length;
+    if(흉살수){sc-=흉살수*5;건강근거.push('백호·겁살 '+흉살수+'(−)');}
+    if(!건강근거.length)건강근거.push('뚜렷한 감점 요인 없음');
+    return Math.min(92,Math.max(12,sc));})();
 
   const 아버지인연=인연('편재','정재');const 아버지복덕=복덕('편재','정재');
   const 어머니인연=인연('편인','정인');const 어머니복덕=복덕('편인','정인');
@@ -278,6 +295,13 @@ function analyze(s){
   const 배우자인연=인연(...배우자십성);const 배우자복덕=복덕(...배우자십성);
   const 자식인연=인연('식신','상관');const 자식복덕=복덕('식신','상관');
 
+  function relReason(십성1,십성2,label){
+    const cnt=(십성카운트[십성1]||0)+(십성카운트[십성2]||0);
+    const r=[label+' '+cnt+'개'+(cnt?'(+)':'')];
+    if(충목록.length)r.push('충 '+충목록.length+'(−)');
+    if(신살.길신.length)r.push('길신 '+신살.길신.length+'(+)');
+    return r.join(' · ');
+  }
   const 재물점수=relScore('정재','편재');const 직장점수=relScore('정관','편관');const 학문점수=relScore('정인','편인');
 
   const 재물특징=[];
@@ -296,7 +320,7 @@ function analyze(s){
   const 학문특징=[];
   if(십성카운트.정인>=1)학문특징.push('학문적 자아실현 욕구가 높아');
   if(십성카운트.편인>=2)학문특징.push('인성이 파극돼서 학문이 중단될 수 있어');
-  if(전무.includes(천간오행[일간]))학문특징.push('인성이 없어서 학문 복이 약해');
+  if(전무.includes({목:'수',화:'목',토:'화',금:'토',수:'금'}[천간오행[일간]]))학문특징.push('인성이 없어서 학문 복이 약해');
   if(학문특징.length===0)학문특징.push('보통의 학문운이야');
 
   // 특이사항
@@ -331,8 +355,8 @@ function analyze(s){
     용신:용신오행,용신상세:용신결과,강약상세:강약결과,
     오행:{카운트:오행카운트,전무,과다,퍼센트:오행퍼센트},
     십성:십성카운트,
-    성격:{점수:성격점수,특징:성격특징},
-    건강:{점수:건강점수,경고:건강경고},
+    성격:{점수:성격점수,특징:성격특징,근거:성격근거.join(' · ')},
+    건강:{점수:건강점수,경고:건강경고,근거:건강근거.join(' · ')},
     가족:{
       아버지:{인연:아버지인연,복덕:아버지복덕},
       어머니:{인연:어머니인연,복덕:어머니복덕},
@@ -340,9 +364,9 @@ function analyze(s){
       자식:{인연:자식인연,복덕:자식복덕},
     },
     사회:{
-      재물:{점수:재물점수,특징:재물특징},
-      직장:{점수:직장점수,특징:직장특징},
-      학문:{점수:학문점수,특징:학문특징},
+      재물:{점수:재물점수,특징:재물특징,근거:relReason('정재','편재','재성')},
+      직장:{점수:직장점수,특징:직장특징,근거:relReason('정관','편관','관성')},
+      학문:{점수:학문점수,특징:학문특징,근거:relReason('정인','편인','인성')},
     },
     특이,충:충목록,합:합목록,형:형목록,대운,대운길흉:대운길흉결과,
     dir:dir===1?'순행':'역행',
@@ -481,7 +505,7 @@ var EDU={
 직장:'직장·명예운은 **관성**(정관·편관)으로 보네. **정관**은 안정적인 직장·승진의 기운이고, **편관**은 외부 압박과 경쟁 속에서 성장하는 기운이네. 관성이 없으면 조직보다 자유업이 맞을 수 있지. **상관견관**이라는 구조가 있는데, 상관이 정관을 극하면 상사와 충돌하거나 이직이 잦을 수 있다는 뜻이네.',
 학문:'학문운은 **인성**(정인·편인)으로 보네. **정인**은 정통 학문·자격증·전문직에 유리하고, **편인**은 독특한 사고방식으로 특수 분야에 깊이 파고드는 기운이네. 인성이 사주에 있으면 배움에 대한 욕구가 강하고, 너무 많으면 **도식(倒食)**이라 해서 생각만 많고 행동이 느려질 수 있으니 균형이 중요하네.',
 진태양시:'고양이 사주명당은 **진태양시(眞太陽時)** 보정을 적용하네. 한국 표준시는 동경 135도(일본 아카시) 기준인데, 서울은 동경 127도라서 실제 태양 위치가 약 32분 느리지. **시주(時柱)**는 태양의 실제 위치가 기준이라 이 보정이 중요하네. 출생지에서 \"보정없음\"을 선택하면 보정 없는 결과가 나오네.',
-오행차이:'오행 비율을 정확하게 계산하는 데는 세 가지가 중요하네. 첫째, **진태양시 보정**으로 정확한 시주를 구해야 하네. 둘째, **지장간(支藏干)** 반영이네 — 각 지지 안에 숨은 천간이 2~3개 들어있는데, 고양이 사주명당은 전통 지장간 일수(日數)를 기반으로 비율을 계산하네. 셋째, **왕상휴수사** 보정이네. 태어난 월지의 계절에 따라 오행의 세기가 달라지는데, 辰戌丑未월은 토(土)가 왕한 토왕용사(土旺用事) 기간으로 별도 처리하네.',
+오행차이:'오행 비율을 정확하게 계산하는 데는 세 가지가 중요하네. 첫째, **진태양시 보정**으로 정확한 시주를 구해야 하네. 둘째, **지장간(支藏干)** 반영이네 — 각 지지 안에 숨은 천간이 2~3개 들어있는데, 고양이 사주명당은 전통 지장간 일수(日數)를 기반으로 비율을 계산하네. 셋째, **왕상휴수사** 보정이네. 태어난 월지의 계절에 따라 오행의 세기가 달라지는데, 辰戌丑未월은 토(土)가 왕한 토왕용사(土旺用事) 기간으로 별도 처리하네. 막대 옆 숫자는 여덟 글자 전체에서 그 오행이 차지하는 비율(%)이네.',
 강약격국:'사주를 볼 때 알아야 할 세 가지 핵심이네.\n**강약(强弱)**은 일간(나 자신)의 에너지가 강한지 약한지이네. 태어난 계절에 힘을 얻었으면 신강, 못 얻었으면 신약이지. 타고난 체력과 추진력의 크기라고 보면 되네.\n**격국(格局)**은 사주의 구조, 즉 어떤 타입의 인생인가를 보여주네. **비견격**은 독립·경쟁형, **겁재격**은 승부사·도전형, **식신격**은 재능·표현형, **상관격**은 창의·반골형, **정재격**은 안정·저축형, **편재격**은 사업·투자형, **정관격**은 조직·출세형, **편관격**은 개혁·돌파형, **정인격**은 학문·전문형, **편인격**은 독창·탐구형이네.\n**용신(用神)**은 사주의 불균형을 보완해주는 오행이네. 일간의 비타민 같은 존재라서 이 오행의 기운이 오는 시기에 운이 좋아지네.',
 신살설명:'**신살(神殺)**은 사주에 나타나는 특수한 기운이네. **✦ 길신**은 좋은 기운으로, 천을귀인이면 위기 때 도움이 오고 문창귀인이면 시험·학문에 유리하네. **✧ 흉신**은 주의할 기운으로, 양인이면 성격이 강렬해서 화를 부를 수 있고 겁살이면 뜻밖의 손실을 뜻하네. **○ 중립** 신살은 쓰기에 따라 달라지는데, 역마면 이동·변화가 많고 화개면 학문·종교·예술에 끌리는 기운이네.\n위치도 중요한데, **연지**는 조상·유년기, **월지**는 부모·청년기, **일지**는 나 자신·배우자, **시지**는 자녀·노년기에 해당하네.',
 통근설명:'**통근(通根)**이란 일간이 지지 속에 **뿌리를 내리고 있는지**를 보는 것이네. 지지 안에는 **지장간(支藏干)**이라는 숨은 천간이 2~3개 들어있는데, 이 중 일간과 같은 오행이 있으면 "통근했다"고 하네. 뿌리가 깊으면 일간이 강하고, 얕으면 약하네. 특히 **일지에 통근**하면 가중치가 1.5배라 매우 중요하네.',
@@ -521,8 +545,10 @@ function SectionDivider(){
   );
 }
 
+const 개념용어=['사주 원국이란?','오행(木火土金水)이란?','강약·격국·용신이란?','강약·격국·용신이 뭔가요?','일간(日干)이란?','신살(神殺)이란?','신강·신약과 용신이란?','궁성(宮星)이란?','합충형해파(合沖刑害破)란?','통근(뿌리)이란?','오행과 왕상휴수사란?','십이운성이란?','대운·세운·월운이란?'];
 function EduBlock({title,children,defaultOpen}){
   var s=useState(defaultOpen||false);var open=s[0];var setOpen=s[1];
+  if(개념용어.indexOf(title)>=0)return null;
   return React.createElement('div',{style:{margin:'12px 0',background:'rgba(180,140,80,0.03)',border:'1px solid rgba(180,140,80,0.08)',borderRadius:10,overflow:'hidden',animation:'fadeUp 0.4s ease both'}},
     React.createElement('button',{onClick:function(){setOpen(!open);},style:{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'10px 14px',background:'none',border:'none',cursor:'pointer',textAlign:'left'}},
       React.createElement(CatFace,{size:22}),
@@ -533,6 +559,31 @@ function EduBlock({title,children,defaultOpen}){
   );
 }
 
+function glossaryItems(){
+  var 궁성=['연주','월주','일주','시주'].map(function(k){var g=궁성서사[k];return '**'+g.명+'**('+g.시기+'): '+g.설명;}).join('\n');
+  return [
+    ['사주 원국',EDU.사주원국],
+    ['오행(木火土金水)',EDU.오행.map(function(o){return '**'+o.title+'** — '+o.text;}).join('\n')],
+    ['일간(日干)','**일간**은 사주 8글자 중 **일주의 천간**으로, 바로 **나 자신**을 뜻하네. 甲부터 癸까지 10개 천간 중 하나가 일간이 되며, 각각 고유한 물상(物象)과 성정이 있네.'],
+    ['강약·격국·용신',EDU.강약격국],
+    ['신강·신약과 용신',EDU.강약],
+    ['통근(뿌리)',EDU.통근설명],
+    ['오행과 왕상휴수사',EDU.왕상설명],
+    ['십이운성','**십이운성(十二運星)**은 일간이 각 지지에서 어떤 **생명 주기**에 있는지를 나타내네. 장생(태어남)→목욕(성장)→관대(독립)→건록(전성기)→제왕(정점)→쇠(하강)→병(쇠약)→사(끝)→묘(저장)→절(단절)→태(잉태)→양(준비)의 12단계이네. **일지의 운성**이 자네의 기본 에너지 상태를 보여주네.'],
+    ['신살(神殺)',EDU.신살설명],
+    ['궁성(宮星)','사주의 네 기둥은 각각 인생의 다른 시기와 인연을 나타내네.\n'+궁성],
+    ['합충형해파(合沖刑害破)',EDU.합충설명],
+    ['대운·세운·월운',EDU.대운설명]
+  ].filter(function(x){return x[1];});
+}
+function Glossary({accent}){
+  var st=useState(false);var open=st[0];var setOpen=st[1];
+  var items=glossaryItems();var c=accent||'#b48c50';
+  return React.createElement('div',{style:{margin:'20px 0 4px'}},
+    React.createElement('button',{onClick:function(){setOpen(!open);},style:{width:'100%',padding:'10px 14px',background:'transparent',border:'1px dashed '+c+'55',borderRadius:10,color:c,fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:"'Noto Serif KR',serif"}},(open?'▴ ':'📖 ')+'사주 용어 풀이 ('+items.length+')'),
+    open&&React.createElement('div',{style:{marginTop:6}},items.map(function(it){return React.createElement(EduBlock,{key:it[0],title:it[0]},React.createElement(EduText,{text:it[1]}));}))
+  );
+}
 function EduText({text}){
   // **볼드** 마커 지원
   var parts=fixJosa(text||'').split(/(\*\*[^*]+\*\*)/g);
@@ -1187,7 +1238,63 @@ function RelCardNew({name,icon,인연,복덕,delay}){
   );
 }
 
-function SocialCardNew({name,icon,점수,특징,delay}){
+// ── 한눈에 보는 요약 카드 ──
+const 격국유형={비견격:'독립·경쟁형',겁재격:'승부사·도전형',식신격:'재능·표현형',상관격:'창의·반골형',정재격:'안정·저축형',편재격:'사업·투자형',정관격:'조직·출세형',편관격:'개혁·돌파형',정인격:'학문·전문형',편인격:'독창·탐구형'};
+const 강약한줄={극신강:'기운이 넘쳐 스스로 밀고 나가는',신강:'힘이 있어 일을 끌고 가는',신약:'섬세하고 사람의 도움으로 크는',극신약:'여린 만큼 환경과 인연이 중요한'};
+const 강점사전={비겁:'자립심과 추진력',식상:'표현력과 재능',재성:'현실 감각과 재물 감각',관성:'책임감과 조직력',인성:'배우는 힘과 통찰력'};
+const 과다조언={목:'고집이 세지기 쉬우니 유연하게',화:'과열·조급함을 다스려야',토:'고지식하게 굳기 쉬우니 변화도 받아들여야',금:'말과 판단이 날카로워지기 쉬움',수:'생각이 많아 결단이 늦어지기 쉬움'};
+const 전무조언={목:'계획하고 키워가는 힘을 채워야',화:'열정과 표현을 의식적으로 써야',토:'꾸준함과 신뢰를 쌓아야',금:'결단하고 마무리하는 힘을 길러야',수:'쉬어가며 유연함을 채워야'};
+const 흉신조언={양인:'성미가 강해 부딪히기 쉬움',겁살:'뜻밖의 손실에 대비',백호살:'사고·수술수 조심',원진:'미워도 끊기 어려운 인연 주의',귀문:'예민함·신경 과로 주의',천라:'구설·관재 조심',지망:'구설·관재 조심'};
+const 조합조언={비겁쟁재:'동업·보증은 피할 것',상관견관:'윗사람과 마찰 주의',관살혼잡:'진로를 두고 갈등하기 쉬움',재다신약:'재물이 오히려 짐이 되기 쉬움'};
+const 용신행운={목:'초록·청색 · 동쪽',화:'빨강·보라 · 남쪽',토:'노랑·갈색 · 중앙',금:'흰색·은색 · 서쪽',수:'검정·남색 · 북쪽'};
+function buildSummary(r){
+  var ss=r.십성||{};var n=function(k){return ss[k]||0;};
+  var grp=[['비겁',n('비견')+n('겁재')],['식상',n('식신')+n('상관')],['재성',n('정재')+n('편재')],['관성',n('정관')+n('편관')],['인성',n('정인')+n('편인')]];
+  var 강점=grp.filter(function(g){return g[1]>0;}).sort(function(a,b){return b[1]-a[1];}).slice(0,2).map(function(g){return 강점사전[g[0]];});
+  var 길신=(r.신살&&r.신살.길신||[]).map(function(x){return x.명.split('(')[0];});
+  if(길신.indexOf('천을귀인')>=0)강점.push('위기 때 돕는 귀인');
+  else if(길신.indexOf('문창귀인')>=0)강점.push('학문·시험에 강함');
+  else if(길신.indexOf('천덕귀인')>=0||길신.indexOf('월덕귀인')>=0)강점.push('흉을 길로 바꾸는 덕');
+  else if(길신.indexOf('건록')>=0)강점.push('자수성가하는 힘');
+  if(강점.length<3&&격국유형[r.격국])강점.push(격국유형[r.격국].replace('형','')+' 기질');
+  var 주의=[];
+  (r.오행.과다||[]).slice(0,1).forEach(function(oh){주의.push(oh+' 기운 과다 — '+과다조언[oh]);});
+  (r.오행.전무||[]).slice(0,1).forEach(function(oh){주의.push(oh+' 기운 없음 — '+전무조언[oh]);});
+  var 흉=(r.신살&&r.신살.흉신||[]).map(function(x){return x.명.split('(')[0];}).find(function(nm){return 흉신조언[nm];});
+  if(흉)주의.push(흉+' — '+흉신조언[흉]);
+  try{var 조합=십성조합감지(r.십성,r.강약).find(function(c){return 조합조언[c.key];});if(조합)주의.push(조합.제목.split('(')[0]+' — '+조합조언[조합.key]);}catch(e){}
+  if(r.충&&r.충.length)주의.push(r.충[0].위치+'충('+r.충[0].지1+r.충[0].지2+') — 변화와 부딪힘이 있는 자리');
+  var now=new Date();var sajuYear=calculateSaju(now.getFullYear(),now.getMonth()+1,now.getDate(),12,0).meta.sajuYear;
+  var 세운=세운분석(sajuYear,r.일간,r.용신,r.용신상세?r.용신상세.기신:'',r.Z||[]);
+  var age=now.getFullYear()-r.birthYear;
+  var 대운=(r.대운길흉||[]).find(function(d){return age>=d.start&&age<d.start+10;});
+  return{
+    일주:r.일간+r.일지,
+    제목:(ILJU_NARRATIVE[r.일간+r.일지]||{}).title||'',
+    한줄:(강약한줄[r.강약등급]||'')+' '+(격국유형[r.격국]||r.격국),
+    강점:강점.slice(0,3),주의:주의.slice(0,3),
+    올해:세운.연도+' '+세운.간지+'년 '+세운.등급+(대운?' · 대운 '+대운.간지+'('+대운.start+'~'+(대운.start+9)+'세) '+대운.등급:''),
+    행운:r.용신+' — '+(용신행운[r.용신]||'')
+  };
+}
+function SummaryCard({r,children}){
+  var sm;try{sm=buildSummary(r);}catch(e){return null;}
+  var row=function(label,color,items){if(!items||!items.length)return null;return React.createElement('div',{style:{display:'flex',gap:8,marginTop:8,alignItems:'flex-start'}},
+    React.createElement('span',{style:{flexShrink:0,fontSize:10,fontWeight:700,color:color,padding:'2px 7px',borderRadius:6,background:color+'14',border:'1px solid '+color+'30'}},label),
+    React.createElement('div',{style:{fontSize:12,lineHeight:1.7,color:'#c0b8a0'}},items.map(function(t,i){return React.createElement('div',{key:i},fixJosa(t));})));};
+  return React.createElement('div',{style:{margin:'4px 0 16px',padding:'14px 16px',background:'linear-gradient(160deg,rgba(180,140,80,0.08),rgba(180,140,80,0.02))',border:'1px solid rgba(180,140,80,0.2)',borderRadius:14,animation:'fadeUp 0.5s ease both'}},
+    React.createElement('div',{style:{fontSize:10,letterSpacing:3,color:'#8a7e6d'}},'한눈에 보는 내 사주'),
+    React.createElement('div',{style:{fontSize:16,fontWeight:800,color:'#e8d5a8',fontFamily:"'Noto Serif KR',serif",marginTop:4}},sm.일주+' 일주'+(sm.제목?' · '+sm.제목:'')),
+    React.createElement('div',{style:{fontSize:12,color:'#b48c50',marginTop:2}},sm.한줄+' 사주'),
+    row('강점','#6abf5a',sm.강점),
+    row('주의','#d46050',sm.주의),
+    row('올해','#c8a050',[sm.올해]),
+    row('행운','#8a9ed0',[sm.행운]),
+    children
+  );
+}
+
+function SocialCardNew({name,icon,점수,특징,delay,근거}){
   return React.createElement('div',{style:{background:'rgba(180,140,80,0.03)',border:'1px solid rgba(180,140,80,0.08)',borderRadius:10,padding:'12px 14px',margin:'8px 0',animation:'fadeUp 0.4s '+(delay||0)+'s both ease-out'}},
     React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:8}},
       React.createElement('span',{style:{fontSize:16}},icon),
@@ -1198,7 +1305,8 @@ function SocialCardNew({name,icon,점수,특징,delay}){
       특징.map(function(t,i){
         return React.createElement('div',{key:i,style:{fontSize:11.5,lineHeight:1.8,color:'#a09880',paddingLeft:8,borderLeft:'2px solid rgba(180,140,80,0.1)',marginBottom:3}},t);
       })
-    )
+    ),
+    근거&&React.createElement('div',{style:{marginTop:6,fontSize:10,color:'#6a5e4d',lineHeight:1.6}},'점수 근거 · '+근거)
   );
 }
 
@@ -2894,6 +3002,7 @@ export default function App(){
         {/* Part 0: 사주표 */}
         {resultTab===0&&(
           <div style={{animation:'fadeUp 0.5s ease'}}>
+            <SummaryCard r={result}/>
             {/* 사주 원국이란? — 사주표 위 */}
             <EduBlock title="사주 원국이란?"><EduText text={EDU.사주원국}/></EduBlock>
             {/* 서예 만세력 */}
@@ -2952,10 +3061,8 @@ export default function App(){
             {/* 신살 설명 */}
             <EduBlock title="신살(神殺)이란?"><EduText text={EDU.신살설명}/></EduBlock>
             <SectionDivider/>
-            {/* 대운 타임라인 */}
-            <DaeunTimelineSimple 대운={result.대운} birthYear={result.birthYear}/>
             {/* 종합서사 핵심 인사이트 */}
-            {(function(){try{var blocks=종합서사생성(result);var dominated=['ilju','ilgan','gilsin','hyungsin','neutral_sinsal'];var extras=blocks.filter(function(b){return dominated.indexOf(b.type)<0&&b.title;});if(extras.length===0)return null;var typeIcon={special:'\u2728',gangak:'\u2696',gyeokguk:'\u25C8',chung:'\u26A1',hap:'\u2661',cheongan_hap:'\u2661',hyeong:'\u26A0',hae:'\u2637',pa:'\u2702',gongmang:'\u25CC',oheng_zero:'\u2716',oheng_excess:'\u25B2',reversal:'\u2600',warning:'\u26D4'};var typeColor={special:'#c8a85a',gangak:'#a09880',gyeokguk:'#b48c50',chung:'#d45050',hap:'#5aaa5a',cheongan_hap:'#5aaa5a',hyeong:'#d4a050',gongmang:'#6a6a9a',oheng_zero:'#d07070',oheng_excess:'#c8a050',reversal:'#6abf5a',warning:'#d46050'};return React.createElement('div',{style:{display:'flex',flexWrap:'wrap',gap:6,marginBottom:10}},extras.slice(0,8).map(function(b,i){var c=typeColor[b.type]||'#b48c50';var ic=typeIcon[b.type]||'\u25B8';var isLong=b.title.length>8||b.text.length>50;var shortText=b.text.length>60?b.text.substring(0,60)+'...':b.text;return React.createElement('div',{key:'ni'+i,style:{flex:isLong?'1 1 100%':'1 1 calc(50% - 3px)',minWidth:isLong?'100%':130,padding:'10px 12px',background:c+'08',border:'1px solid '+c+'20',borderRadius:10,boxSizing:'border-box'}},React.createElement('div',{style:{display:'flex',alignItems:'center',gap:5,marginBottom:4}},React.createElement('span',{style:{fontSize:13}},ic),React.createElement('span',{style:{fontSize:12,fontWeight:700,color:c,fontFamily:"'Noto Serif KR',serif",lineHeight:1.3}},b.title)),React.createElement('div',{style:{fontSize:11,color:'#a09880',lineHeight:1.7}},shortText));}));}catch(e){return null;}})()}
+            {(function(){try{var blocks=종합서사생성(result);var dominated=['ilju','ilgan','gilsin','hyungsin','neutral_sinsal','gangak','gyeokguk'];var extras=blocks.filter(function(b){return dominated.indexOf(b.type)<0&&b.title;});if(extras.length===0)return null;var typeIcon={special:'\u2728',gangak:'\u2696',gyeokguk:'\u25C8',chung:'\u26A1',hap:'\u2661',cheongan_hap:'\u2661',hyeong:'\u26A0',hae:'\u2637',pa:'\u2702',gongmang:'\u25CC',oheng_zero:'\u2716',oheng_excess:'\u25B2',reversal:'\u2600',warning:'\u26D4'};var typeColor={special:'#c8a85a',gangak:'#a09880',gyeokguk:'#b48c50',chung:'#d45050',hap:'#5aaa5a',cheongan_hap:'#5aaa5a',hyeong:'#d4a050',gongmang:'#6a6a9a',oheng_zero:'#d07070',oheng_excess:'#c8a050',reversal:'#6abf5a',warning:'#d46050'};return React.createElement('div',{style:{display:'flex',flexWrap:'wrap',gap:6,marginBottom:10}},extras.slice(0,8).map(function(b,i){var c=typeColor[b.type]||'#b48c50';var ic=typeIcon[b.type]||'\u25B8';var isLong=b.title.length>8||b.text.length>50;var shortText=b.text.length>60?b.text.substring(0,60)+'...':b.text;return React.createElement('div',{key:'ni'+i,style:{flex:isLong?'1 1 100%':'1 1 calc(50% - 3px)',minWidth:isLong?'100%':130,padding:'10px 12px',background:c+'08',border:'1px solid '+c+'20',borderRadius:10,boxSizing:'border-box'}},React.createElement('div',{style:{display:'flex',alignItems:'center',gap:5,marginBottom:4}},React.createElement('span',{style:{fontSize:13}},ic),React.createElement('span',{style:{fontSize:12,fontWeight:700,color:c,fontFamily:"'Noto Serif KR',serif",lineHeight:1.3}},b.title)),React.createElement('div',{style:{fontSize:11,color:'#a09880',lineHeight:1.7}},shortText));}));}catch(e){return null;}})()}
             {/* 특이 사항 (콤팩트 뱃지) */}
             {result.특이&&result.특이.length>0&&(
               <div style={{display:'flex',flexWrap:'wrap',gap:4,marginTop:8,marginBottom:12}}>
@@ -3004,9 +3111,9 @@ export default function App(){
             })()}
             <CatBubbleResult text={generateCatComment(result,'성격')}/>
             <SectionDivider/>
-            <SocialCardNew name="성격 원만성" icon="🧠" 점수={result.성격.점수} 특징={result.성격.특징} delay={0.1}/>
+            <SocialCardNew name="성격 원만성" icon="🧠" 점수={result.성격.점수} 특징={result.성격.특징} 근거={result.성격.근거} delay={0.1}/>
             <SectionDivider/>
-            <SocialCardNew name="체력과 건강" icon="💪" 점수={result.건강.점수} 특징={result.건강.경고.length>0?result.건강.경고:['전반적으로 양호한 건강운이야']} delay={0.2}/>
+            <SocialCardNew name="체력과 건강" icon="💪" 근거={result.건강.근거} 점수={result.건강.점수} 특징={result.건강.경고.length>0?result.건강.경고:['전반적으로 양호한 건강운이야']} delay={0.2}/>
             <CatBubbleResult text={generateCatComment(result,'건강')}/>
             {/* 일지 십이운성 미니 */}
             {(function(){var cur=result.운성?result.운성.find(function(u){return u.위치==='일지';}):null;if(!cur)return null;var info=운성서사[cur.운성];if(!info)return null;var gc=info.등급==='대길'?'#6abf5a':info.등급==='길'?'#8abf7a':info.등급==='평'?'#c8a050':'#d07070';return React.createElement('div',{style:{display:'flex',alignItems:'center',gap:10,padding:'10px 14px',background:gc+'08',border:'1px solid '+gc+'20',borderRadius:10,marginBottom:6}},React.createElement('div',{style:{fontSize:18,fontWeight:900,color:gc,fontFamily:"'Noto Serif KR',serif"}},cur.운성),React.createElement('div',{style:{flex:1}},React.createElement('div',{style:{display:'flex',alignItems:'center',gap:6}},React.createElement('span',{style:{fontSize:11,fontWeight:700,color:gc}},'일지 십이운성'),React.createElement('span',{style:{fontSize:9,padding:'1px 6px',background:gc+'15',borderRadius:3,color:gc}},info.등급)),React.createElement('div',{style:{fontSize:10,color:'#a09880',marginTop:2,lineHeight:1.5}},info.설명.length>45?info.설명.substring(0,45)+'...':info.설명)));})()}
@@ -3102,15 +3209,15 @@ export default function App(){
         {/* ━━━ Part 3: 사회 & 운세 ━━━ */}
         {resultTab===3&&(
           <div style={{animation:'fadeUp 0.5s ease'}}>
-            <SocialCardNew name="재물과 사업" icon="💰" 점수={result.사회.재물.점수} 특징={result.사회.재물.특징} delay={0.1}/>
+            <SocialCardNew name="재물과 사업" icon="💰" 점수={result.사회.재물.점수} 특징={result.사회.재물.특징} 근거={result.사회.재물.근거} delay={0.1}/>
             <CatBubbleResult text={generateCatComment(result,'재물')}/>
             <EduBlock title="재물운의 판단 기준"><EduText text={EDU.재물}/></EduBlock>
             <SectionDivider/>
-            <SocialCardNew name="직장과 명예" icon="🏢" 점수={result.사회.직장.점수} 특징={result.사회.직장.특징} delay={0.2}/>
+            <SocialCardNew name="직장과 명예" icon="🏢" 점수={result.사회.직장.점수} 특징={result.사회.직장.특징} 근거={result.사회.직장.근거} delay={0.2}/>
             <CatBubbleResult text={generateCatComment(result,'직장')}/>
             <EduBlock title="직장·명예운의 판단 기준"><EduText text={EDU.직장}/></EduBlock>
             <SectionDivider/>
-            <SocialCardNew name="인격과 학문" icon="📚" 점수={result.사회.학문.점수} 특징={result.사회.학문.특징} delay={0.3}/>
+            <SocialCardNew name="인격과 학문" icon="📚" 점수={result.사회.학문.점수} 특징={result.사회.학문.특징} 근거={result.사회.학문.근거} delay={0.3}/>
             <CatBubbleResult text={generateCatComment(result,'학문')}/>
             <EduBlock title="학문운의 판단 기준"><EduText text={EDU.학문}/></EduBlock>
             {/* 운세 영역 */}
@@ -3213,6 +3320,7 @@ export default function App(){
           </div>
         )}
 
+        <Glossary/>
         <div style={{height:20}}/>
       </div>
 
@@ -3696,7 +3804,8 @@ export default function App(){
         )}
 
 
-      </div>
+      <Glossary accent="#a080c0"/>
+        </div>
 
       {/* 하단 */}
       <div style={{padding:'8px 16px 16px',flexShrink:0,display:'flex',gap:8,justifyContent:'center'}}>
