@@ -6,6 +6,7 @@
 
 ## 목차
 
+0. [변경 이력](#0-변경-이력)
 1. [서비스 개요](#1-서비스-개요)
 2. [사용자 플로우 — phase 상태머신](#2-사용자-플로우--phase-상태머신)
 3. [사주 계산 파이프라인](#3-사주-계산-파이프라인)
@@ -16,6 +17,23 @@
 8. [배포/운영](#8-배포운영)
 
 ---
+
+## 0. 변경 이력
+
+### 2026-09-29 — 로그인 재개 · 출생시간 입력 · 결과 화면 업그레이드
+
+| 영역 | 내용 | 위치 |
+|---|---|---|
+| 로그인 | 카카오·구글 OAuth 재개. state 검증(로그인 CSRF 방지), 로그인은 BASE_URL 호스트에서만 시작, CORS 자기 도메인 제한 | auth.js, server.js |
+| 출생시간 | 입력 순서 …일 → **출생지 → 시간**. 시간은 **시진 범위 선택**(출생지·날짜로 보정한 시계 시각 범위, 자정을 걸치는 시진은 둘로 나눔). 서머타임(1948~51·1955~60·1987~88)·1954~61 UTC+8:30 반영. 일 경계는 자시일변(진태양시 23:00) | saju-time.js (`birthPillars`, `sijinOptions`, `eraNote`) |
+| 엽전 | 서버(users.coins) 관리, 가입자 10개(데모). 바리만신 질문 1회 = 1개, AI 실패 시 환불. 비로그인은 로그인 안내 후 보던 사주로 복귀(sessionStorage `saju_pending`) | enrich.js `/api/chat`, App.jsx `openMansinChat`·`resumePending` |
+| 대기시간 | 첫 방문만 연출 전체, 이후 분석 로딩 1.8초·안내 화면 즉시 | App.jsx `seenBefore` |
+| 희신 | **희신 = 용신이 생하는 오행** (신강→재성, 신약→비겁). 대운 길흉도 같은 기준 | saju-tables.js `용신판정`, saju-advanced.js `대운길흉` |
+| 문장 교정 | 오행·십성 이름 뒤 조사 자동 교정(이/가·은/는·을/를·과/와·으로/로), 운성·용신근거 조사 원문 수정, 별표 노출·숫자 연결·왕(왕) 수정 | text-utils.js `fixJosa` |
+| 해석 모순 | 십성 조합에 신강/신약별 길흉, 신강 사주의 재다신약 제외, 신강 사주에 신약용 격국 문장·'내성적' 성격 문장 나오던 문제 분기 | saju-deep.js `십성조합`, App.jsx |
+| 표시 | 오행 수치 무료·심층 모두 **백분율**, 월운을 절기 기준(인월 2/4~ 등), 천덕·월덕귀인 위치를 천간으로, 신살을 기둥 단위로 묶음, 상단 출생시각을 시진으로 | App.jsx, saju-core.js `jeolgiTime` |
+| 결과 구성 | 1탭 맨 위 **요약 카드**(일주·한 줄·강점·주의·올해·행운), 점수마다 **점수 근거**, 1탭 중복(강약·격국 카드, 대운 목록) 제거, 개념 설명 13개를 하단 **사주 용어 풀이**로 통합 | App.jsx `SummaryCard`·`buildSummary`·`Glossary` |
+| AI 총평 | 로그인 사용자에게 **바리만신 총평**(요약 카드 하단). 사주 데이터 해시별 1회 생성·캐시, 분당 10회·사용자당 24시간 신규 20회 제한 | enrich.js `/api/summary`, db.js `ai_summaries` |
 
 ## 1. 서비스 개요
 
@@ -113,7 +131,7 @@ C:\사주\sajucat
 
 ### 부가 상태
 
-- **엽전(코인)**: `localStorage['mansin_coins']` 초기 100개(App.jsx:1771), premium 헤더에 표시(App.jsx:3215). 충전/결제 없음.
+- **엽전(코인)**: 서버 `users.coins`(가입 시 10개, 데모)가 원본. 바리만신 질문 1회에 1개 차감(`/api/chat`), 로그인 사용자 전용. 충전/결제 없음 (2026-09-29).
 - **인증 부트스트랩**: 마운트 시 `GET /auth/me` → 로그인 상태/최근 사주/만신채팅 유무/마지막 인연 프로필 수신(App.jsx:1815).
 - **트래킹**: `trackAct(action,detail)`(App.jsx:1857)이 로그인 시 `/auth/activity` + 항상 `/api/track` 이중 발사. analyze/tab_view/mansin_chat_start/yeonin_start 등.
 
@@ -152,7 +170,7 @@ C:\사주\sajucat
 
 - 공식: `(출생지 경도 − 135°) × 4분` (한국 표준시 기준경도 135°E). 균시차(equation of time)는 미반영.
 - 도시별 보정값은 `CITIES` 테이블(App.jsx:34)에 표기 — 서울 -32분, 부산 -24분, 제주 -34분 등. "보정없음(해외)"은 경도 135로 스킵.
-- 반환값에 `dayOffset`(자정 넘김 ±1일) 포함. birthToSaju는 보정 시각을 **시주 판정에만** 사용 — 연·월·일주는 KST 원시각으로 계산(절기 경계는 KST 기준이므로. 자시 일주 처리는 정자시 통설, 2026-08-20 수정).
+- **2026-09-29부터 `birthPillars`(saju-time.js)가 담당**: 시계 시각 → (그날의 한국 UTC 오프셋으로) KST 순간 → 연·월주 절기 판정 / 진태양시 → 시진, 일 경계는 진태양시 23:00(자시일변). 서머타임·UTC+8:30 시대 반영. 입력 UI는 시진 범위 선택이라 분 단위 정확도.
 - 시간 모름(`hour=-1`)이면 정오 12시로 계산하고 시주만 `'?'` 처리(App.jsx:49~52).
 
 ### ② 만세력 — saju-core.js (자체 엔진 v2.0)
@@ -188,7 +206,7 @@ C:\사주\sajucat
 - **오행 분포**: 천간 4자 각 1.0점 + 지지 지장간을 일수(日數) 비율(`지장간비율`, App.jsx:110 — 子=[壬0.33,癸0.67] 등)로 분해, 월지 계절 왕상 보정(旺1.2/相1.1/休1.0/囚·死0.85, App.jsx:101) 곱산. `<0.1`이면 **전무**, 총합 대비 `≥35%`면 **과다**(App.jsx:141~142).
 - **십성**: 일간 제외 천간 3 + 지지 4개의 정기(`정기T`, App.jsx:22)로 10종 카운트. `십성()` 함수(App.jsx:25)가 오행 생극+음양으로 판정.
 - **강약** `강약판정`(saju-tables.js:389): 월령세력(saju-tables.js:69) 40% + 통근판정(saju-tables.js:321, 본기3/중기2/여기1점, 일지 1.5배) 30% + 천간생부(352) 15% + 지지세력(369, 지장간 아군비율) 15% → 100점 환산. ≥65 극신강 / ≥45 신강 / ≥30 신약 / 미만 극신약.
-- **용신** `용신판정`(saju-tables.js:423): 억부 고정 규칙 — 신강→식상(설기), 신약→인성(생부). 조후용신은 겨울/여름 한정으로 계산하되 **최종 채택하지 않고** `조후일치` 여부만 표기(saju-tables.js:459~460). 희신=용신을 생하는 오행, 기신=용신을 극하는 오행.
+- **용신** `용신판정`(saju-tables.js:423): 억부 고정 규칙 — 신강→식상(설기), 신약→인성(생부). 조후용신은 겨울/여름 한정으로 계산하되 **최종 채택하지 않고** `조후일치` 여부만 표기(saju-tables.js:459~460). 희신=**용신이 생하는 오행**(2026-09-29 변경: 신강→재성, 신약→비겁), 기신=용신을 극하는 오행.
 - **격국**: 월지 정기의 십성 + '격'(App.jsx:166~168). 내격 10종만, 투간·회지 검증 없음.
 - **신살** `신살판정`(saju-tables.js:207): 천을/문창/천덕/월덕귀인, 건록, 역마, 도화, 화개, 양인, 괴강, 원진, 겁살, 귀문, 천라지망, 고신, 과숙, 백호(간지 기둥 7종) 18종.
 - **대운**: `대운생성`(saju-advanced.js:53) — 양남음녀 순행/역행으로 월주에서 10개 생성, `대운시작나이`(saju-advanced.js:17)는 절기 평균일 근사표(`절기일자`, saju-advanced.js:12) 기반 3일=1년 환산(§7 버그 참조). `대운길흉`(saju-advanced.js:88)이 용신/희신/기신 일치, 일지충, 십이운성으로 10~95점·5등급 판정.
@@ -287,7 +305,8 @@ premium 탭이 직접 참조하는 정적 해설 사전("~느니라" 무당체):
 | 메서드 | 경로 | 리밋 | 역할 |
 |---|---|---|---|
 | POST | /api/enrich | 10/분/IP | 룰엔진 텍스트를 바리만신 말투로 해설 (enrich.js:36) — **프론트 도달 경로 없음(데드)** |
-| POST | /api/chat | 15/분/IP | 바리만신 1:1 상담 (enrich.js:84) |
+| POST | /api/chat | 15/분/IP | 바리만신 1:1 상담 — **로그인 필수, 질문 1회 = 엽전 1개**(401 login_required / 402 no_coins, AI 실패 시 환불) |
+| POST | /api/summary | 10/분/IP | 바리만신 총평 — 로그인 필수, 사주 데이터 해시별 캐시, 사용자당 24시간 신규 20회(429 daily_limit) |
 | POST | /api/yeonin-chat | 15/분/IP | 인연 캐릭터 채팅 (enrich.js:177) |
 
 **기타**: `GET /api/health` (server.js:37).
@@ -310,6 +329,8 @@ DB 파일: `backend/sajucat.db` (WAL 모드, db.js:4~6). **git에서 제외됨**
 | `saju_results` | id PK, user_id FK, gender, birth_year/month/day/hour, birth_city, ilgan, ilji, saju_json, created_at | db.js:30 |
 | `user_activity` | id PK, user_id FK, action, detail, created_at | db.js:46 |
 | `chat_messages` | id PK, user_id FK, chat_type('mansin'/'yeonin'), profile_key, role, content, created_at | db.js:55 |
+| `ai_summaries` | key PK(sha1: 프롬프트 버전+사주 데이터), user_id, text, model, created_at | db.js (2026-09-29) |
+| 추가 컬럼 | `users.coins` INTEGER DEFAULT 10, `saju_results.birth_minute` — 시작 시 자동 마이그레이션(`addColumnIfMissing`) | db.js |
 | `guest_sessions` | id PK(UUID), created_at, last_visit, visit_count, ip, user_agent, gender, birth_year/month/day/hour, birth_city, longitude, saju_json, migrated_to | guest.js:11 |
 | `tracking` | id PK, session_id, user_id, action, detail, created_at (+인덱스 4개) | guest.js:30 |
 | `shared_saju` | id PK(6자리), created_at, form_data, view_count | share.js:8 |
@@ -351,7 +372,8 @@ SAJU_KB   = SAJU_KB_FULL.slice(0, KB_MAX)                // 0이면 무제한
 
 ### 6.4 프론트 연동 지점
 
-- 만신 채팅: `sendMansinChat`(App.jsx:2116) → `/api/chat`. 사주 요약 문자열 조립에 **필드 참조 버그** 있음(§7).
+- 만신 채팅: `sendMansinChat` → `/api/chat`. 비로그인·엽전 0이면 요청 전에 안내, 응답의 `coins`로 잔액 갱신.
+- 총평: `AiSummary` → `/api/summary` (요약 카드 하단, 로그인 사용자). 비로그인은 `AiTeaser` → 로그인 안내.
 - 인연 채팅: `doSend`(App.jsx:2050) → `/api/yeonin-chat`. 사주 요약은 십성/오행/충합/가족인연 포함 멀티라인(App.jsx:2073).
 - `/api/enrich`: 프론트의 `enrichWithAI`(App.jsx:1894)가 완비돼 있으나 호출 경로가 없는 **양쪽 모두 데드 상태**.
 
