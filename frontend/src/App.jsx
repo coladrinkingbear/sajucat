@@ -1294,6 +1294,64 @@ function SummaryCard({r,children}){
   );
 }
 
+// ── 바리만신 AI 총평 (로그인 사용자) ──
+function buildChartPayload(r){
+  var sm=buildSummary(r);var ss=r.십성||{};var n=function(k){return ss[k]||0;};
+  var total=Object.values(r.오행.카운트||{}).reduce(function(a,b){return a+b;},0)||1;
+  var 비율={};['목','화','토','금','수'].forEach(function(k){비율[k]=Math.round((r.오행.카운트[k]||0)/total*100);});
+  var sj=r.saju;var now=new Date();
+  var sajuYear=calculateSaju(now.getFullYear(),now.getMonth()+1,now.getDate(),12,0).meta.sajuYear;
+  var 올해=sm.올해.split(' · ');
+  return{
+    사주:[sj.yg+sj.yj,sj.mg+sj.mj,sj.dg+sj.dj,(sj.hg||'?')+(sj.hj||'?')],
+    성별:sj.gender==='여'?'여':'남',일주:r.일간+r.일지,일주별칭:sm.제목,
+    강약:r.강약등급||r.강약,격국:r.격국,용신:r.용신,
+    희신:r.용신상세?r.용신상세.희신:'',기신:r.용신상세?r.용신상세.기신:'',
+    오행비율:비율,
+    십성:{비겁:n('비견')+n('겁재'),식상:n('식신')+n('상관'),재성:n('정재')+n('편재'),관성:n('정관')+n('편관'),인성:n('정인')+n('편인')},
+    길신:(r.신살.길신||[]).map(function(x){return x.명.split('(')[0];}).filter(function(v,i,a){return a.indexOf(v)===i;}).slice(0,6),
+    흉신:(r.신살.흉신||[]).map(function(x){return x.명.split('(')[0];}).filter(function(v,i,a){return a.indexOf(v)===i;}).slice(0,6),
+    충:(r.충||[]).map(function(c){return c.위치+'충('+c.지1+c.지2+')';}).slice(0,4),
+    합:(r.합||[]).slice(0,4),
+    강점:sm.강점,주의:sm.주의,
+    올해연도:sajuYear,올해세운:(올해[0]||'').replace(/^\d{4} /,''),현재대운:(올해[1]||'').replace(/^대운 /,'')||null
+  };
+}
+function AiSummary({r}){
+  var st=useState({loading:true,text:'',err:''});var v=st[0],setV=st[1];
+  var tries=useState(0);
+  var sig=r.saju.yg+r.saju.yj+r.saju.mg+r.saju.mj+r.saju.dg+r.saju.dj+r.saju.hg+r.saju.hj+r.saju.gender;
+  useEffect(function(){
+    var alive=true;setV({loading:true,text:'',err:''});
+    var chart;try{chart=buildChartPayload(r);}catch(e){setV({loading:false,text:'',err:'총평 준비 중 문제가 생겼느니라.'});return;}
+    fetch('/api/summary',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chart:chart})})
+      .then(function(res){return res.json().then(function(d){return{status:res.status,d:d};});})
+      .then(function(x){if(!alive)return;
+        if(x.d.text)setV({loading:false,text:x.d.text,err:''});
+        else setV({loading:false,text:'',err:x.status===429?'오늘은 총평을 너무 많이 받았느니라. 내일 다시 오거라.':'천기가 어지러워 총평을 읽지 못했느니라.'});})
+      .catch(function(){if(alive)setV({loading:false,text:'',err:'잠시 기운이 흐트러졌느니라.'});});
+    return function(){alive=false;};
+  },[sig,tries[0]]);
+  var box={marginTop:12,paddingTop:12,borderTop:'1px dashed rgba(160,120,200,0.25)'};
+  var head=React.createElement('div',{style:{display:'flex',alignItems:'center',gap:6,marginBottom:6}},React.createElement(BariMansin,{size:22}),React.createElement('span',{style:{fontSize:12,fontWeight:700,color:'#c8a8e8',fontFamily:"'Noto Serif KR',serif"}},'바리만신 총평'));
+  if(v.loading)return React.createElement('div',{style:box},head,React.createElement('div',{style:{fontSize:12,color:'#8a7e9d'}},'바리만신이 자네 사주를 읽는 중이니라…'));
+  if(v.err)return React.createElement('div',{style:box},head,React.createElement('div',{style:{fontSize:12,color:'#8a7e9d'}},v.err),React.createElement('button',{onClick:function(){tries[1](tries[0]+1);},style:{marginTop:6,background:'transparent',border:'1px solid rgba(160,120,200,0.3)',borderRadius:8,padding:'5px 12px',fontSize:11,color:'#c8a8e8',cursor:'pointer'}},'다시 받기'));
+  var lines=fixJosa(v.text).split('\n').filter(function(l){return l.trim();});
+  return React.createElement('div',{style:box},head,lines.map(function(l,i){
+    var t=l.trim();var m=t.match(/^【([^】]+)】\s*(.*)$/);
+    if(m)return React.createElement('div',{key:i,style:{marginTop:i?10:2}},
+      React.createElement('div',{style:{fontSize:12,fontWeight:700,color:'#d8b8f0',fontFamily:"'Noto Serif KR',serif",marginBottom:3}},m[1]),
+      m[2]?React.createElement('div',{style:{fontSize:12.5,lineHeight:1.85,color:'rgba(230,215,235,0.8)',fontFamily:"'Noto Serif KR',serif"}},m[2]):null);
+    return React.createElement('div',{key:i,style:{fontSize:12.5,lineHeight:1.85,color:'rgba(230,215,235,0.8)',fontFamily:"'Noto Serif KR',serif"}},t);
+  }));
+}
+function AiTeaser({onLogin}){
+  return React.createElement('div',{style:{marginTop:12,paddingTop:12,borderTop:'1px dashed rgba(160,120,200,0.25)',display:'flex',alignItems:'center',gap:10}},
+    React.createElement(BariMansin,{size:30}),
+    React.createElement('div',{style:{flex:1,fontSize:12,lineHeight:1.7,color:'#b0a0c8'}},'로그인하면 바리만신이 이 사주만을 위한 ',React.createElement('b',{style:{color:'#d8b8f0'}},'총평'),'을 써주느니라.'),
+    React.createElement('button',{onClick:onLogin,style:{flexShrink:0,background:'linear-gradient(135deg,#8060c0,#5030a0)',border:'none',borderRadius:8,padding:'8px 12px',fontSize:11,fontWeight:700,color:'#fff',cursor:'pointer'}},'총평 받기'));
+}
+
 function SocialCardNew({name,icon,점수,특징,delay,근거}){
   return React.createElement('div',{style:{background:'rgba(180,140,80,0.03)',border:'1px solid rgba(180,140,80,0.08)',borderRadius:10,padding:'12px 14px',margin:'8px 0',animation:'fadeUp 0.4s '+(delay||0)+'s both ease-out'}},
     React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:8}},
@@ -3002,7 +3060,7 @@ export default function App(){
         {/* Part 0: 사주표 */}
         {resultTab===0&&(
           <div style={{animation:'fadeUp 0.5s ease'}}>
-            <SummaryCard r={result}/>
+            <SummaryCard r={result}>{authUser?<AiSummary r={result}/>:<AiTeaser onLogin={function(){openLoginGate('result','');}}/>}</SummaryCard>
             {/* 사주 원국이란? — 사주표 위 */}
             <EduBlock title="사주 원국이란?"><EduText text={EDU.사주원국}/></EduBlock>
             {/* 서예 만세력 */}
@@ -3832,9 +3890,9 @@ export default function App(){
         <div style={{animation:'fadeUp 0.6s ease',marginTop:16,textAlign:'center',maxWidth:320}}>
           <div style={{background:'rgba(160,120,200,0.06)',border:'1px solid rgba(160,120,200,0.14)',borderRadius:14,padding:'14px 20px'}}>
             <p style={{fontSize:14,color:'#c0b8d0',lineHeight:1.9,margin:0}}>
-              나에게 묻고 싶거든 먼저 이름을 밝히거라.<br/>
+              {loginGate.returnTo==='result'?(<>이 사주만을 위한 총평을 받으려면<br/>먼저 이름을 밝히거라.<br/>처음 온 자에게는 <b style={{color:'#e0c8ff'}}>엽전 10개</b>도 내어주지.</>):(<>나에게 묻고 싶거든 먼저 이름을 밝히거라.<br/>
               처음 온 자에게는 <b style={{color:'#e0c8ff'}}>엽전 10개</b>를 내어주지.<br/>
-              질문 한 번에 엽전 한 개씩이니라.
+              질문 한 번에 엽전 한 개씩이니라.</>)}
             </p>
             <p style={{fontSize:11,color:'#8a7e9d',margin:'8px 0 0'}}>보던 사주는 로그인 후 그대로 이어집니다</p>
           </div>

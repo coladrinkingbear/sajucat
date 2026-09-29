@@ -19,6 +19,7 @@ const { db } = require('./db');
 // Rate limiters
 app.use('/api/enrich', rateLimit({ windowMs: 60000, max: 10, message: { error: '잠시 후 다시 시도하세요' } }));
 app.use('/api/chat', rateLimit({ windowMs: 60000, max: 15, message: { error: '잠시 후 다시 시도하세요' } }));
+app.use('/api/summary', rateLimit({ windowMs: 60000, max: 10, message: { error: '잠시 후 다시 시도하세요' } }));
 app.use('/api/yeonin-chat', rateLimit({ windowMs: 60000, max: 15, message: { error: '잠시 후 다시 시도하세요' } }));
 
 // Auth routes

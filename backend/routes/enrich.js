@@ -83,6 +83,94 @@ module.exports = router;
 // 바리만신 1:1 채팅 — 같은 라우터에 추가
 // ============================================================
 
+// ============================================================
+// 바리만신 총평 — 로그인 사용자 전용, 같은 사주 데이터는 한 번만 생성해 캐시
+// ============================================================
+const crypto = require('crypto');
+const SUMMARY_PROMPT_VERSION = 'v2';
+const SUMMARY_DAILY_LIMIT = 20; // 사용자당 24시간 신규 생성 상한 (캐시 조회는 무제한)
+
+function validChart(c) {
+  if (!c || typeof c !== 'object') return false;
+  const pillar = /^[甲乙丙丁戊己庚辛壬癸?][子丑寅卯辰巳午未申酉戌亥?]$/;
+  if (!Array.isArray(c.사주) || c.사주.length !== 4 || !c.사주.every(p => pillar.test(p))) return false;
+  if (!['남', '여'].includes(c.성별) || !/^\d{4}$/.test(String(c.올해연도))) return false;
+  for (const v of Object.values(c)) {
+    if (typeof v === 'string' && v.length > 120) return false;
+    if (Array.isArray(v) && (v.length > 8 || v.some(x => typeof x === 'string' && x.length > 120))) return false;
+  }
+  return true;
+}
+
+function chartToText(c) {
+  const lines = [
+    '사주(연·월·일·시): ' + c.사주.join(' ') + ' / 성별: ' + c.성별,
+    '일주: ' + c.일주 + (c.일주별칭 ? ' (' + c.일주별칭 + ')' : ''),
+    '강약: ' + c.강약 + ' / 격국: ' + c.격국,
+    '용신: ' + c.용신 + ' / 희신: ' + c.희신 + ' / 기신: ' + c.기신,
+    '오행 비율: ' + Object.entries(c.오행비율 || {}).map(([k, v]) => k + ' ' + v + '%').join(', '),
+    '십성 개수: ' + Object.entries(c.십성 || {}).map(([k, v]) => k + ' ' + v).join(', '),
+    '길신: ' + ((c.길신 || []).join(', ') || '없음') + ' / 흉신: ' + ((c.흉신 || []).join(', ') || '없음'),
+    '충: ' + ((c.충 || []).join(', ') || '없음') + ' / 합: ' + ((c.합 || []).join(', ') || '없음'),
+    '강점: ' + (c.강점 || []).join(' / '),
+    '주의: ' + (c.주의 || []).join(' / '),
+    '올해(' + c.올해연도 + ') 세운: ' + (c.올해세운 || '') + ' / 현재 대운: ' + (c.현재대운 || '정보 없음'),
+  ];
+  return lines.join('\n');
+}
+
+const SUMMARY_SYSTEM = `너는 "바리만신"이라는 한국 전통 사주 해석가다. 주어진 [사주 데이터]만 근거로 이 사람의 사주 총평을 쓴다.
+
+[말투]
+- 권위 있는 무당의 반말. 상대를 "자네"라고 부른다 (너·당신 금지). 상대를 아끼는 따뜻한 톤.
+- 모든 문장은 ~느니라, ~이니라, ~하거라, ~리라, ~로다 중 하나로 끝낸다. "~다.", "~요." 같은 평서문·존댓말 어미는 쓰지 않는다.
+- 쉬운 한국어. 한자어를 쓰면 괄호로 뜻을 풀어라.
+
+[구성] 다섯 단락. 각 단락은 제목 한 줄로 시작한다.
+【한마디로】 이 사주를 두 문장으로.
+【타고난 기질】 서너 문장.
+【재물과 일】 서너 문장.
+【인연과 관계】 세 문장.
+【지금의 흐름】 올해 세운과 현재 대운을 근거로 서너 문장. 구체적인 행동 조언 하나를 포함.
+
+[규칙]
+- 데이터에 없는 사실(나이, 직업, 결혼 여부, 과거 사건)을 지어내지 마라.
+- 특정 달·날짜·계절을 짚지 마라. 시기는 데이터의 올해 세운과 현재 대운으로만 말한다.
+- 지난해와 비교하는 말처럼 데이터로 알 수 없는 비교를 하지 마라.
+- 강약·용신·희신·기신 판단을 절대 뒤집지 마라. 용신·희신 오행은 돕는 기운, 기신 오행은 조심할 기운으로 해석하라.
+- 데이터의 강점과 주의를 반드시 반영하되 문장을 그대로 베끼지 마라.
+- 질병 진단, 투자 권유, 단정적인 불행 예언은 금지. 조심할 점은 대처법과 함께 말하라.
+- 제목의 【】 외에는 마크다운, 별표, 목록 기호를 쓰지 마라.
+- 전체 700~1000자.`;
+
+router.post('/summary', sessionMw, async (req, res) => {
+  if (!req.userId) return res.status(401).json({ error: 'login_required' });
+  const c = req.body && req.body.chart;
+  if (!validChart(c)) return res.status(400).json({ error: '잘못된 요청' });
+  // 키 = 데이터 전체 해시: 조작된 데이터가 다른 사람의 캐시를 덮어쓸 수 없음
+  const key = crypto.createHash('sha1').update(SUMMARY_PROMPT_VERSION + JSON.stringify(c)).digest('hex');
+  const hit = q.getSummary.get(key);
+  if (hit) return res.json({ text: hit.text, cached: true });
+  if (q.countUserSummaries24h.get(req.userId).c >= SUMMARY_DAILY_LIMIT) return res.status(429).json({ error: 'daily_limit' });
+
+  try {
+    const text = await callGrok(
+      [{ role: 'system', content: SUMMARY_SYSTEM }, { role: 'user', content: '[사주 데이터]\n' + chartToText(c) }],
+      { maxTokens: 1500, temperature: 0.7, timeoutMs: 45000 }
+    );
+    if (!text) return res.status(502).json({ error: '빈 응답' });
+    // 호칭 통일: 너/네 → 자네
+    // '네'는 숫자 넷(네 개)과 겹치므로 '네 사주'만 바꿈
+    const clean = cleanText(text).replace(/(^|[\s(【])(너는|너의|너를|너에게|네가|네 사주)/gm, (m, p, w) => p + ({ '너는': '자네는', '너의': '자네의', '너를': '자네를', '너에게': '자네에게', '네가': '자네가', '네 사주': '자네 사주' })[w]);
+    q.saveSummary.run(key, req.userId, clean, XAI_MODEL);
+    res.json({ text: clean, cached: false });
+  } catch (err) {
+    console.error('Summary:', err.message);
+    if (err.name === 'AbortError') return res.status(504).json({ error: '시간 초과' });
+    res.status(err.status || 500).json({ error: err.status ? err.message : '서버 오류' });
+  }
+});
+
 // 바리만신 질문 1회 = 엽전 1개 (로그인 사용자 전용, AI 실패 시 환불)
 router.post('/chat', sessionMw, async (req, res) => {
   if (!req.userId) return res.status(401).json({ error: 'login_required' });

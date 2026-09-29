@@ -64,6 +64,17 @@ db.exec(`
   );
 `);
 
+// ── AI 총평 캐시 (사주 데이터 해시 → 총평) ──
+db.exec(`
+  CREATE TABLE IF NOT EXISTS ai_summaries (
+    key TEXT PRIMARY KEY,
+    user_id INTEGER,
+    text TEXT NOT NULL,
+    model TEXT,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
+`);
+
 // ── 컬럼 추가 마이그레이션 (기존 DB 호환) ──
 function addColumnIfMissing(table, col, def) {
   const cols = db.prepare(`PRAGMA table_info(${table})`).all().map(c => c.name);
@@ -95,6 +106,11 @@ const q = {
   spendCoin: db.prepare('UPDATE users SET coins = coins - 1 WHERE id = ? AND coins > 0'),
   refundCoin: db.prepare('UPDATE users SET coins = coins + 1 WHERE id = ?'),
   getCoins: db.prepare('SELECT coins FROM users WHERE id = ?'),
+
+  // AI 총평
+  getSummary: db.prepare('SELECT text FROM ai_summaries WHERE key = ?'),
+  saveSummary: db.prepare('INSERT OR REPLACE INTO ai_summaries (key, user_id, text, model) VALUES (?, ?, ?, ?)'),
+  countUserSummaries24h: db.prepare("SELECT count(*) c FROM ai_summaries WHERE user_id = ? AND created_at > datetime('now', '-1 day')"),
 
   // Activity
   logActivity: db.prepare('INSERT INTO user_activity (user_id, action, detail) VALUES (?, ?, ?)'),
