@@ -188,6 +188,15 @@ function findCurrentJeolgi(birthNumeric) {
   return null;
 }
 
+/** 특정 연도의 절기 시각 (KASI 우선, 범위 밖이면 천문 계산) */
+export function jeolgiTime(year, name) {
+  if (year >= KASI_MIN_YEAR && year <= KASI_MAX_YEAR) {
+    const e = KASI_TL.find(x => x.year === year && x.name === name);
+    if (e) return e;
+  }
+  return calcJeolgiByAstro(year, name);
+}
+
 /**
  * 주어진 birthNumeric 직후(초과)의 절기를 찾는다
  */
